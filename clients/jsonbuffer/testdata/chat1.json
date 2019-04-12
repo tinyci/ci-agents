@@ -1,0 +1,2 @@
+{"type":"message","payload":"hello, world!"}
+{"type":"error","payload":"this is a test error"}

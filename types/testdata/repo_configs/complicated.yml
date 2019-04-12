@@ -1,0 +1,4 @@
+---
+queue: quux
+workdir: /
+override_queue: true

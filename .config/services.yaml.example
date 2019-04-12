@@ -1,0 +1,27 @@
+auth:
+  no_auth: false # disable oauth and use a single account.
+  no_modify: false # turn off all UI control of the management plane
+  no_submit: false # block submits through the UI
+  github_token: "<your token>" # required in no_auth mode
+  # key for session encryption -- bytes in hex format
+  session_crypt_key: 1234567123456712345671234567123456712345671234567888888812345678
+  # key for github token encryption -- bytes in hex format
+  token_crypt_key: 1234567123456712345671234567123456712345671234567888888812345678
+oauth:
+  client_id: "<your id>"
+  client_secret: "<your secret>"
+  redirect_url: "http://<your UI endpoint>/uisvc/login"
+clients:
+  logsvc: 'localhost:6005'
+  datasvc: 'localhost:6000'
+  queuesvc: 'localhost:6001'
+  assetsvc: 'localhost:6002'
+  uisvc: 'http://localhost:6010' # uisvc uses http, so urls.
+services:
+  last_scanned_wait: 1h
+websockets:
+  insecure_websockets: true
+db: 'host=localhost database=tinyci user=tinyci password=tinyci'
+hook_url: 'http://<your hook endpoint>/hook'
+url: 'http://<your UI endpoint>'
+log_requests: true

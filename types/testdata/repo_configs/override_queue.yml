@@ -1,0 +1,3 @@
+---
+queue: quux
+override_queue: true

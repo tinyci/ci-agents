@@ -1,0 +1,16 @@
+---
+mountpoint: "/tmp"
+workdir: "/foobar"
+default_queue: "frobnik"
+runs:
+  foobar: 
+    command: [ "foo", "bar" ]
+    image: "foobar"
+  foobar2: 
+    command: [ "foo", "bar" ]
+    image: "foobar"
+    queue: "hi"
+  foobar3: 
+    command: [ "foo", "bar" ]
+    image: "foobar"
+    queue: "hi2"

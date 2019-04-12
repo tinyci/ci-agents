@@ -1,0 +1,6 @@
+---
+mountpoint: "/tmp"
+runs:
+  foobar:
+    command: ["foo", "bar"]
+    image: "foobar"

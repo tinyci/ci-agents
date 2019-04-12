@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package types;
+
+option go_package = "github.com/tinyci/ci-agents/grpc/types";
+
+import "github.com/golang/protobuf/ptypes/timestamp/timestamp.proto";
+
+import "github.com/tinyci/ci-agents/grpc/types/task.proto";
+import "github.com/tinyci/ci-agents/grpc/types/run_settings.proto";
+
+// Run is a single CI run, intended to be sent to a runner.
+message Run {
+  int64                     id          = 1; // ID is the internal ID of the run.
+	string                    name        = 2; // Name is the name of the run. Typically this is in `dir:run_name` format.
+  google.protobuf.Timestamp createdAt   = 3; // When was this run created
+  google.protobuf.Timestamp startedAt   = 4; // When did this run start
+  google.protobuf.Timestamp finishedAt  = 5; // When did this run finish
+  bool                      status      = 6; // What is the status of this run
+  bool                      statusSet   = 7; // Is the status valid? (nil internally for invalid settings, but proto doesn't like nil)
+	types.RunSettings         settings    = 8; // The settings for the Run (image, command etc)
+  types.Task                task        = 9; // Task for the Run.
+}
+
+// RunList is just an array of runs
+message RunList {
+  repeated Run list = 1; // The list of runs!
+}

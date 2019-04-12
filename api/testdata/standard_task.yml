@@ -1,0 +1,18 @@
+---
+mountpoint: "/tmp"
+runs:
+  1: 
+    command: ["1"]
+    image: "foo"
+  2:
+    command: ["2"]
+    image: "foo"
+  3:
+    command: ["3"]
+    image: "foo"
+  4:
+    command: ["4"]
+    image: "foo"
+  5:
+    command: ["5"]
+    image: "foo"

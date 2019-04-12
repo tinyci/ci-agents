@@ -1,0 +1,8 @@
+---
+mountpoint: "/tmp"
+runs:
+  1: 
+    command: ["1"]
+    image: "foo"
+    dependencies:
+      - foo

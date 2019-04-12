@@ -1,0 +1,18 @@
+---
+env:
+  - CREATE_DB=1
+  - TESTING=1
+  - GIN_MODE=release
+mountpoint: "/go/src/github.com/tinyci/ci-agents"
+default_image: tinyci/ci-agents:03.31.2019
+runs:
+  dist:
+    command: [ "make", "do-build" ]
+  checks:
+    command: [ "env", "bash", "checks.sh" ]
+  staticcheck:
+    command: [ "make", "staticcheck" ]
+  vendor-clean:
+    command: [ "bash", "-c", "make vendor && git diff --stat --exit-code" ]
+  gen-clean:
+    command: [ "bash", "-c", "bash gen.sh && git diff --stat --exit-code" ]

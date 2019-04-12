@@ -1,0 +1,11 @@
+/.config/uisvc.yaml
+/.config/queuesvc.yaml
+/.config/services.yaml
+/.ca
+/.db
+/.logs
+*.gz
+/build
+\#*
+swagger/docs.html
+grpc/docs

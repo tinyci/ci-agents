@@ -1,0 +1,8 @@
+---
+mountpoint: "/tmp"
+workdir: /
+runs:
+  foobar:
+    command: [ "foo", "bar" ]
+    image: "foobar"
+    queue: overridden

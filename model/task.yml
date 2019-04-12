@@ -1,0 +1,31 @@
+---
+env:
+  - CREATE_DB=1
+  - TESTING=1
+  - GIN_MODE=release
+mountpoint: "/go/src/github.com/tinyci/ci-agents"
+default_image: tinyci/ci-agents:03.31.2019
+dependencies:
+  - api/queuesvc
+  - api/datasvc
+  - api/uisvc
+  - types
+runs:
+  queue:
+    command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "^TestQueue(?:Manipulation|Concurrent)$" ]
+  queue_named:
+    command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "^TestQueueNamed$" ]
+  queue_named_concurrent:
+    command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "^TestQueueNamedConcurrent$" ]
+  task_list_basic:
+    command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "^TestTaskList$" ]
+  task_list_sha:
+    command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "^TestTaskListSHAList$" ]
+  task_list_parents:
+    command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "^TestTaskListParents$" ]
+  task_list_forks:
+    command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "^TestTaskListForks$" ]
+  runs_for_task:
+    command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "^TestRunsForTask$" ]
+  others:
+    command: [ "bash", "-c", "set -e; for i in $((go test -v ./model -check.v -check.testlist || exit 1) | grep -vE 'Queue|RunsForTask|TaskList' | tail -n +2 | head -n -1); do go test -race -v ./model -check.v -check.f ^$i\\$; done"]

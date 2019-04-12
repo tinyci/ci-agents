@@ -1,0 +1,9 @@
+---
+mountpoint: "/tmp"
+default_timeout: 50ms
+workdir: /
+runs:
+  foobar:
+    command: [ "foo", "bar" ]
+    image: "foobar"
+    timeout: 100ms # should be replaced

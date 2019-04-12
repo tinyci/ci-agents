@@ -1,0 +1,4 @@
+---
+queue_service: 'localhost:6001'
+data_service: 'localhost:6000'
+log_service: 'localhost:6005'
