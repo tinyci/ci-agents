@@ -47,6 +47,7 @@ DEMO_DOCKER_RUN=\
 								-v ${PWD}/.ca:/var/ca \
 								-v ${PWD}/.db:/var/lib/postgresql \
 								-v ${PWD}/.logs:/var/tinyci/logs \
+								-e START_SERVICES="${START_SERVICES}" \
 								-e DEBUG=1 \
 								$(DEBUG_PORTS) \
 								--link react:react \
@@ -131,6 +132,9 @@ check-service-config:
 	  exit 1; \
 	fi
 
+start-selective-services:
+	for srv in ${START_SERVICES}; do pkill $$srv || :; ($$srv &); done
+
 start-services: check-service-config
 	pkill uisvc-server || :
 	pkill logsvc || :
@@ -139,6 +143,7 @@ start-services: check-service-config
 	pkill queuesvc || :
 	pkill datasvc || :
 	go install -v ./cmd/... ./gen/...
+	@if [ "x${START_SERVICES}" != "x" ]; then make start-selective-services; exit 0; fi
 	logsvc &
 	assetsvc &
 	datasvc &
