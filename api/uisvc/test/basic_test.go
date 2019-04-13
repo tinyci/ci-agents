@@ -260,3 +260,14 @@ func (us *uisvcSuite) TestVisibility(c *check.C) {
 		c.Assert(repo.Name, check.Not(check.Equals), "not-erikh/private-test")
 	}
 }
+
+func (us *uisvcSuite) TestNoAuthUserCreation(c *check.C) {
+	client := github.NewMockClient(gomock.NewController(c))
+	_, doneChan, _, err := testservers.MakeUIServer(client)
+	c.Assert(err, check.IsNil)
+	defer close(doneChan)
+
+	u, err := us.datasvcClient.Client().GetUser("erikh")
+	c.Assert(err, check.IsNil)
+	c.Assert(u.Username, check.Equals, "erikh")
+}

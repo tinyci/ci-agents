@@ -22,7 +22,6 @@ import (
 	"github.com/tinyci/ci-agents/grpc/services/queue"
 	"github.com/tinyci/ci-agents/handlers"
 	mockGithub "github.com/tinyci/ci-agents/mocks/github"
-	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/testutil"
 	"google.golang.org/grpc"
 )
@@ -65,20 +64,16 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 		return nil, nil, nil, errors.New(err)
 	}
 
-	if _, err := d.PutUser(&model.User{Username: "erikh", Token: testutil.DummyToken}); err != nil {
-		return nil, nil, nil, err
-	}
-
-	token, eErr := d.GetToken("erikh")
-	if eErr != nil {
-		return nil, nil, nil, eErr
-	}
-
 	config.DefaultGithubClient = client
 	client.(*mockGithub.MockClient).EXPECT().MyLogin().Return("erikh", nil)
 	doneChan, err := handlers.Boot(nil, h)
 	if err != nil {
 		return nil, nil, nil, errors.New(err)
+	}
+
+	token, eErr := d.GetToken("erikh")
+	if eErr != nil {
+		return nil, nil, nil, eErr
 	}
 
 	tc, err := tinyci.New("http://localhost:6010", token)
