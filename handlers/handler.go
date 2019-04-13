@@ -106,6 +106,14 @@ func Boot(t *transport.HTTP, handler *H) (chan struct{}, *errors.Error) {
 		if err != nil {
 			return nil, err
 		}
+
+		_, err = handler.Clients.Data.GetUser(handler.DefaultUsername)
+		if err != nil {
+			handler.Clients.Log.Infof("Creating no_auth user account for %q", handler.DefaultUsername)
+			if _, err := handler.Clients.Data.PutUser(&model.User{Username: handler.DefaultUsername, Token: &oauth2.Token{AccessToken: handler.Auth.GithubToken}}); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	if t == nil {
@@ -257,7 +265,6 @@ func (h *H) configureSessions(r *gin.Engine) *errors.Error {
 }
 
 func (h *H) configureRestHandler(r *gin.Engine, key string, route *Route, optionsRoutes map[string]struct{}) {
-
 	var dispatchFunc func(string, ...gin.HandlerFunc) gin.IRoutes
 
 	switch route.Method {
