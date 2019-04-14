@@ -69,4 +69,4 @@ Please note that actually running your code requires that you launch a runner
 
 ## License
 
-TBD
+Mozilla Public License 2.0: https://www.mozilla.org/en-US/MPL/2.0/
