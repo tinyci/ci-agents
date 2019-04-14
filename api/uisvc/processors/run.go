@@ -51,6 +51,10 @@ func GetRun(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 
 // CancelRun cancels a run by id.
 func CancelRun(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+	if h.Auth.NoModify {
+		return nil, 500, errors.New("no modifications are allowed")
+	}
+
 	runID, err := strconv.ParseInt(ctx.GetString("run_id"), 10, 64)
 	if err != nil {
 		return nil, 500, errors.New(err)
