@@ -11,25 +11,23 @@ var testRepository = &gh.Repository{
 }
 
 func (ms *modelSuite) TestRepositoryValidate(c *check.C) {
-	users, err := ms.CreateUsers(2)
+	users, err := ms.CreateUsers(1)
 	c.Assert(err, check.IsNil)
 
 	failures := []struct {
 		name   string
 		github *gh.Repository
-		users  []*User
+		user   *User
 	}{
-		{"", testRepository, users},
-		{"erikh/barbara", nil, users},
-		{"erikh/barbara", testRepository, nil},
-		{"erikh/barbara", testRepository, []*User{}},
-		{"erikh/barbara", &gh.Repository{FullName: github.String("something/else")}, users},
+		{"", testRepository, users[0]},
+		{"erikh/barbara", &gh.Repository{FullName: github.String("something/else")}, nil},
+		{"erikh/barbara", &gh.Repository{FullName: github.String("something/else")}, users[0]},
 	}
 
 	for i, failure := range failures {
 		r := &Repository{
 			Name:   failure.name,
-			Owners: failure.users,
+			Owner:  failure.user,
 			Github: failure.github,
 		}
 		c.Assert(ms.model.Create(r).Error, check.NotNil, check.Commentf("iteration %d", i))
@@ -39,7 +37,7 @@ func (ms *modelSuite) TestRepositoryValidate(c *check.C) {
 	r := &Repository{
 		Name:   "erikh/barbara",
 		Github: testRepository,
-		Owners: users,
+		Owner:  users[0],
 	}
 
 	c.Assert(ms.model.Create(r).Error, check.IsNil)
@@ -48,10 +46,7 @@ func (ms *modelSuite) TestRepositoryValidate(c *check.C) {
 	r2, err := ms.model.GetRepositoryByName(r.Name)
 	c.Assert(err, check.IsNil)
 	c.Assert(r2.Name, check.Equals, r.Name)
-	c.Assert(len(r2.Owners), check.Equals, len(r.Owners))
-	for x, owner := range r.Owners {
-		c.Assert(owner.ID, check.Equals, r2.Owners[x].ID)
-	}
+	c.Assert(r2.Owner.ID, check.Equals, users[0].ID)
 	c.Assert(r2.Github, check.NotNil)
 	c.Assert(r2.Github.GetFullName(), check.Equals, r.Name)
 }
@@ -67,16 +62,16 @@ func (ms *modelSuite) TestRepositoryOwners(c *check.C) {
 	c.Assert(ms.model.Save(r1).Error, check.IsNil)
 
 	// r2's owners should not be able to see r1.
-	_, err = ms.model.GetRepositoryByNameForUser(r1.Name, r2.Owners[0])
+	_, err = ms.model.GetRepositoryByNameForUser(r1.Name, r2.Owner)
 	c.Assert(err, check.NotNil)
 
 	// but r1's owners can see r2, because it's not private
-	tmp, err := ms.model.GetRepositoryByNameForUser(r2.Name, r1.Owners[0])
+	tmp, err := ms.model.GetRepositoryByNameForUser(r2.Name, r1.Owner)
 	c.Assert(err, check.IsNil)
 	c.Assert(tmp.Name, check.Equals, r2.Name)
 
 	// and of course r1's owners can see r1...
-	tmp, err = ms.model.GetRepositoryByNameForUser(r1.Name, r1.Owners[0])
+	tmp, err = ms.model.GetRepositoryByNameForUser(r1.Name, r1.Owner)
 	c.Assert(err, check.IsNil)
 	c.Assert(tmp.Name, check.Equals, r1.Name)
 
@@ -85,12 +80,12 @@ func (ms *modelSuite) TestRepositoryOwners(c *check.C) {
 	c.Assert(len(list), check.Equals, 1)
 	c.Assert(list[0].Name, check.Equals, r2.Name)
 
-	list, err = ms.model.GetPrivateReposForUser(r1.Owners[0])
+	list, err = ms.model.GetPrivateReposForUser(r1.Owner)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(list), check.Equals, 1)
 	c.Assert(list[0].Name, check.Equals, r1.Name)
 
-	list, err = ms.model.GetPrivateReposForUser(r2.Owners[0])
+	list, err = ms.model.GetPrivateReposForUser(r2.Owner)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(list), check.Equals, 0)
 }
@@ -107,7 +102,7 @@ func (ms *modelSuite) TestAddEnableRepository(c *check.C) {
 	repo, err := ms.model.GetRepositoryByNameForUser("erikh/barbara", owners[0])
 	c.Assert(err, check.IsNil)
 
-	c.Assert(ms.model.EnableRepository(repo), check.IsNil)
+	c.Assert(ms.model.EnableRepository(repo, owners[0]), check.IsNil)
 
 	c.Assert(repo.ID, check.Not(check.Equals), 0)
 	c.Assert(repo.Name, check.Equals, "erikh/barbara")
@@ -121,7 +116,7 @@ func (ms *modelSuite) TestAddEnableRepository(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(tmp.Disabled, check.Equals, true)
 
-	c.Assert(ms.model.EnableRepository(repo), check.IsNil)
+	c.Assert(ms.model.EnableRepository(repo, owners[0]), check.IsNil)
 	c.Assert(repo.Disabled, check.Equals, false)
 
 	tmp, err = ms.model.GetRepositoryByName("erikh/barbara")

@@ -250,7 +250,7 @@ func (m *Model) mkRepositoryFromGithub(repo *gh.Repository, owner *User, autoCre
 		Private:     repo.GetPrivate(),
 		Disabled:    true, // created repos are disabled by default
 		Github:      repo,
-		Owners:      []*User{owner},
+		Owner:       owner,
 		AutoCreated: autoCreated,
 	}
 }
@@ -264,15 +264,11 @@ func (m *Model) SaveRepositories(repos []*gh.Repository, username string, autoCr
 	}
 
 	for _, repo := range repos {
-		realRepo, err := m.GetRepositoryByName(repo.GetFullName())
+		_, err := m.GetRepositoryByName(repo.GetFullName())
 		if err != nil {
 			localRepo := m.mkRepositoryFromGithub(repo, owner, autoCreated)
 			if err := m.WrapError(m.Create(localRepo), "creating repository"); err != nil {
 				return err.Wrapf("could not create repository %q", repo.GetFullName())
-			}
-		} else {
-			if err := m.Model(realRepo).Association("Owners").Append(owner).Error; err != nil {
-				return errors.New(err)
 			}
 		}
 	}

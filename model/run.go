@@ -225,7 +225,10 @@ func (m *Model) getRunBits(runID int64, gh github.Client) (*runBits, *errors.Err
 	}
 
 	if gh == nil {
-		gh = github.NewClientFromAccessToken(run.Task.Parent.Owners[0].Token.AccessToken)
+		if run.Task.Parent.Owner == nil {
+			return nil, errors.Errorf("No owner for repository %q corresponding to run %d", run.Task.Parent.Name, run.ID)
+		}
+		gh = github.NewClientFromAccessToken(run.Task.Parent.Owner.Token.AccessToken)
 	}
 
 	return &runBits{

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/tinyci/ci-agents/clients/log"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/grpc/handler"
 	"github.com/tinyci/ci-agents/grpc/services/queue"
@@ -63,8 +64,18 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 		return &gtypes.QueueItem{}, err
 	}
 
+	if qi.Run.Task.Parent.Owner == nil {
+		err := errors.New("No owner for repository for queued run; skipping")
+		qs.H.Clients.Log.WithFields(log.FieldMap{
+			"repository": qi.Run.Task.Parent.Name,
+			"run_id":     fmt.Sprintf("%d", qi.Run.ID),
+		}).Error(err)
+
+		return nil, err
+	}
+
 	token := &oauth2.Token{}
-	if err := utils.JSONIO(qi.Run.Task.Parent.Owners[0].Token, token); err != nil {
+	if err := utils.JSONIO(qi.Run.Task.Parent.Owner.Token, token); err != nil {
 		return &gtypes.QueueItem{}, err
 	}
 

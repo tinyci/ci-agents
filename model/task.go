@@ -151,22 +151,22 @@ func (t *Task) BeforeSave(tx *gorm.DB) error {
 func (m *Model) CancelTasksForPR(repository string, prID int64, baseURL string) *errors.Error {
 	tasks := []*Task{}
 
-	err := m.WrapError(
-		m.Preload("Parent.Owners").
-			Joins("inner join repositories on repositories.id = tasks.parent_id").
-			Where("repositories.name = ? and tasks.pull_request_id = ?", repository, prID).Find(&tasks), "locating pull request tasks")
+	err := m.WrapError(m.Joins("inner join repositories on repositories.id = tasks.parent_id").
+		Where("repositories.name = ? and tasks.pull_request_id = ?", repository, prID).Find(&tasks), "locating pull request tasks")
 	if err != nil {
 		return err
 	}
 
 	for _, task := range tasks {
-		client := github.NewClientFromAccessToken(task.Parent.Owners[0].Token.AccessToken)
-		if task.FinishedAt != nil {
-			continue
-		}
+		if task.Parent.Owner != nil {
+			client := github.NewClientFromAccessToken(task.Parent.Owner.Token.AccessToken)
+			if task.FinishedAt != nil {
+				continue
+			}
 
-		if err := m.CancelTask(task, baseURL, client); err != nil {
-			return err
+			if err := m.CancelTask(task, baseURL, client); err != nil {
+				return err
+			}
 		}
 	}
 

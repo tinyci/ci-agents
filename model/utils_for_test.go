@@ -1,7 +1,6 @@
 package model
 
 import (
-	"math/rand"
 	"path"
 
 	"github.com/google/go-github/github"
@@ -28,7 +27,7 @@ func (ms *modelSuite) CreateUsers(count int) ([]*User, error) {
 
 // CreateRepository creates a random repository.
 func (ms *modelSuite) CreateRepository() (*Repository, error) {
-	owners, err := ms.CreateUsers(rand.Intn(8) + 1)
+	owners, err := ms.CreateUsers(1)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +35,7 @@ func (ms *modelSuite) CreateRepository() (*Repository, error) {
 	r := &Repository{
 		Name:   name,
 		Github: &gh.Repository{FullName: github.String(name)},
-		Owners: owners,
+		Owner:  owners[0],
 	}
 
 	return r, ms.model.Save(r).Error

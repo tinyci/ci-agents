@@ -14,7 +14,7 @@ message Repository {
             string                  name        = 2; // Name is the string name of the repository, in owner/repo format
             bool                    private     = 3; // Private tells the CI system to not expose this repository for subscription, unless they are an owner.
             bool                    disabled    = 4; // Disabled is true by default; and indicates whether or not the repository is disabled from testing.
-  repeated  types.User              owners      = 5; // Owners is the list of users who can manipulate this repository, as well as those whose keys will be used for testing.
+            types.User              owner       = 5; // Owner is the user who can manipulate this repository, as well as those whose keys will be used for testing.
             bool                    autoCreated = 6; // AutoCreated is the flag that demonstrates this was created from a repo scan and not added manually.
             string                  hookSecret  = 7; // HookSecret is the secret populated into the github webhooks; and validated by us on incoming hook requests.
             bytes                   github      = 8; // JSON covering the entire repository's properties, when gathered from Github.
