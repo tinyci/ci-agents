@@ -49,8 +49,28 @@ func (us *uisvcSuite) TestLogAttach(c *check.C) {
 	pw.Close()
 	<-finished
 	c.Assert(strings.HasPrefix(buf.String(), "this is a log"), check.Equals, true)
+}
 
-	// XXX LogAttach does not error on missing ids -- https://github.com/tinyci/ci-agents/issues/270
+func (us *uisvcSuite) TestTestModeTokens(c *check.C) {
+	client := github.NewMockClient(gomock.NewController(c))
+	h, doneChan, tc, err := testservers.MakeUIServer(client)
+	c.Assert(err, check.IsNil)
+	defer close(doneChan)
+
+	h.Auth.TestMode = false
+
+	c.Assert(tc.DeleteToken(), check.ErrorMatches, "cannot manipulate tokens.*")
+}
+
+func (us *uisvcSuite) TestTokenEndpoints(c *check.C) {
+	client := github.NewMockClient(gomock.NewController(c))
+	_, doneChan, tc, err := testservers.MakeUIServer(client)
+	c.Assert(err, check.IsNil)
+	defer close(doneChan)
+
+	c.Assert(tc.DeleteToken(), check.IsNil)
+	_, err = tc.Errors()
+	c.Assert(err, check.ErrorMatches, ".*invalid authentication")
 }
 
 func (us *uisvcSuite) TestDeleteToken(c *check.C) {

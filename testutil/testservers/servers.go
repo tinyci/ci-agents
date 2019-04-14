@@ -46,6 +46,7 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 			ClientConfig: clients,
 			URL:          "http://localhost",
 			Auth: config.AuthConfig{
+				TestMode:        true,
 				NoAuth:          true,
 				GithubToken:     "dummy",
 				SessionCryptKey: "0431d583a48a00243cc3d3d596ed362d77c50be4848dbf0d2f52bab841f072f9",

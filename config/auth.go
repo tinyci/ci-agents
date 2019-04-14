@@ -61,6 +61,7 @@ type AuthConfig struct {
 	GithubToken     string `yaml:"github_token"`
 	SessionCryptKey string `yaml:"session_crypt_key"`
 	TokenCryptKey   string `yaml:"token_crypt_key"`
+	TestMode        bool   `yaml:"-"` // test mode allows token auth in no_auth situations. Shouldn't be usable for real installs.
 
 	sessionCryptKey []byte
 	tokenCryptKey   []byte

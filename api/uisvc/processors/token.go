@@ -9,6 +9,10 @@ import (
 // GetToken obtains a new token from the db. If one is already set, you must
 // delete it before this will return a new one.
 func GetToken(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+	if h.Auth.NoAuth && !h.Auth.TestMode {
+		return nil, 500, errors.New("cannot retrieve tokens in no_auth mode")
+	}
+
 	u, err := getUser(h, ctx)
 	if err != nil {
 		return nil, 500, err
@@ -24,6 +28,10 @@ func GetToken(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error)
 
 // DeleteToken removes the existing token for the user.
 func DeleteToken(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+	if h.Auth.NoAuth && !h.Auth.TestMode {
+		return nil, 500, errors.New("cannot manipulate tokens in no_auth mode")
+	}
+
 	u, err := getUser(h, ctx)
 	if err != nil {
 		return nil, 500, err
