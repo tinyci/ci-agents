@@ -2,6 +2,8 @@
 
 set -e
 
+cat welcome.ans
+
 teardown() {
   service postgresql stop
 }
