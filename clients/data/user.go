@@ -69,3 +69,23 @@ func (c *Client) HasCapability(u *model.User, cap model.Capability) (bool, *erro
 
 	return res.Result, nil
 }
+
+// AddCapability adds a capability for a user.
+func (c *Client) AddCapability(u *model.User, cap model.Capability) *errors.Error {
+	_, err := c.client.AddCapability(context.Background(), &data.CapabilityRequest{Id: u.ID, Capability: string(cap)})
+	if err != nil {
+		return errors.New(err)
+	}
+
+	return nil
+}
+
+// RemoveCapability removes a capability from a user.
+func (c *Client) RemoveCapability(u *model.User, cap model.Capability) *errors.Error {
+	_, err := c.client.RemoveCapability(context.Background(), &data.CapabilityRequest{Id: u.ID, Capability: string(cap)})
+	if err != nil {
+		return errors.New(err)
+	}
+
+	return nil
+}

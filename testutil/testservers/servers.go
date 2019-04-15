@@ -73,19 +73,25 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 		return nil, nil, nil, errors.New(err)
 	}
 
-	_, eErr := d.PutUser(&model.User{Username: "erikh", Token: &oauth2.Token{AccessToken: "dummy"}})
-	if eErr != nil {
-		return nil, nil, nil, eErr
+	u, err := d.PutUser(&model.User{Username: "erikh", Token: &oauth2.Token{AccessToken: "dummy"}})
+	if err != nil {
+		return nil, nil, nil, err
 	}
 
-	token, eErr := d.GetToken("erikh")
-	if eErr != nil {
-		return nil, nil, nil, eErr
+	for _, cap := range model.AllCapabilities {
+		if err := d.AddCapability(u, cap); err != nil {
+			return nil, nil, nil, err
+		}
+	}
+
+	token, err := d.GetToken("erikh")
+	if err != nil {
+		return nil, nil, nil, err
 	}
 
 	tc, err := tinyci.New("http://localhost:6010", token)
 	if err != nil {
-		return nil, nil, nil, eErr
+		return nil, nil, nil, err
 	}
 
 	if _, err := tc.Errors(); err != nil { // connectivity check

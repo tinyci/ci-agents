@@ -28,6 +28,9 @@ const (
 )
 
 var (
+	// AllCapabilities comprises the superuser account's list of capabilities.
+	AllCapabilities = []Capability{CapabilityModifyCI, CapabilityModifyUser, CapabilitySubmit, CapabilityCancel}
+
 	// TokenCryptKey is the standard token crypt key.
 	// NOTE: the default is only used by tests; it is overwritten on service boot; see config/auth.go.
 	TokenCryptKey = []byte{1, 2, 3, 4, 5, 6, 7, 8}

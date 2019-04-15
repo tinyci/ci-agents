@@ -93,3 +93,31 @@ func (ds *DataServer) HasCapability(ctx context.Context, cr *data.CapabilityRequ
 
 	return &types.Bool{Result: res}, nil
 }
+
+// AddCapability adds a capability for a user.
+func (ds *DataServer) AddCapability(ctx context.Context, cr *data.CapabilityRequest) (*empty.Empty, error) {
+	u, err := ds.H.Model.FindUserByID(cr.Id)
+	if err != nil {
+		return &empty.Empty{}, err
+	}
+
+	if err := ds.H.Model.AddCapabilityToUser(u, model.Capability(cr.Capability)); err != nil {
+		return &empty.Empty{}, err
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// RemoveCapability removes a capability from a user.
+func (ds *DataServer) RemoveCapability(ctx context.Context, cr *data.CapabilityRequest) (*empty.Empty, error) {
+	u, err := ds.H.Model.FindUserByID(cr.Id)
+	if err != nil {
+		return &empty.Empty{}, err
+	}
+
+	if err := ds.H.Model.RemoveCapabilityFromUser(u, model.Capability(cr.Capability)); err != nil {
+		return &empty.Empty{}, err
+	}
+
+	return &empty.Empty{}, nil
+}

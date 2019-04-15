@@ -126,7 +126,11 @@ service Data {
   rpc ValidateToken(types.StringID) returns (types.User)            {}; 
 
   // Returns true if the user has the capability
-  rpc HasCapability(CapabilityRequest) returns (types.Bool) {};
+  rpc HasCapability(CapabilityRequest)    returns (types.Bool)            {};
+  // Adds the capability for the user
+  rpc AddCapability(CapabilityRequest)    returns (google.protobuf.Empty) {};
+  // Removes the capability from the user
+  rpc RemoveCapability(CapabilityRequest) returns (google.protobuf.Empty) {};
 }
 
 message CapabilityRequest {
