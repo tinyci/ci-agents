@@ -10,6 +10,23 @@ var testRepository = &gh.Repository{
 	FullName: gh.String("erikh/barbara"),
 }
 
+func (ms *modelSuite) TestRepositoryAssign(c *check.C) {
+	repo, err := ms.CreateRepository()
+	c.Assert(err, check.IsNil)
+
+	users, err := ms.CreateUsers(2)
+	c.Assert(err, check.IsNil)
+
+	for _, user := range users {
+		c.Assert(ms.model.AssignRepository(repo, user), check.IsNil)
+
+		repo, err = ms.model.GetRepositoryByName(repo.Name)
+		c.Assert(err, check.IsNil)
+		c.Assert(repo.Owner, check.NotNil)
+		c.Assert(repo.Owner.Username, check.Equals, user.Username)
+	}
+}
+
 func (ms *modelSuite) TestRepositoryValidate(c *check.C) {
 	users, err := ms.CreateUsers(1)
 	c.Assert(err, check.IsNil)
