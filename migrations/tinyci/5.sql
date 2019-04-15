@@ -6,5 +6,5 @@ create table user_capabilities (
   user_id integer not null,
   name varchar not null,
 
-  UNIQUE (user_id, name)
+  PRIMARY KEY (user_id, name)
 );

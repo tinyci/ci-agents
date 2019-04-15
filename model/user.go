@@ -12,6 +12,21 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// Capability is a type of access gating mechanism. If present on the user
+// account access is granted, otherwise not.
+type Capability string
+
+const (
+	// CapabilityModifyCI is required for modifying CI properties such as adding or removing a repo.
+	CapabilityModifyCI Capability = "modify:ci"
+	// CapabilityModifyUser allows you to modify users; including caps.
+	CapabilityModifyUser Capability = "modify:user"
+	// CapabilitySubmit allows manual submissions
+	CapabilitySubmit Capability = "submit"
+	// CapabilityCancel allows cancels
+	CapabilityCancel Capability = "cancel"
+)
+
 var (
 	// TokenCryptKey is the standard token crypt key.
 	// NOTE: the default is only used by tests; it is overwritten on service boot; see config/auth.go.
@@ -286,4 +301,21 @@ func (m *Model) ListSubscribedTasksForUser(userID, page, perPage int64) ([]*Task
 	).Where("subscriptions.user_id = ?", userID).Find(&tasks)
 
 	return tasks, m.WrapError(call, "locating user's subscribed tasks")
+}
+
+// AddCapabilityToUser adds a capability to a user account.
+func (m *Model) AddCapabilityToUser(u *User, cap Capability) *errors.Error {
+	return m.WrapError(m.Exec("insert into user_capabilities (user_id, name) values (?, ?)", u.ID, cap), "adding capability for user")
+}
+
+// RemoveCapabilityFromUser removes a capability from a user account.
+func (m *Model) RemoveCapabilityFromUser(u *User, cap Capability) *errors.Error {
+	return m.WrapError(m.Exec("delete from user_capabilities where user_id = ? and name = ?", u.ID, cap), "removing capability from user")
+}
+
+// HasCapability returns true if the user is capable of performing the operation.
+func (m *Model) HasCapability(u *User, cap Capability) (bool, *errors.Error) {
+	var slice []int64
+	err := m.WrapError(m.Raw("select 1 from user_capabilities where user_id = ? and name = ?", u.ID, cap).Find(&slice), "checking capabilities for user")
+	return len(slice) > 0, err
 }
