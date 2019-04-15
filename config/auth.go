@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	transport "github.com/erikh/go-transport"
@@ -12,6 +13,9 @@ import (
 	"golang.org/x/oauth2"
 	ghoauth "golang.org/x/oauth2/github"
 )
+
+// DefaultEndpoint is the default endpoint for oauth2 operations.
+var DefaultEndpoint = ghoauth.Endpoint
 
 // SessionErrorsKey is the key used to retrieve the errors from the sessions table.
 const SessionErrorsKey = "errors"
@@ -27,6 +31,28 @@ type OAuthConfig struct {
 	RedirectURL  string `yaml:"redirect_url"`
 }
 
+// Validate validates the oauth configuration
+func (oc OAuthConfig) Validate() *errors.Error {
+	if strings.TrimSpace(oc.ClientID) == "" {
+		return errors.New("oauth2 client_id was missing")
+	}
+
+	if strings.TrimSpace(oc.ClientSecret) == "" {
+		return errors.New("oauth2 client_secret was missing")
+	}
+
+	if strings.TrimSpace(oc.RedirectURL) == "" {
+		return errors.New("oauth2 redirect_url was missing")
+	}
+
+	_, err := url.Parse(oc.RedirectURL)
+	if err != nil {
+		return errors.New(err).Wrap("parsing oauth2 redirect_url")
+	}
+
+	return nil
+}
+
 // GithubClient either returns the client for the token, or if NoAuth is set
 // returns the default client.
 func (oc OAuthConfig) GithubClient(token *oauth2.Token) github.Client {
@@ -39,15 +65,11 @@ func (oc OAuthConfig) GithubClient(token *oauth2.Token) github.Client {
 
 // Config returns the oauth configuration if one was provided.
 func (oc OAuthConfig) Config() *oauth2.Config {
-	if model.DefaultAccessToken != "" {
-		return nil
-	}
-
 	return &oauth2.Config{
 		ClientID:     oc.ClientID,
 		ClientSecret: oc.ClientSecret,
 		RedirectURL:  oc.RedirectURL,
-		Endpoint:     ghoauth.Endpoint,
+		Endpoint:     DefaultEndpoint,
 		Scopes:       []string{"repo"},
 	}
 }
@@ -55,13 +77,8 @@ func (oc OAuthConfig) Config() *oauth2.Config {
 // AuthConfig is the configuration for auth and secrets in the case auth isn't
 // used.
 type AuthConfig struct {
-	NoAuth          bool   `yaml:"no_auth"`
-	NoModify        bool   `yaml:"no_modify"`
-	NoSubmit        bool   `yaml:"no_submit"`
-	GithubToken     string `yaml:"github_token"`
 	SessionCryptKey string `yaml:"session_crypt_key"`
 	TokenCryptKey   string `yaml:"token_crypt_key"`
-	TestMode        bool   `yaml:"-"` // test mode allows token auth in no_auth situations. Shouldn't be usable for real installs.
 
 	sessionCryptKey []byte
 	tokenCryptKey   []byte
@@ -102,10 +119,6 @@ func (cc *CertConfig) Validate() *errors.Error {
 
 // Validate ensures the auth configuration is sane.
 func (ac *AuthConfig) Validate(parseCrypt bool) *errors.Error {
-	if ac.NoAuth && ac.GithubToken == "" {
-		return errors.New("no_auth mode configured with no github_token")
-	}
-
 	if parseCrypt {
 		var err *errors.Error
 		ac.sessionCryptKey, err = utils.ParseCryptKey(ac.SessionCryptKey)
@@ -151,10 +164,4 @@ func (cc CertConfig) Load() (*transport.Cert, *errors.Error) {
 	}
 
 	return cert, nil
-}
-
-// GetNoAuthClient retrieves the github client when noauth is enabled
-func (ac AuthConfig) GetNoAuthClient() github.Client {
-	model.DefaultAccessToken = ac.GithubToken
-	return github.NewClientFromAccessToken(model.DefaultAccessToken)
 }

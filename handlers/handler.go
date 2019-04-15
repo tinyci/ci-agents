@@ -96,26 +96,6 @@ func Boot(t *transport.HTTP, handler *H) (chan struct{}, *errors.Error) {
 		return nil, err
 	}
 
-	if handler.Auth.NoAuth {
-		if config.DefaultGithubClient == nil {
-			config.DefaultGithubClient = handler.Auth.GetNoAuthClient()
-		}
-
-		var err *errors.Error
-		handler.DefaultUsername, err = config.DefaultGithubClient.MyLogin()
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = handler.Clients.Data.GetUser(handler.DefaultUsername)
-		if err != nil {
-			handler.Clients.Log.Infof("Creating no_auth user account for %q", handler.DefaultUsername)
-			if _, err := handler.Clients.Data.PutUser(&model.User{Username: handler.DefaultUsername, Token: &oauth2.Token{AccessToken: handler.Auth.GithubToken}}); err != nil {
-				return nil, err
-			}
-		}
-	}
-
 	if t == nil {
 		var err *errors.Error
 		t, err = handler.CreateTransport()
@@ -135,8 +115,8 @@ func Boot(t *transport.HTTP, handler *H) (chan struct{}, *errors.Error) {
 
 	go func() {
 		<-doneChan
-		l.Close()
 		s.Close()
+		l.Close()
 	}()
 
 	go s.Serve(l)
@@ -216,17 +196,15 @@ func (h *H) GetGithub(ctx *gin.Context) (*model.User, *errors.Error) {
 
 func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error) func(h *H, ctx *gin.Context, processor HandlerFunc) *errors.Error {
 	return func(h *H, ctx *gin.Context, processor HandlerFunc) *errors.Error {
-		if !h.Auth.NoAuth {
-			token := ctx.Request.Header.Get("Authorization")
-			if token != "" {
-				if _, err := h.Clients.Data.ValidateToken(token); err != nil {
-					return err
-				}
-			} else {
-				_, err := h.GetGithub(ctx)
-				if err != nil {
-					return errors.New(err)
-				}
+		token := ctx.Request.Header.Get("Authorization")
+		if token != "" {
+			if _, err := h.Clients.Data.ValidateToken(token); err != nil {
+				return err
+			}
+		} else {
+			_, err := h.GetGithub(ctx)
+			if err != nil {
+				return errors.New(err)
 			}
 		}
 

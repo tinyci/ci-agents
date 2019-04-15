@@ -51,17 +51,6 @@ func (us *uisvcSuite) TestLogAttach(c *check.C) {
 	c.Assert(strings.HasPrefix(buf.String(), "this is a log"), check.Equals, true)
 }
 
-func (us *uisvcSuite) TestTestModeTokens(c *check.C) {
-	client := github.NewMockClient(gomock.NewController(c))
-	h, doneChan, tc, err := testservers.MakeUIServer(client)
-	c.Assert(err, check.IsNil)
-	defer close(doneChan)
-
-	h.Auth.TestMode = false
-
-	c.Assert(tc.DeleteToken(), check.ErrorMatches, "cannot manipulate tokens.*")
-}
-
 func (us *uisvcSuite) TestTokenEndpoints(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
 	_, doneChan, tc, err := testservers.MakeUIServer(client)
@@ -279,82 +268,4 @@ func (us *uisvcSuite) TestVisibility(c *check.C) {
 	for _, repo := range repos {
 		c.Assert(repo.Name, check.Not(check.Equals), "not-erikh/private-test")
 	}
-}
-
-func (us *uisvcSuite) TestNoAuthUserCreation(c *check.C) {
-	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, _, err := testservers.MakeUIServer(client)
-	c.Assert(err, check.IsNil)
-	defer close(doneChan)
-
-	u, err := us.datasvcClient.Client().GetUser("erikh")
-	c.Assert(err, check.IsNil)
-	c.Assert(u.Username, check.Equals, "erikh")
-}
-
-func (us *uisvcSuite) TestNoCancelInNoModify(c *check.C) {
-	client := github.NewMockClient(gomock.NewController(c))
-	h, doneChan, tc, err := testservers.MakeUIServer(client)
-	c.Assert(err, check.IsNil)
-	defer close(doneChan)
-
-	client.EXPECT().MyRepositories().Return([]*gh.Repository{{FullName: gh.String("erikh/parent")}}, nil)
-
-	repos, err := tc.LoadRepositories()
-	c.Assert(err, check.IsNil)
-	c.Assert(len(repos), check.Not(check.Equals), 0)
-
-	c.Assert(us.datasvcClient.Client().EnableRepository("erikh", "erikh/parent"), check.IsNil)
-
-	sub := &types.Submission{
-		Parent:  "erikh/parent",
-		Fork:    "erikh/test",
-		BaseSHA: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-		HeadSHA: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-		Manual:  true,
-		All:     true,
-	}
-
-	c.Assert(us.queuesvcClient.SetMockSubmissionSuccess(client.EXPECT(), sub), check.IsNil)
-	client.EXPECT().GetSHA("erikh/parent", "heads/master").Return("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nil)
-	client.EXPECT().GetSHA("erikh/test", "heads/master").Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", nil)
-	client.EXPECT().ClearStates("erikh/parent", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb").Return(nil)
-
-	c.Assert(tc.Submit("erikh/test", "master", true), check.IsNil)
-
-	tasks, err := tc.Tasks("erikh/test", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 0, 100)
-	c.Assert(err, check.IsNil)
-	c.Assert(len(tasks), check.Not(check.Equals), 0)
-
-	runs, err := tc.RunsForTask(tasks[0].ID, 0, 100)
-	c.Assert(err, check.IsNil)
-	c.Assert(len(runs), check.Not(check.Equals), 0)
-
-	for range runs {
-		client.EXPECT().ErrorStatus(
-			"erikh",
-			"parent",
-			gomock.Any(),
-			"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-			gomock.Any(),
-			gomock.Any()).Return(nil)
-	}
-	c.Assert(tc.CancelRun(runs[0].ID), check.IsNil)
-
-	h.Auth.NoModify = true
-
-	runs, err = tc.RunsForTask(tasks[0].ID, 0, 100)
-	c.Assert(err, check.IsNil)
-	c.Assert(len(runs), check.Not(check.Equals), 0)
-
-	for range runs {
-		client.EXPECT().ErrorStatus(
-			"erikh",
-			"parent",
-			gomock.Any(),
-			"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-			gomock.Any(),
-			gomock.Any()).Return(nil)
-	}
-	c.Assert(tc.CancelRun(runs[0].ID), check.NotNil)
 }

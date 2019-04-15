@@ -11,7 +11,6 @@ import (
 	gh "github.com/google/go-github/github"
 	"github.com/gorilla/securecookie"
 	"github.com/tinyci/ci-agents/clients/github"
-	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 	"github.com/tinyci/ci-agents/model"
@@ -74,24 +73,18 @@ func getUser(h *handlers.H, ctx *gin.Context) (*model.User, *errors.Error) {
 }
 
 func getClient(h *handlers.H, ctx *gin.Context) (github.Client, *errors.Error) {
-	client := config.DefaultGithubClient
-
-	if !h.Auth.NoAuth {
-		user, err := h.GetGithub(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		token := &oauth2.Token{}
-
-		if err := topUtils.JSONIO(user.Token, token); err != nil {
-			return nil, err
-		}
-
-		client = h.GithubClient(token)
+	user, err := h.GetGithub(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	return client, nil
+	token := &oauth2.Token{}
+
+	if err := topUtils.JSONIO(user.Token, token); err != nil {
+		return nil, err
+	}
+
+	return h.GithubClient(token), nil
 }
 
 func handleOAuth(h *handlers.H, code string) (*oauth2.Token, string, *errors.Error) {
@@ -149,14 +142,12 @@ func LoggedIn(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error)
 
 	res := "true"
 
-	if !h.Auth.NoAuth {
-		_, err := h.GetGithub(ctx)
+	_, err := h.GetGithub(ctx)
+	if err != nil {
+		var err *errors.Error
+		res, err = getOAuthURL(h, ctx)
 		if err != nil {
-			var err *errors.Error
-			res, err = getOAuthURL(h, ctx)
-			if err != nil {
-				return nil, 500, err
-			}
+			return nil, 500, err
 		}
 	}
 

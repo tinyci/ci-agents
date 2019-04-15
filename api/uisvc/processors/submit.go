@@ -11,10 +11,6 @@ import (
 
 // Submit powers a manual submission to the queuesvc.
 func Submit(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	if h.Auth.NoSubmit {
-		return nil, 200, nil
-	}
-
 	repo := ctx.GetString("repository")
 	sha := ctx.GetString("sha")
 
