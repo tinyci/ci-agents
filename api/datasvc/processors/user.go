@@ -78,3 +78,18 @@ func (ds *DataServer) ListUsers(ctx context.Context, e *empty.Empty) (*types.Use
 
 	return tu, nil
 }
+
+// HasCapability returns true if the capability requested exists for the user provided.
+func (ds *DataServer) HasCapability(ctx context.Context, cr *data.CapabilityRequest) (*types.Bool, error) {
+	u, err := ds.H.Model.FindUserByID(cr.Id)
+	if err != nil {
+		return &types.Bool{Result: false}, err
+	}
+
+	res, err := ds.H.Model.HasCapability(u, model.Capability(cr.Capability))
+	if err != nil {
+		return &types.Bool{Result: false}, err
+	}
+
+	return &types.Bool{Result: res}, nil
+}

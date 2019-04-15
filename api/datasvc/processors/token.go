@@ -34,11 +34,11 @@ func (ds *DataServer) DeleteToken(ctx context.Context, name *data.Name) (*empty.
 }
 
 // ValidateToken accepts the token and returns an error if the user cannot login.
-func (ds *DataServer) ValidateToken(ctx context.Context, id *types.StringID) (*data.Name, error) {
-	username, err := ds.H.Model.ValidateToken(id.ID)
+func (ds *DataServer) ValidateToken(ctx context.Context, id *types.StringID) (*types.User, error) {
+	u, err := ds.H.Model.ValidateToken(id.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &data.Name{Name: username}, nil
+	return u.ToProto(), nil
 }

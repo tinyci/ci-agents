@@ -35,11 +35,14 @@ func getUser(h *handlers.H, ctx *gin.Context) (*model.User, *errors.Error) {
 
 	username := sess.Get(sessionUsername)
 
+	// FIXME clean up this spaghetti -erikh
+	var u *model.User
+
 	if username == nil {
 		if token := ctx.Request.Header.Get("Authorization"); token != "" {
 			token := ctx.Request.Header.Get("Authorization")
 			if token != "" {
-				name, err = h.Clients.Data.ValidateToken(token)
+				u, err = h.Clients.Data.ValidateToken(token)
 				if err != nil {
 					return nil, err
 				}
@@ -64,12 +67,14 @@ func getUser(h *handlers.H, ctx *gin.Context) (*model.User, *errors.Error) {
 		}
 	}
 
-	user, err := h.Clients.Data.GetUser(name)
-	if err != nil {
-		return nil, err
+	if u == nil && name != "" {
+		u, err = h.Clients.Data.GetUser(name)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return user, nil
+	return u, nil
 }
 
 func getClient(h *handlers.H, ctx *gin.Context) (github.Client, *errors.Error) {

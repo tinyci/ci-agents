@@ -59,3 +59,13 @@ func (c *Client) ListUsers() ([]*model.User, *errors.Error) {
 
 	return u, nil
 }
+
+// HasCapability returns true if the user has the specified capability.
+func (c *Client) HasCapability(u *model.User, cap model.Capability) (bool, *errors.Error) {
+	res, err := c.client.HasCapability(context.Background(), &data.CapabilityRequest{Id: u.ID, Capability: string(cap)})
+	if err != nil {
+		return false, errors.New(err)
+	}
+
+	return res.Result, nil
+}

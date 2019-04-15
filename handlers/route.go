@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tinyci/ci-agents/errors"
+	"github.com/tinyci/ci-agents/model"
 	"golang.org/x/net/websocket"
 )
 
@@ -20,7 +21,7 @@ type Route struct {
 	Handler            func(*H, *gin.Context, HandlerFunc) *errors.Error
 	Processor          HandlerFunc
 	ParamValidator     func(*H, *gin.Context) *errors.Error
-	Capability         string
+	Capability         model.Capability
 }
 
 // HandlerFunc is the basic kind of HandlerFunc.

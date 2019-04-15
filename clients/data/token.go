@@ -6,6 +6,7 @@ import (
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/grpc/services/data"
 	"github.com/tinyci/ci-agents/grpc/types"
+	"github.com/tinyci/ci-agents/model"
 )
 
 // GetToken returns a newly minted access token to tinyCI or error otherwise.
@@ -31,11 +32,11 @@ func (c *Client) DeleteToken(username string) *errors.Error {
 }
 
 // ValidateToken validates the token and returns error if it is not valid somehow.
-func (c *Client) ValidateToken(token string) (string, *errors.Error) {
-	username, err := c.client.ValidateToken(context.Background(), &types.StringID{ID: token})
+func (c *Client) ValidateToken(token string) (*model.User, *errors.Error) {
+	user, err := c.client.ValidateToken(context.Background(), &types.StringID{ID: token})
 	if err != nil {
-		return "", errors.New(err)
+		return nil, errors.New(err)
 	}
 
-	return username.Name, nil
+	return model.NewUserFromProto(user)
 }
