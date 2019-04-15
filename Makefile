@@ -73,8 +73,10 @@ demo-sql-shell:
 	docker exec -it $(DEMO_DOCKER_IMAGE) psql tinyci
 
 do-build:
+	go get github.com/erikh/migrator
 	go install -v -ldflags "-X main.TinyCIVersion=$(VERSION)" ./...
 	cp .config/services.yaml.example $${GOBIN:-${GOPATH}/bin}
+	cp -Rfp migrations $${GOBIN:-${GOPATH}/bin}
 
 build: build-build-image
 	$(BUILD_DOCKER_RUN) make do-build
