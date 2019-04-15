@@ -56,7 +56,8 @@ func init() {
               "$ref": "../models.yml#/definitions/Error"
             }
           }
-        }
+        },
+        "x-capability": "cancel"
       }
     },
     "/errors": {
@@ -235,7 +236,8 @@ func init() {
               "$ref": "../models.yml#/definitions/Error"
             }
           }
-        }
+        },
+        "x-capability": "modify:ci"
       }
     },
     "/repositories/ci/del/{owner}/{repo}": {
@@ -276,7 +278,8 @@ func init() {
               "$ref": "../models.yml#/definitions/Error"
             }
           }
-        }
+        },
+        "x-capability": "modify:ci"
       }
     },
     "/repositories/my": {
@@ -622,7 +625,8 @@ func init() {
               "$ref": "../models.yml#/definitions/Error"
             }
           }
-        }
+        },
+        "x-capability": "submit"
       }
     },
     "/tasks": {
@@ -975,7 +979,8 @@ func init() {
               "$ref": "#/definitions/error"
             }
           }
-        }
+        },
+        "x-capability": "cancel"
       }
     },
     "/errors": {
@@ -1154,7 +1159,8 @@ func init() {
               "$ref": "#/definitions/error"
             }
           }
-        }
+        },
+        "x-capability": "modify:ci"
       }
     },
     "/repositories/ci/del/{owner}/{repo}": {
@@ -1195,7 +1201,8 @@ func init() {
               "$ref": "#/definitions/error"
             }
           }
-        }
+        },
+        "x-capability": "modify:ci"
       }
     },
     "/repositories/my": {
@@ -1541,7 +1548,8 @@ func init() {
               "$ref": "#/definitions/error"
             }
           }
-        }
+        },
+        "x-capability": "submit"
       }
     },
     "/tasks": {

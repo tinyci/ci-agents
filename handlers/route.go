@@ -20,6 +20,7 @@ type Route struct {
 	Handler            func(*H, *gin.Context, HandlerFunc) *errors.Error
 	Processor          HandlerFunc
 	ParamValidator     func(*H, *gin.Context) *errors.Error
+	Capability         string
 }
 
 // HandlerFunc is the basic kind of HandlerFunc.

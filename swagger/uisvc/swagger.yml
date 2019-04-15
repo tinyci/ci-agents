@@ -160,6 +160,7 @@ paths:
         - session: []
         - token: []
       summary: Perform a manual submission to tinyCI
+      x-capability: submit
       description: >
         This allows a user to push a job instead of pushing to git or filing a
         pull request to trigger a job. It is available on the tinyCI UI and CLI
@@ -263,6 +264,7 @@ paths:
       security:
         - token: []
         - session: []
+      x-capability: "modify:ci"
       parameters:
         - in: path
           name: owner 
@@ -295,6 +297,7 @@ paths:
       security:
         - token: []
         - session: []
+      x-capability: "modify:ci"
       parameters:
         - in: path
           name: owner 
@@ -634,6 +637,7 @@ paths:
         - token: []
         - session: []
       summary: Cancel by Run ID
+      x-capability: cancel
       parameters:
         - in: path
           name: run_id

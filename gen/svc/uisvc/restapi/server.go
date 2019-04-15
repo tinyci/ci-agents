@@ -102,6 +102,7 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
 		Method:         "GET",
 		UseCORS:        true,
 		UseAuth:        true,
+		Capability:     "modify:ci",
 	}
 	p = handlers.TransformSwaggerRoute("/repositories/ci/del/{owner}/{repo}")
 
@@ -115,6 +116,7 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
 		Method:         "GET",
 		UseCORS:        true,
 		UseAuth:        true,
+		Capability:     "modify:ci",
 	}
 	p = handlers.TransformSwaggerRoute("/repositories/my")
 
@@ -232,6 +234,7 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
 		Method:         "GET",
 		UseCORS:        true,
 		UseAuth:        true,
+		Capability:     "submit",
 	}
 	p = handlers.TransformSwaggerRoute("/tasks")
 
@@ -336,5 +339,6 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
 		Method:         "POST",
 		UseCORS:        true,
 		UseAuth:        true,
+		Capability:     "cancel",
 	}
 }
