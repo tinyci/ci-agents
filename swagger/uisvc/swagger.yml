@@ -102,10 +102,66 @@ paths:
           description: An error occurred. Body has error result.
           schema:
             $ref: '../models.yml#/definitions/Error'
+  /capabilities/{username}/{capability}:
+    delete:
+      security:
+        - session: []
+        - token: []
+      x-capability: "modify:user"
+      summary: Remove a named capability
+      parameters:
+        - in: path
+          name: username
+          required: true
+          type: string
+          description: >
+            The user ID to remove the capability from.
+        - in: path
+          name: capability
+          required: true
+          type: string
+          description: >
+            The name of the capability to remove.
+      description: Remove a named capability from a provided user ID. Requires the user have the 'modify:user' capability.
+      responses:
+        200:
+          description: The capability was successfully removed
+        500:
+          description: An error occurred adding. Body has error result. 
+          schema:
+            $ref: '../models.yml#/definitions/Error'        
+    post:
+      security:
+        - session: []
+        - token: []
+      x-capability: "modify:user"
+      summary: Add a named capability
+      parameters:
+        - in: path
+          name: username
+          required: true
+          type: string
+          description: >
+            The user ID to add the capability to.
+        - in: path
+          name: capability
+          required: true
+          type: string
+          description: >
+            The name of the capability to add.
+      description: Add a named capability for a provided user ID. Requires the user have the 'modify:user' capability.
+      responses:
+        200:
+          description: The capability was successfully added
+        500:
+          description: An error occurred adding. Body has error result. 
+          schema:
+            $ref: '../models.yml#/definitions/Error'        
   /user/properties:
     get:
       security:
        - session: []
+       - token: []
       summary: Get information about the current user
       description: >
         Get information about the current user, such as the username.

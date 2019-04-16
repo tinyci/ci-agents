@@ -14,6 +14,20 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
 
 	p := ""
 
+	p = handlers.TransformSwaggerRoute("/capabilities/{username}/{capability}")
+
+	if h.Routes[p] == nil {
+		h.Routes[p] = map[string]*handlers.Route{}
+	}
+
+	h.Routes[p][strings.ToLower("DELETE")] = &handlers.Route{
+		ParamValidator: operations.DeleteCapabilitiesUsernameCapabilityValidateURLParams,
+		Handler:        operations.DeleteCapabilitiesUsernameCapability,
+		Method:         "DELETE",
+		UseCORS:        true,
+		UseAuth:        true,
+		Capability:     "modify:user",
+	}
 	p = handlers.TransformSwaggerRoute("/token")
 
 	if h.Routes[p] == nil {
@@ -340,5 +354,19 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
 		UseCORS:        true,
 		UseAuth:        true,
 		Capability:     "cancel",
+	}
+	p = handlers.TransformSwaggerRoute("/capabilities/{username}/{capability}")
+
+	if h.Routes[p] == nil {
+		h.Routes[p] = map[string]*handlers.Route{}
+	}
+
+	h.Routes[p][strings.ToLower("POST")] = &handlers.Route{
+		ParamValidator: operations.PostCapabilitiesUsernameCapabilityValidateURLParams,
+		Handler:        operations.PostCapabilitiesUsernameCapability,
+		Method:         "POST",
+		UseCORS:        true,
+		UseAuth:        true,
+		Capability:     "modify:user",
 	}
 }

@@ -60,6 +60,88 @@ func init() {
         "x-capability": "cancel"
       }
     },
+    "/capabilities/{username}/{capability}": {
+      "post": {
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "token": []
+          }
+        ],
+        "description": "Add a named capability for a provided user ID. Requires the user have the 'modify:user' capability.",
+        "summary": "Add a named capability",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The user ID to add the capability to.\n",
+            "name": "username",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the capability to add.\n",
+            "name": "capability",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The capability was successfully added"
+          },
+          "500": {
+            "description": "An error occurred adding. Body has error result.",
+            "schema": {
+              "$ref": "../models.yml#/definitions/Error"
+            }
+          }
+        },
+        "x-capability": "modify:user"
+      },
+      "delete": {
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "token": []
+          }
+        ],
+        "description": "Remove a named capability from a provided user ID. Requires the user have the 'modify:user' capability.",
+        "summary": "Remove a named capability",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The user ID to remove the capability from.\n",
+            "name": "username",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the capability to remove.\n",
+            "name": "capability",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The capability was successfully removed"
+          },
+          "500": {
+            "description": "An error occurred adding. Body has error result.",
+            "schema": {
+              "$ref": "../models.yml#/definitions/Error"
+            }
+          }
+        },
+        "x-capability": "modify:user"
+      }
+    },
     "/errors": {
       "get": {
         "security": [
@@ -909,6 +991,9 @@ func init() {
         "security": [
           {
             "session": []
+          },
+          {
+            "token": []
           }
         ],
         "description": "Get information about the current user, such as the username.\n",
@@ -981,6 +1066,88 @@ func init() {
           }
         },
         "x-capability": "cancel"
+      }
+    },
+    "/capabilities/{username}/{capability}": {
+      "post": {
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "token": []
+          }
+        ],
+        "description": "Add a named capability for a provided user ID. Requires the user have the 'modify:user' capability.",
+        "summary": "Add a named capability",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The user ID to add the capability to.\n",
+            "name": "username",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the capability to add.\n",
+            "name": "capability",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The capability was successfully added"
+          },
+          "500": {
+            "description": "An error occurred adding. Body has error result.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        },
+        "x-capability": "modify:user"
+      },
+      "delete": {
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "token": []
+          }
+        ],
+        "description": "Remove a named capability from a provided user ID. Requires the user have the 'modify:user' capability.",
+        "summary": "Remove a named capability",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The user ID to remove the capability from.\n",
+            "name": "username",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the capability to remove.\n",
+            "name": "capability",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The capability was successfully removed"
+          },
+          "500": {
+            "description": "An error occurred adding. Body has error result.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        },
+        "x-capability": "modify:user"
       }
     },
     "/errors": {
@@ -1832,6 +1999,9 @@ func init() {
         "security": [
           {
             "session": []
+          },
+          {
+            "token": []
           }
         ],
         "description": "Get information about the current user, such as the username.\n",

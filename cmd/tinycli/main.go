@@ -147,6 +147,30 @@ func main() {
 			ArgsUsage:   "[run id]",
 			Action:      log,
 		},
+		{
+			Name:        "capabilities",
+			ShortName:   "c",
+			Description: "Manipulate User Capabilities",
+			Usage:       "Manipulate User Capabilities",
+			Subcommands: []cli.Command{
+				{
+					Name:        "add",
+					ShortName:   "a",
+					Description: "Grant a capability to a user",
+					Usage:       "Grant a capability to a user",
+					ArgsUsage:   "[username] [capability]",
+					Action:      addCapability,
+				},
+				{
+					Name:        "remove",
+					ShortName:   "r",
+					Description: "Remove a capability from a user",
+					Usage:       "Remove a capability from a user",
+					ArgsUsage:   "[username] [capability]",
+					Action:      removeCapability,
+				},
+			},
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -381,4 +405,30 @@ func log(ctx *cli.Context) error {
 	}
 
 	return client.LogAttach(id, os.Stdout)
+}
+
+func addCapability(ctx *cli.Context) error {
+	if len(ctx.Args()) != 2 {
+		return errors.New("Invalid arguments: [username] [capability] required")
+	}
+
+	client, err := loadConfig(tinyCIConfig)
+	if err != nil {
+		return err
+	}
+
+	return client.AddCapability(ctx.Args()[0], model.Capability(ctx.Args()[1]))
+}
+
+func removeCapability(ctx *cli.Context) error {
+	if len(ctx.Args()) != 2 {
+		return errors.New("Invalid arguments: [username] [capability] required")
+	}
+
+	client, err := loadConfig(tinyCIConfig)
+	if err != nil {
+		return err
+	}
+
+	return client.RemoveCapability(ctx.Args()[0], model.Capability(ctx.Args()[1]))
 }
