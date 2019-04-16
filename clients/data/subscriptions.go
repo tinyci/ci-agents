@@ -9,8 +9,8 @@ import (
 )
 
 // ListSubscriptions lists the subscriptions that the user has selected.
-func (c *Client) ListSubscriptions(name string) (model.RepositoryList, *errors.Error) {
-	rl, err := c.client.ListSubscriptions(context.Background(), &data.Name{Name: name})
+func (c *Client) ListSubscriptions(name, search string) (model.RepositoryList, *errors.Error) {
+	rl, err := c.client.ListSubscriptions(context.Background(), &data.NameSearch{Name: name, Search: search})
 	if err != nil {
 		return nil, errors.New(err)
 	}

@@ -20,7 +20,7 @@ import (
 // NewGetRepositoriesVisibleParams creates a new GetRepositoriesVisibleParams object
 // with the default values initialized.
 func NewGetRepositoriesVisibleParams() *GetRepositoriesVisibleParams {
-
+	var ()
 	return &GetRepositoriesVisibleParams{
 
 		timeout: cr.DefaultTimeout,
@@ -30,7 +30,7 @@ func NewGetRepositoriesVisibleParams() *GetRepositoriesVisibleParams {
 // NewGetRepositoriesVisibleParamsWithTimeout creates a new GetRepositoriesVisibleParams object
 // with the default values initialized, and the ability to set a timeout on a request
 func NewGetRepositoriesVisibleParamsWithTimeout(timeout time.Duration) *GetRepositoriesVisibleParams {
-
+	var ()
 	return &GetRepositoriesVisibleParams{
 
 		timeout: timeout,
@@ -40,7 +40,7 @@ func NewGetRepositoriesVisibleParamsWithTimeout(timeout time.Duration) *GetRepos
 // NewGetRepositoriesVisibleParamsWithContext creates a new GetRepositoriesVisibleParams object
 // with the default values initialized, and the ability to set a context for a request
 func NewGetRepositoriesVisibleParamsWithContext(ctx context.Context) *GetRepositoriesVisibleParams {
-
+	var ()
 	return &GetRepositoriesVisibleParams{
 
 		Context: ctx,
@@ -50,7 +50,7 @@ func NewGetRepositoriesVisibleParamsWithContext(ctx context.Context) *GetReposit
 // NewGetRepositoriesVisibleParamsWithHTTPClient creates a new GetRepositoriesVisibleParams object
 // with the default values initialized, and the ability to set a custom HTTPClient for a request
 func NewGetRepositoriesVisibleParamsWithHTTPClient(client *http.Client) *GetRepositoriesVisibleParams {
-
+	var ()
 	return &GetRepositoriesVisibleParams{
 		HTTPClient: client,
 	}
@@ -60,6 +60,13 @@ func NewGetRepositoriesVisibleParamsWithHTTPClient(client *http.Client) *GetRepo
 for the get repositories visible operation typically these are written to a http.Request
 */
 type GetRepositoriesVisibleParams struct {
+
+	/*Search
+	  search string by which to filter results
+
+	*/
+	Search *string
+
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
@@ -98,6 +105,17 @@ func (o *GetRepositoriesVisibleParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
+// WithSearch adds the search to the get repositories visible params
+func (o *GetRepositoriesVisibleParams) WithSearch(search *string) *GetRepositoriesVisibleParams {
+	o.SetSearch(search)
+	return o
+}
+
+// SetSearch adds the search to the get repositories visible params
+func (o *GetRepositoriesVisibleParams) SetSearch(search *string) {
+	o.Search = search
+}
+
 // WriteToRequest writes these params to a swagger request
 func (o *GetRepositoriesVisibleParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
@@ -105,6 +123,22 @@ func (o *GetRepositoriesVisibleParams) WriteToRequest(r runtime.ClientRequest, r
 		return err
 	}
 	var res []error
+
+	if o.Search != nil {
+
+		// query param search
+		var qrSearch string
+		if o.Search != nil {
+			qrSearch = *o.Search
+		}
+		qSearch := qrSearch
+		if qSearch != "" {
+			if err := r.SetQueryParam("search", qSearch); err != nil {
+				return err
+			}
+		}
+
+	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)

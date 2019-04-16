@@ -99,7 +99,7 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 
 	client.EXPECT().MyRepositories().Return([]*gh.Repository{{FullName: gh.String("erikh/parent")}}, nil)
 
-	repos, err := tc.LoadRepositories()
+	repos, err := tc.LoadRepositories("")
 	c.Assert(err, check.IsNil)
 	c.Assert(len(repos), check.Not(check.Equals), 0)
 
@@ -197,7 +197,7 @@ func (us *uisvcSuite) TestAddDeleteCI(c *check.C) {
 
 	client.EXPECT().MyRepositories().Return([]*gh.Repository{{FullName: gh.String("erikh/test")}}, nil)
 
-	repos, err := tc.LoadRepositories()
+	repos, err := tc.LoadRepositories("")
 	c.Assert(err, check.IsNil)
 	c.Assert(len(repos), check.Not(check.Equals), 0)
 
@@ -240,24 +240,24 @@ func (us *uisvcSuite) TestSubscriptions(c *check.C) {
 
 	client.EXPECT().MyRepositories().Return([]*gh.Repository{{FullName: gh.String("erikh/test")}}, nil)
 
-	repos, err := tc.LoadRepositories()
+	repos, err := tc.LoadRepositories("")
 	c.Assert(err, check.IsNil)
 	c.Assert(len(repos), check.Not(check.Equals), 0)
 
-	repos, err = tc.Subscribed()
+	repos, err = tc.Subscribed("")
 	c.Assert(err, check.IsNil)
 	c.Assert(len(repos), check.Equals, 0)
 
 	c.Assert(tc.Subscribe("erikh/test"), check.IsNil)
 
-	repos, err = tc.Subscribed()
+	repos, err = tc.Subscribed("")
 	c.Assert(err, check.IsNil)
 	c.Assert(len(repos), check.Equals, 1)
 	c.Assert(repos[0].Name, check.Equals, "erikh/test")
 
 	c.Assert(tc.Unsubscribe("erikh/test"), check.IsNil)
 
-	repos, err = tc.Subscribed()
+	repos, err = tc.Subscribed("")
 	c.Assert(err, check.IsNil)
 	c.Assert(len(repos), check.Equals, 0)
 }
@@ -278,7 +278,7 @@ func (us *uisvcSuite) TestVisibility(c *check.C) {
 	c.Assert(us.datasvcClient.MakeRepo("erikh/public", "erikh", false), check.IsNil)
 	c.Assert(us.datasvcClient.MakeRepo("erikh-the-third/public", "erikh-the-third", false), check.IsNil)
 
-	repos, err := tc.Visible()
+	repos, err := tc.Visible("")
 	c.Assert(err, check.IsNil)
 	c.Assert(len(repos), check.Equals, 3)
 

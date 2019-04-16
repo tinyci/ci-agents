@@ -16,7 +16,8 @@ func ListRepositoriesSubscribed(h *handlers.H, ctx *gin.Context) (interface{}, i
 		return nil, 500, err
 	}
 
-	repos, err := h.Clients.Data.ListSubscriptions(user.Username)
+	search, _ := ctx.GetQuery("search")
+	repos, err := h.Clients.Data.ListSubscriptions(user.Username, search)
 	return repos, 200, err
 }
 
@@ -27,6 +28,8 @@ func ListRepositoriesMy(h *handlers.H, ctx *gin.Context) (interface{}, int, *err
 		return nil, 500, err
 	}
 
+	search, _ := ctx.GetQuery("search")
+
 	if param, ok := h.ServiceConfig["last_scanned_wait"]; ok {
 		dur, err := time.ParseDuration(param.(string))
 		if err != nil {
@@ -34,7 +37,8 @@ func ListRepositoriesMy(h *handlers.H, ctx *gin.Context) (interface{}, int, *err
 		}
 
 		if user.LastScannedRepos != nil && time.Since(time.Time(*user.LastScannedRepos)) < dur {
-			repos, err := h.Clients.Data.OwnedRepositories(user.Username)
+
+			repos, err := h.Clients.Data.OwnedRepositories(user.Username, search)
 			return repos, 200, err
 		}
 	}
@@ -53,7 +57,7 @@ func ListRepositoriesMy(h *handlers.H, ctx *gin.Context) (interface{}, int, *err
 		return nil, 500, err
 	}
 
-	repos, err := h.Clients.Data.OwnedRepositories(user.Username)
+	repos, err := h.Clients.Data.OwnedRepositories(user.Username, search)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -68,7 +72,9 @@ func ListRepositoriesVisible(h *handlers.H, ctx *gin.Context) (interface{}, int,
 		return nil, 500, err
 	}
 
-	repos, err := h.Clients.Data.AllRepositories(user.Username)
+	search, _ := ctx.GetQuery("search")
+
+	repos, err := h.Clients.Data.AllRepositories(user.Username, search)
 	return repos, 200, err
 }
 

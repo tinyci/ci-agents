@@ -20,7 +20,7 @@ import (
 // NewGetRepositoriesMyParams creates a new GetRepositoriesMyParams object
 // with the default values initialized.
 func NewGetRepositoriesMyParams() *GetRepositoriesMyParams {
-
+	var ()
 	return &GetRepositoriesMyParams{
 
 		timeout: cr.DefaultTimeout,
@@ -30,7 +30,7 @@ func NewGetRepositoriesMyParams() *GetRepositoriesMyParams {
 // NewGetRepositoriesMyParamsWithTimeout creates a new GetRepositoriesMyParams object
 // with the default values initialized, and the ability to set a timeout on a request
 func NewGetRepositoriesMyParamsWithTimeout(timeout time.Duration) *GetRepositoriesMyParams {
-
+	var ()
 	return &GetRepositoriesMyParams{
 
 		timeout: timeout,
@@ -40,7 +40,7 @@ func NewGetRepositoriesMyParamsWithTimeout(timeout time.Duration) *GetRepositori
 // NewGetRepositoriesMyParamsWithContext creates a new GetRepositoriesMyParams object
 // with the default values initialized, and the ability to set a context for a request
 func NewGetRepositoriesMyParamsWithContext(ctx context.Context) *GetRepositoriesMyParams {
-
+	var ()
 	return &GetRepositoriesMyParams{
 
 		Context: ctx,
@@ -50,7 +50,7 @@ func NewGetRepositoriesMyParamsWithContext(ctx context.Context) *GetRepositories
 // NewGetRepositoriesMyParamsWithHTTPClient creates a new GetRepositoriesMyParams object
 // with the default values initialized, and the ability to set a custom HTTPClient for a request
 func NewGetRepositoriesMyParamsWithHTTPClient(client *http.Client) *GetRepositoriesMyParams {
-
+	var ()
 	return &GetRepositoriesMyParams{
 		HTTPClient: client,
 	}
@@ -60,6 +60,13 @@ func NewGetRepositoriesMyParamsWithHTTPClient(client *http.Client) *GetRepositor
 for the get repositories my operation typically these are written to a http.Request
 */
 type GetRepositoriesMyParams struct {
+
+	/*Search
+	  search string by which to filter results
+
+	*/
+	Search *string
+
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
@@ -98,6 +105,17 @@ func (o *GetRepositoriesMyParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
+// WithSearch adds the search to the get repositories my params
+func (o *GetRepositoriesMyParams) WithSearch(search *string) *GetRepositoriesMyParams {
+	o.SetSearch(search)
+	return o
+}
+
+// SetSearch adds the search to the get repositories my params
+func (o *GetRepositoriesMyParams) SetSearch(search *string) {
+	o.Search = search
+}
+
 // WriteToRequest writes these params to a swagger request
 func (o *GetRepositoriesMyParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
@@ -105,6 +123,22 @@ func (o *GetRepositoriesMyParams) WriteToRequest(r runtime.ClientRequest, reg st
 		return err
 	}
 	var res []error
+
+	if o.Search != nil {
+
+		// query param search
+		var qrSearch string
+		if o.Search != nil {
+			qrSearch = *o.Search
+		}
+		qSearch := qrSearch
+		if qSearch != "" {
+			if err := r.SetQueryParam("search", qSearch); err != nil {
+				return err
+			}
+		}
+
+	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)

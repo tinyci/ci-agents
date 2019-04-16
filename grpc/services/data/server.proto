@@ -62,13 +62,13 @@ service Data {
   // Given a JSON list of github responses; save all the repos.
   rpc SaveRepositories(GithubJSON)              returns (google.protobuf.Empty) {};
   // List all Private Repositories for the user.
-  rpc PrivateRepositories(Name)                 returns (types.RepositoryList)  {};
+  rpc PrivateRepositories(NameSearch)           returns (types.RepositoryList)  {};
   // List all Owned Repositories for the user.
-  rpc OwnedRepositories(Name)                   returns (types.RepositoryList)  {};
+  rpc OwnedRepositories(NameSearch)             returns (types.RepositoryList)  {};
   // List all repositories for the user.
-  rpc AllRepositories(Name)                     returns (types.RepositoryList)  {}; 
+  rpc AllRepositories(NameSearch)               returns (types.RepositoryList)  {}; 
   // List all public repositories.
-  rpc PublicRepositories(google.protobuf.Empty) returns (types.RepositoryList)  {}; 
+  rpc PublicRepositories(Search)                returns (types.RepositoryList)  {}; 
   // Get a specific repository by name.
   rpc GetRepository(Name)                       returns (types.Repository)      {}; 
 
@@ -91,7 +91,7 @@ service Data {
   // adds a subscription.
   rpc AddSubscription(RepoUserSelection)    returns (google.protobuf.Empty) {};
   // lists all the subscriptions for the user.
-  rpc ListSubscriptions(Name)               returns (types.RepositoryList)  {};
+  rpc ListSubscriptions(NameSearch)         returns (types.RepositoryList)  {};
 
   // Add a task to the db.
   rpc PutTask(types.Task)                                     returns (types.Task)            {}; 
@@ -195,6 +195,15 @@ message Count {
 
 message Name {
   string name = 1;
+}
+
+message Search {
+  string search = 1;
+}
+
+message NameSearch {
+	string name = 1;
+	string search = 2;
 }
 
 message OAuthState {

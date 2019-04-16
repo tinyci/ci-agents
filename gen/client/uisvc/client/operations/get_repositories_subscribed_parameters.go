@@ -20,7 +20,7 @@ import (
 // NewGetRepositoriesSubscribedParams creates a new GetRepositoriesSubscribedParams object
 // with the default values initialized.
 func NewGetRepositoriesSubscribedParams() *GetRepositoriesSubscribedParams {
-
+	var ()
 	return &GetRepositoriesSubscribedParams{
 
 		timeout: cr.DefaultTimeout,
@@ -30,7 +30,7 @@ func NewGetRepositoriesSubscribedParams() *GetRepositoriesSubscribedParams {
 // NewGetRepositoriesSubscribedParamsWithTimeout creates a new GetRepositoriesSubscribedParams object
 // with the default values initialized, and the ability to set a timeout on a request
 func NewGetRepositoriesSubscribedParamsWithTimeout(timeout time.Duration) *GetRepositoriesSubscribedParams {
-
+	var ()
 	return &GetRepositoriesSubscribedParams{
 
 		timeout: timeout,
@@ -40,7 +40,7 @@ func NewGetRepositoriesSubscribedParamsWithTimeout(timeout time.Duration) *GetRe
 // NewGetRepositoriesSubscribedParamsWithContext creates a new GetRepositoriesSubscribedParams object
 // with the default values initialized, and the ability to set a context for a request
 func NewGetRepositoriesSubscribedParamsWithContext(ctx context.Context) *GetRepositoriesSubscribedParams {
-
+	var ()
 	return &GetRepositoriesSubscribedParams{
 
 		Context: ctx,
@@ -50,7 +50,7 @@ func NewGetRepositoriesSubscribedParamsWithContext(ctx context.Context) *GetRepo
 // NewGetRepositoriesSubscribedParamsWithHTTPClient creates a new GetRepositoriesSubscribedParams object
 // with the default values initialized, and the ability to set a custom HTTPClient for a request
 func NewGetRepositoriesSubscribedParamsWithHTTPClient(client *http.Client) *GetRepositoriesSubscribedParams {
-
+	var ()
 	return &GetRepositoriesSubscribedParams{
 		HTTPClient: client,
 	}
@@ -60,6 +60,13 @@ func NewGetRepositoriesSubscribedParamsWithHTTPClient(client *http.Client) *GetR
 for the get repositories subscribed operation typically these are written to a http.Request
 */
 type GetRepositoriesSubscribedParams struct {
+
+	/*Search
+	  search string by which to filter results
+
+	*/
+	Search *string
+
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
@@ -98,6 +105,17 @@ func (o *GetRepositoriesSubscribedParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
+// WithSearch adds the search to the get repositories subscribed params
+func (o *GetRepositoriesSubscribedParams) WithSearch(search *string) *GetRepositoriesSubscribedParams {
+	o.SetSearch(search)
+	return o
+}
+
+// SetSearch adds the search to the get repositories subscribed params
+func (o *GetRepositoriesSubscribedParams) SetSearch(search *string) {
+	o.Search = search
+}
+
 // WriteToRequest writes these params to a swagger request
 func (o *GetRepositoriesSubscribedParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
@@ -105,6 +123,22 @@ func (o *GetRepositoriesSubscribedParams) WriteToRequest(r runtime.ClientRequest
 		return err
 	}
 	var res []error
+
+	if o.Search != nil {
+
+		// query param search
+		var qrSearch string
+		if o.Search != nil {
+			qrSearch = *o.Search
+		}
+		qSearch := qrSearch
+		if qSearch != "" {
+			if err := r.SetQueryParam("search", qSearch); err != nil {
+				return err
+			}
+		}
+
+	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)

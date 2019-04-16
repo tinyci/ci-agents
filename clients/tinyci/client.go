@@ -54,8 +54,8 @@ func (c *Client) LogAttach(id int64, w io.WriteCloser) *errors.Error {
 }
 
 // LoadRepositories loads your repos from github and returns the objects tinyci recorded.
-func (c *Client) LoadRepositories() ([]*model.Repository, *errors.Error) {
-	repos, err := c.client.GetRepositoriesMy(context.Background())
+func (c *Client) LoadRepositories(search string) ([]*model.Repository, *errors.Error) {
+	repos, err := c.client.GetRepositoriesMy(context.Background(), search)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +89,8 @@ func (c *Client) DeleteFromCI(repository string) *errors.Error {
 }
 
 // Subscribed lists all subscribed repositories.
-func (c *Client) Subscribed() ([]*model.Repository, *errors.Error) {
-	repos, err := c.client.GetRepositoriesSubscribed(context.Background())
+func (c *Client) Subscribed(search string) ([]*model.Repository, *errors.Error) {
+	repos, err := c.client.GetRepositoriesSubscribed(context.Background(), search)
 	if err != nil {
 		return nil, err
 	}
@@ -100,8 +100,8 @@ func (c *Client) Subscribed() ([]*model.Repository, *errors.Error) {
 }
 
 // Visible lists all visible repositories.
-func (c *Client) Visible() ([]*model.Repository, *errors.Error) {
-	repos, err := c.client.GetRepositoriesVisible(context.Background())
+func (c *Client) Visible(search string) ([]*model.Repository, *errors.Error) {
+	repos, err := c.client.GetRepositoriesVisible(context.Background(), search)
 	if err != nil {
 		return nil, err
 	}
