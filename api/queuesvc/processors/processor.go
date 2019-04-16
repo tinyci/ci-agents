@@ -209,7 +209,10 @@ func ManageRepositories(h *handler.H, sub *types.Submission) (*model.Repository,
 		return nil, nil, nil, errors.New("repository is not enabled")
 	}
 
-	repoOwner := parentIntRepo.Owners[0] // FIXME do something smarter than this
+	repoOwner := parentIntRepo.Owner
+	if repoOwner == nil {
+		return nil, nil, nil, errors.New("No owner for target repository")
+	}
 	client := h.OAuth.GithubClient(repoOwner.Token)
 
 	forkRepo, err := client.GetRepository(sub.Fork)
@@ -420,8 +423,8 @@ func Process(h *handler.H, sub *types.Submission) (retQI []*model.QueueItem, ret
 	defer func() {
 		h.Clients.Log.Infof("Processing Submission took %v", time.Since(since))
 
-		if retErr != nil && is != nil {
-			client := h.OAuth.GithubClient(is.ParentRepo.Owners[0].Token)
+		if retErr != nil && is != nil && is.ParentRepo.Owner != nil {
+			client := h.OAuth.GithubClient(is.ParentRepo.Owner.Token)
 			owner, repo, err := is.ParentRepo.OwnerRepo()
 			if err != nil {
 				h.Clients.Log.Error(err.Wrapf("%s/%s", owner, repo))

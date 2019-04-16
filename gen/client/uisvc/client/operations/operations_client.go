@@ -63,6 +63,61 @@ func (c *Client) UnmarshalCookies(content []byte) error {
 	return nil
 }
 
+// DeleteCapabilitiesUsernameCapability remove a named capability
+func (c *Client) DeleteCapabilitiesUsernameCapability(ctx context.Context, capability string, username string) *errors.Error {
+	route := "/capabilities/{username}/{capability}"
+	route = strings.Replace(route, "{capability}", url.PathEscape(fmt.Sprintf("%v", capability)), -1)
+
+	route = strings.Replace(route, "{username}", url.PathEscape(fmt.Sprintf("%v", username)), -1)
+
+	tmp := *c.url
+	u := &tmp
+	u.Path += route
+
+	m := map[string]interface{}{}
+
+	if len(m) > 0 {
+		q := u.Query()
+
+		for key, value := range m {
+			q.Add(key, fmt.Sprintf("%v", value))
+		}
+
+		u.RawQuery = q.Encode()
+	}
+
+	var body []byte
+
+	req, err := http.NewRequest("DELETE", u.String(), bytes.NewBuffer(body))
+	if err != nil {
+		return errors.New(err)
+	}
+
+	req.Header.Add("Authorization", c.token)
+
+	resp, err := c.client.Do(req.WithContext(ctx))
+	if err != nil {
+		return errors.New(err)
+	}
+
+	if resp.StatusCode == 500 {
+		origErr := &errors.Error{}
+		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
+			return errors.New(err)
+		}
+		if origErr == nil {
+			panic("Cannot return 500 without error")
+		}
+
+		return origErr
+	}
+
+	defer resp.Body.Close()
+
+	return nil
+
+}
+
 // DeleteToken remove and reset your tiny c i access token
 func (c *Client) DeleteToken(ctx context.Context) *errors.Error {
 	route := "/token"
@@ -1440,6 +1495,66 @@ func (c *Client) GetUserProperties(ctx context.Context) *errors.Error {
 func (c *Client) PostCancelRunID(ctx context.Context, run_id int64) *errors.Error {
 	route := "/cancel/{run_id}"
 	route = strings.Replace(route, "{run_id}", url.PathEscape(fmt.Sprintf("%v", run_id)), -1)
+
+	tmp := *c.url
+	u := &tmp
+	u.Path += route
+
+	m := map[string]interface{}{}
+
+	if len(m) > 0 {
+		q := u.Query()
+
+		for key, value := range m {
+			q.Add(key, fmt.Sprintf("%v", value))
+		}
+
+		u.RawQuery = q.Encode()
+	}
+
+	var body []byte
+
+	postForm := url.Values{}
+
+	body = []byte(postForm.Encode())
+
+	req, err := http.NewRequest("POST", u.String(), bytes.NewBuffer(body))
+	if err != nil {
+		return errors.New(err)
+	}
+
+	req.Header.Add("Authorization", c.token)
+
+	req.Header.Set("Content-type", "application/x-www-form-urlencoded")
+	resp, err := c.client.Do(req.WithContext(ctx))
+	if err != nil {
+		return errors.New(err)
+	}
+
+	if resp.StatusCode == 500 {
+		origErr := &errors.Error{}
+		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
+			return errors.New(err)
+		}
+		if origErr == nil {
+			panic("Cannot return 500 without error")
+		}
+
+		return origErr
+	}
+
+	defer resp.Body.Close()
+
+	return nil
+
+}
+
+// PostCapabilitiesUsernameCapability add a named capability
+func (c *Client) PostCapabilitiesUsernameCapability(ctx context.Context, capability string, username string) *errors.Error {
+	route := "/capabilities/{username}/{capability}"
+	route = strings.Replace(route, "{capability}", url.PathEscape(fmt.Sprintf("%v", capability)), -1)
+
+	route = strings.Replace(route, "{username}", url.PathEscape(fmt.Sprintf("%v", username)), -1)
 
 	tmp := *c.url
 	u := &tmp

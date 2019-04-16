@@ -39,6 +39,7 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
     Method: {{ printf "%q" $op.Method }},
     UseCORS: true,
     {{ if $op.Authorized }}UseAuth: true,{{ end }}
+    {{ if index $op.Extensions "x-capability" }}Capability: {{ printf "%q" (index $op.Extensions "x-capability") }},{{ end }}
   }
   {{ end -}}
 }

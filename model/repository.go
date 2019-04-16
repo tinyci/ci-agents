@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/base32"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	gh "github.com/google/go-github/github"
@@ -43,13 +44,14 @@ func (rl RepositoryList) ToProto() *types.RepositoryList {
 
 // Repository is the encapsulation of a git repository.
 type Repository struct {
-	ID          int64   `gorm:"primary_key" json:"id"`
-	Name        string  `gorm:"unique" json:"name"`
-	Private     bool    `json:"private"`
-	Disabled    bool    `json:"disabled"`
-	GithubJSON  []byte  `gorm:"column:github" json:"-"`
-	Owners      []*User `gorm:"many2many:owners;preload:false" json:"-"`
-	AutoCreated bool    `json:"auto_created"`
+	ID          int64  `gorm:"primary_key" json:"id"`
+	Name        string `gorm:"unique" json:"name"`
+	Private     bool   `json:"private"`
+	Disabled    bool   `json:"disabled"`
+	GithubJSON  []byte `gorm:"column:github" json:"-"`
+	OwnerID     int64  `json:"-"`
+	Owner       *User  `gorm:"association_autoupdate:false" json:"-"`
+	AutoCreated bool   `json:"auto_created"`
 	HookSecret  string
 
 	Github *gh.Repository `json:"github"`
@@ -62,9 +64,14 @@ func NewRepositoryFromProto(r *types.Repository) (*Repository, *errors.Error) {
 		return nil, errors.New(err)
 	}
 
-	users, err := MakeUsers(r.Owners)
-	if err != nil {
-		return nil, err
+	var owner *User
+
+	if r.Owner != nil {
+		var err *errors.Error
+		owner, err = NewUserFromProto(r.Owner)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Repository{
@@ -72,7 +79,7 @@ func NewRepositoryFromProto(r *types.Repository) (*Repository, *errors.Error) {
 		Name:        r.Name,
 		Private:     r.Private,
 		Disabled:    r.Disabled,
-		Owners:      users,
+		Owner:       owner,
 		AutoCreated: r.AutoCreated,
 		HookSecret:  r.HookSecret,
 		Github:      github,
@@ -82,12 +89,18 @@ func NewRepositoryFromProto(r *types.Repository) (*Repository, *errors.Error) {
 
 // ToProto returns the protobuf representation of the repository
 func (r *Repository) ToProto() *types.Repository {
+	var owner *types.User
+
+	if r.Owner != nil {
+		owner = r.Owner.ToProto()
+	}
+
 	return &types.Repository{
 		Id:          r.ID,
 		Name:        r.Name,
 		Private:     r.Private,
 		Disabled:    r.Disabled,
-		Owners:      MakeUserList(r.Owners),
+		Owner:       owner,
 		AutoCreated: r.AutoCreated,
 		HookSecret:  r.HookSecret,
 		Github:      r.GithubJSON,
@@ -104,39 +117,18 @@ func (r *Repository) OwnerRepo() (string, string, *errors.Error) {
 func (m *Model) GetRepositoryByNameForUser(name string, u *User) (*Repository, *errors.Error) {
 	r := &Repository{}
 
-	mp := m.Preload("Owners")
-
-	err := m.WrapError(mp.Where("not private and name = ?", name).First(r), "finding public repositories")
-	if err != nil {
-		err = m.WrapError(
-			mp.Joins("inner join owners on owners.repository_id = id").
-				Where("owners.user_id = ? and private and name = ?", u.ID, name).
-				First(r),
-			"finding owned repositories",
-		)
-		if err != nil {
-			return nil, errors.New(err)
-		}
+	var id int64
+	if u != nil {
+		id = u.ID
 	}
 
-	if err := r.Validate(true); err != nil {
-		return nil, errors.ErrNotFound
-	}
-
-	return r, nil
+	return r, m.WrapError(m.Where("(owner_id = ? or not private) and name = ?", id, name).First(r), "finding repository")
 }
 
 // GetOwnedRepos returns all repos the user owns.
 func (m *Model) GetOwnedRepos(u *User) (RepositoryList, *errors.Error) {
 	r := []*Repository{}
-	return RepositoryList(r), m.WrapError(
-		m.Preload("Owners").
-			Where("users.id = ?", u.ID).
-			Joins("inner join owners on repositories.id = owners.repository_id").
-			Joins("inner join users on owners.user_id = users.id").
-			Find(&r),
-		"obtaining owned repositories",
-	)
+	return RepositoryList(r), m.WrapError(m.Where("owner_id = ?", u.ID).Find(&r), "obtaining owned repositories")
 }
 
 // GetVisibleReposForUser retrieves all repos the user can "see" in the
@@ -168,8 +160,7 @@ func (m *Model) GetPrivateReposForUser(u *User) (RepositoryList, *errors.Error) 
 	r := []*Repository{}
 
 	return RepositoryList(r), m.WrapError(
-		m.Joins("inner join owners on owners.repository_id = id").
-			Where("owners.user_id = ? and private", u.ID).
+		m.Where("owner_id = ? and private", u.ID).
 			Find(&r),
 		"obtaining private repositories for user",
 	)
@@ -178,7 +169,7 @@ func (m *Model) GetPrivateReposForUser(u *User) (RepositoryList, *errors.Error) 
 // GetRepositoryByName retrieves the repository by its unique name.
 func (m *Model) GetRepositoryByName(name string) (*Repository, *errors.Error) {
 	r := &Repository{}
-	return r, m.WrapError(m.Preload("Owners").Where("name = ?", name).First(r), "obtain repository by name")
+	return r, m.WrapError(m.Where("name = ?", name).First(r), "obtain repository by name")
 }
 
 // AfterFind validates the output from the database before releasing it to the
@@ -229,16 +220,17 @@ func (r *Repository) Validate(validOwner bool) *errors.Error {
 		return errors.New("github repository does not match repository name")
 	}
 
-	if validOwner && len(r.Owners) == 0 {
-		return errors.New("owner(s) missing")
-	}
-
 	return nil
+}
+
+// Enabled is merely a predicate to determine if the repo can be used or not
+func (r *Repository) Enabled() bool {
+	return !r.Disabled && r.Owner != nil
 }
 
 // DisableRepository removes it from CI.
 func (m *Model) DisableRepository(repo *Repository) *errors.Error {
-	if repo.Disabled {
+	if !repo.Enabled() {
 		return errors.New("repo is not enabled")
 	}
 
@@ -247,12 +239,19 @@ func (m *Model) DisableRepository(repo *Repository) *errors.Error {
 }
 
 // EnableRepository adds it to CI.
-func (m *Model) EnableRepository(repo *Repository) *errors.Error {
-	if !repo.Disabled {
+func (m *Model) EnableRepository(repo *Repository, owner *User) *errors.Error {
+	if repo.Enabled() {
 		return errors.New("repo is already enabled")
 	}
 
 	repo.Disabled = false
 	repo.HookSecret = strings.TrimRight(base32.StdEncoding.EncodeToString(securecookie.GenerateRandomKey(24)), "=")
+	repo.Owner = owner
 	return m.WrapError(m.Save(repo), "enabling repository")
+}
+
+// AssignRepository assigns the repository to the user explicitly.
+func (m *Model) AssignRepository(repo *Repository, owner *User) *errors.Error {
+	repo.Owner = owner
+	return m.WrapError(m.Save(repo), fmt.Sprintf("assigning repository to %q", owner.Username))
 }

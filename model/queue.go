@@ -152,7 +152,7 @@ func (m *Model) NextQueueItem(runningOn string, queueName string) (*QueueItem, *
 	qi := &QueueItem{}
 
 	err := m.WrapError(
-		db.Preload("Run.Task.Parent.Owners").
+		db.Preload("Run.Task.Parent").
 			Order("id").
 			Where("queue_name = ? and not running", queueName).
 			First(qi),

@@ -6,6 +6,7 @@ import (
 
 	check "github.com/erikh/check"
 	"github.com/tinyci/ci-agents/clients/asset"
+	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/grpc/handler"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/testutil/testclients"
@@ -20,6 +21,7 @@ type uisvcSuite struct {
 	queueDoneChan  chan struct{}
 	dataDoneChan   chan struct{}
 	assetDoneChan  chan struct{}
+	oauthDoneChan  chan struct{}
 	logHandler     *handler.H
 	dataHandler    *handler.H
 	queueHandler   *handler.H
@@ -31,6 +33,7 @@ type uisvcSuite struct {
 var _ = check.Suite(&uisvcSuite{})
 
 func TestUISvc(t *testing.T) {
+	config.DefaultEndpoint = testservers.TestEndpoint
 	check.TestingT(t)
 }
 
@@ -60,9 +63,13 @@ func (us *uisvcSuite) SetUpTest(c *check.C) {
 
 	us.assetsvcClient, err = asset.NewClient(nil, "localhost:6002")
 	c.Assert(err, check.IsNil)
+
+	us.oauthDoneChan, err = testservers.BootOAuthService()
+	c.Assert(err, check.IsNil)
 }
 
 func (us *uisvcSuite) TearDownTest(c *check.C) {
+	close(us.oauthDoneChan)
 	close(us.dataDoneChan)
 	close(us.queueDoneChan)
 	close(us.logDoneChan)

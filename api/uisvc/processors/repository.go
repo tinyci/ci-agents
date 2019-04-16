@@ -11,10 +11,6 @@ import (
 
 // ListRepositoriesSubscribed lists all subscribed repos as JSON.
 func ListRepositoriesSubscribed(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	if h.Auth.NoModify {
-		return nil, 200, nil
-	}
-
 	user, err := getUser(h, ctx)
 	if err != nil {
 		return nil, 500, err
@@ -26,10 +22,6 @@ func ListRepositoriesSubscribed(h *handlers.H, ctx *gin.Context) (interface{}, i
 
 // ListRepositoriesMy lists the repositories the user can modify.
 func ListRepositoriesMy(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	if h.Auth.NoModify {
-		return nil, 200, nil
-	}
-
 	user, err := getUser(h, ctx)
 	if err != nil {
 		return nil, 500, err
@@ -71,10 +63,6 @@ func ListRepositoriesMy(h *handlers.H, ctx *gin.Context) (interface{}, int, *err
 
 // ListRepositoriesVisible returns all the repos the user can see.
 func ListRepositoriesVisible(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	if h.Auth.NoModify {
-		return nil, 200, nil
-	}
-
 	user, err := getUser(h, ctx)
 	if err != nil {
 		return nil, 500, err
@@ -86,10 +74,6 @@ func ListRepositoriesVisible(h *handlers.H, ctx *gin.Context) (interface{}, int,
 
 // DeleteRepositoryFromCI removes the repository from CI. that's it.
 func DeleteRepositoryFromCI(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	if h.Auth.NoModify {
-		return nil, 200, nil
-	}
-
 	user, err := getUser(h, ctx)
 	if err != nil {
 		return nil, 500, err
@@ -118,10 +102,6 @@ func DeleteRepositoryFromCI(h *handlers.H, ctx *gin.Context) (interface{}, int, 
 
 // AddRepositoryToCI adds the repository to CI and subscribes the user to it.
 func AddRepositoryToCI(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	if h.Auth.NoModify {
-		return nil, 200, nil
-	}
-
 	user, err := getUser(h, ctx)
 	if err != nil {
 		return nil, 500, err
@@ -168,10 +148,6 @@ func AddRepositoryToCI(h *handlers.H, ctx *gin.Context) (interface{}, int, *erro
 
 // AddRepositorySubscription adds a subscription for the user to the repo
 func AddRepositorySubscription(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	if h.Auth.NoModify {
-		return nil, 200, nil
-	}
-
 	user, err := getUser(h, ctx)
 	if err != nil {
 		return nil, 500, err
@@ -182,10 +158,6 @@ func AddRepositorySubscription(h *handlers.H, ctx *gin.Context) (interface{}, in
 
 // DeleteRepositorySubscription removes the subscription to the repository from the user account.
 func DeleteRepositorySubscription(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	if h.Auth.NoModify {
-		return nil, 200, nil
-	}
-
 	user, err := getUser(h, ctx)
 	if err != nil {
 		return nil, 500, err

@@ -193,3 +193,13 @@ func (c *Client) GetRun(id int64) (*model.Run, *errors.Error) {
 func (c *Client) CancelRun(id int64) *errors.Error {
 	return c.client.PostCancelRunID(context.Background(), id)
 }
+
+// AddCapability adds a capability for a user. Must have the modify:user capability to interact.
+func (c *Client) AddCapability(username string, capability model.Capability) *errors.Error {
+	return c.client.PostCapabilitiesUsernameCapability(context.Background(), string(capability), username)
+}
+
+// RemoveCapability removes a capability from a user. Must have the modify:user capability to interact.
+func (c *Client) RemoveCapability(username string, capability model.Capability) *errors.Error {
+	return c.client.DeleteCapabilitiesUsernameCapability(context.Background(), string(capability), username)
+}

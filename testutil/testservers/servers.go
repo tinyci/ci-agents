@@ -21,8 +21,9 @@ import (
 	"github.com/tinyci/ci-agents/grpc/services/log"
 	"github.com/tinyci/ci-agents/grpc/services/queue"
 	"github.com/tinyci/ci-agents/handlers"
-	mockGithub "github.com/tinyci/ci-agents/mocks/github"
+	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/testutil"
+	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 )
 
@@ -35,20 +36,21 @@ var clients = config.ClientConfig{
 }
 
 // MakeUIServer makes a uisvc.
-func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Client, *errors.Error) {
+func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Client, *tinyci.Client, *errors.Error) {
 	h := &handlers.H{
 		Config: restapi.HandlerConfig{},
 		Service: config.Service{
-			Name:            "uisvc",
-			DefaultUsername: "erikh",
+			Name: "uisvc",
 		},
 		UserConfig: config.UserConfig{
+			OAuth: config.OAuthConfig{
+				ClientID:     "client id",
+				ClientSecret: "client secret",
+				RedirectURL:  "http://localhost:6010/login",
+			},
 			ClientConfig: clients,
 			URL:          "http://localhost",
 			Auth: config.AuthConfig{
-				TestMode:        true,
-				NoAuth:          true,
-				GithubToken:     "dummy",
 				SessionCryptKey: "0431d583a48a00243cc3d3d596ed362d77c50be4848dbf0d2f52bab841f072f9",
 				TokenCryptKey:   "1431d583a48a00243cc3d3d596ed362d77c50be4848dbf0d2f52bab841f072f9",
 			},
@@ -62,31 +64,56 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 
 	d, err := d.New("localhost:6000", nil)
 	if err != nil {
-		return nil, nil, nil, errors.New(err)
+		return nil, nil, nil, nil, errors.New(err)
 	}
 
 	config.DefaultGithubClient = client
-	client.(*mockGithub.MockClient).EXPECT().MyLogin().Return("erikh", nil)
 	doneChan, err := handlers.Boot(nil, h)
 	if err != nil {
-		return nil, nil, nil, errors.New(err)
+		return nil, nil, nil, nil, errors.New(err)
 	}
 
-	token, eErr := d.GetToken("erikh")
-	if eErr != nil {
-		return nil, nil, nil, eErr
+	u, err := d.PutUser(&model.User{Username: "erikh", Token: &oauth2.Token{AccessToken: "dummy"}})
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	for _, cap := range model.AllCapabilities {
+		if err := d.AddCapability(u, cap); err != nil {
+			return nil, nil, nil, nil, err
+		}
+	}
+
+	token, err := d.GetToken("erikh")
+	if err != nil {
+		return nil, nil, nil, nil, err
 	}
 
 	tc, err := tinyci.New("http://localhost:6010", token)
 	if err != nil {
-		return nil, nil, nil, eErr
+		return nil, nil, nil, nil, err
 	}
 
 	if _, err := tc.Errors(); err != nil { // connectivity check
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
-	return h, doneChan, tc, nil
+	_, err = d.PutUser(&model.User{Username: "erikh2", Token: &oauth2.Token{AccessToken: "dummy"}})
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	token, err = d.GetToken("erikh2")
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	utc, err := tinyci.New("http://localhost:6010", token)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	return h, doneChan, tc, utc, nil
 }
 
 // MakeDataServer makes an instance of the datasvc on port 6000. It returns a

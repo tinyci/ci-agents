@@ -29,6 +29,7 @@ require (
 	github.com/lib/pq v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
+	github.com/openshift/osin v1.0.1
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.0
 	github.com/urfave/cli v1.20.0

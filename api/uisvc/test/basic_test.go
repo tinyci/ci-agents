@@ -16,9 +16,23 @@ import (
 	gh "github.com/google/go-github/github"
 )
 
+func (us *uisvcSuite) TestCapabilities(c *check.C) {
+	client := github.NewMockClient(gomock.NewController(c))
+	_, doneChan, tc, utc, err := testservers.MakeUIServer(client)
+	c.Assert(err, check.IsNil)
+	defer close(doneChan)
+
+	c.Assert(utc.AddCapability("erikh2", "modify:user"), check.NotNil)
+	c.Assert(tc.AddCapability("erikh2", "modify:user"), check.IsNil)
+	c.Assert(utc.AddCapability("erikh2", "modify:ci"), check.IsNil)
+
+	c.Assert(utc.RemoveCapability("erikh2", "modify:user"), check.IsNil)
+	c.Assert(utc.RemoveCapability("erikh2", "modify:ci"), check.NotNil)
+}
+
 func (us *uisvcSuite) TestErrors(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, _, err := testservers.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -29,7 +43,7 @@ func (us *uisvcSuite) TestErrors(c *check.C) {
 
 func (us *uisvcSuite) TestLogAttach(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, _, err := testservers.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -51,20 +65,9 @@ func (us *uisvcSuite) TestLogAttach(c *check.C) {
 	c.Assert(strings.HasPrefix(buf.String(), "this is a log"), check.Equals, true)
 }
 
-func (us *uisvcSuite) TestTestModeTokens(c *check.C) {
-	client := github.NewMockClient(gomock.NewController(c))
-	h, doneChan, tc, err := testservers.MakeUIServer(client)
-	c.Assert(err, check.IsNil)
-	defer close(doneChan)
-
-	h.Auth.TestMode = false
-
-	c.Assert(tc.DeleteToken(), check.ErrorMatches, "cannot manipulate tokens.*")
-}
-
 func (us *uisvcSuite) TestTokenEndpoints(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, _, err := testservers.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -75,7 +78,7 @@ func (us *uisvcSuite) TestTokenEndpoints(c *check.C) {
 
 func (us *uisvcSuite) TestDeleteToken(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, _, err := testservers.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -86,7 +89,7 @@ func (us *uisvcSuite) TestDeleteToken(c *check.C) {
 
 func (us *uisvcSuite) TestSubmit(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, utc, err := testservers.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -131,6 +134,7 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 	client.EXPECT().GetSHA("erikh/test", "heads/master").Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", nil)
 	client.EXPECT().ClearStates("erikh/parent", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb").Return(nil)
 
+	c.Assert(utc.Submit("erikh/test", "master", true), check.NotNil)
 	c.Assert(tc.Submit("erikh/test", "master", true), check.IsNil)
 
 	tasks, err := tc.Tasks("erikh/test", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 0, 200)
@@ -185,7 +189,7 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 
 func (us *uisvcSuite) TestAddDeleteCI(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	h, doneChan, tc, err := testservers.MakeUIServer(client)
+	h, doneChan, tc, utc, err := testservers.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -211,6 +215,7 @@ func (us *uisvcSuite) TestAddDeleteCI(c *check.C) {
 	client.EXPECT().TeardownHook("erikh", "test", h.HookURL).Return(nil)
 	client.EXPECT().SetupHook("erikh", "test", h.HookURL, gomock.Any()).Return(nil)
 
+	c.Assert(utc.AddToCI("erikh/test"), check.ErrorMatches, ".*capability.*")
 	c.Assert(tc.AddToCI("erikh/test"), check.IsNil)
 
 	c.Assert(tc.DeleteFromCI("erikh/not-real"), check.NotNil)
@@ -219,13 +224,14 @@ func (us *uisvcSuite) TestAddDeleteCI(c *check.C) {
 	c.Assert(tc.DeleteFromCI("erikh/test"), check.NotNil)
 
 	client.EXPECT().TeardownHook("erikh", "test", h.HookURL).Return(nil)
+	c.Assert(utc.DeleteFromCI("erikh/test"), check.NotNil)
 	c.Assert(tc.DeleteFromCI("erikh/test"), check.IsNil)
 	c.Assert(tc.DeleteFromCI("erikh/test"), check.ErrorMatches, "repo is not enabled")
 }
 
 func (us *uisvcSuite) TestSubscriptions(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, _, err := testservers.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -258,7 +264,7 @@ func (us *uisvcSuite) TestSubscriptions(c *check.C) {
 
 func (us *uisvcSuite) TestVisibility(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, _, err := testservers.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -279,82 +285,4 @@ func (us *uisvcSuite) TestVisibility(c *check.C) {
 	for _, repo := range repos {
 		c.Assert(repo.Name, check.Not(check.Equals), "not-erikh/private-test")
 	}
-}
-
-func (us *uisvcSuite) TestNoAuthUserCreation(c *check.C) {
-	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, _, err := testservers.MakeUIServer(client)
-	c.Assert(err, check.IsNil)
-	defer close(doneChan)
-
-	u, err := us.datasvcClient.Client().GetUser("erikh")
-	c.Assert(err, check.IsNil)
-	c.Assert(u.Username, check.Equals, "erikh")
-}
-
-func (us *uisvcSuite) TestNoCancelInNoModify(c *check.C) {
-	client := github.NewMockClient(gomock.NewController(c))
-	h, doneChan, tc, err := testservers.MakeUIServer(client)
-	c.Assert(err, check.IsNil)
-	defer close(doneChan)
-
-	client.EXPECT().MyRepositories().Return([]*gh.Repository{{FullName: gh.String("erikh/parent")}}, nil)
-
-	repos, err := tc.LoadRepositories()
-	c.Assert(err, check.IsNil)
-	c.Assert(len(repos), check.Not(check.Equals), 0)
-
-	c.Assert(us.datasvcClient.Client().EnableRepository("erikh", "erikh/parent"), check.IsNil)
-
-	sub := &types.Submission{
-		Parent:  "erikh/parent",
-		Fork:    "erikh/test",
-		BaseSHA: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-		HeadSHA: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-		Manual:  true,
-		All:     true,
-	}
-
-	c.Assert(us.queuesvcClient.SetMockSubmissionSuccess(client.EXPECT(), sub), check.IsNil)
-	client.EXPECT().GetSHA("erikh/parent", "heads/master").Return("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nil)
-	client.EXPECT().GetSHA("erikh/test", "heads/master").Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", nil)
-	client.EXPECT().ClearStates("erikh/parent", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb").Return(nil)
-
-	c.Assert(tc.Submit("erikh/test", "master", true), check.IsNil)
-
-	tasks, err := tc.Tasks("erikh/test", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 0, 100)
-	c.Assert(err, check.IsNil)
-	c.Assert(len(tasks), check.Not(check.Equals), 0)
-
-	runs, err := tc.RunsForTask(tasks[0].ID, 0, 100)
-	c.Assert(err, check.IsNil)
-	c.Assert(len(runs), check.Not(check.Equals), 0)
-
-	for range runs {
-		client.EXPECT().ErrorStatus(
-			"erikh",
-			"parent",
-			gomock.Any(),
-			"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-			gomock.Any(),
-			gomock.Any()).Return(nil)
-	}
-	c.Assert(tc.CancelRun(runs[0].ID), check.IsNil)
-
-	h.Auth.NoModify = true
-
-	runs, err = tc.RunsForTask(tasks[0].ID, 0, 100)
-	c.Assert(err, check.IsNil)
-	c.Assert(len(runs), check.Not(check.Equals), 0)
-
-	for range runs {
-		client.EXPECT().ErrorStatus(
-			"erikh",
-			"parent",
-			gomock.Any(),
-			"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-			gomock.Any(),
-			gomock.Any()).Return(nil)
-	}
-	c.Assert(tc.CancelRun(runs[0].ID), check.NotNil)
 }

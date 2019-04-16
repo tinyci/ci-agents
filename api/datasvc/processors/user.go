@@ -78,3 +78,46 @@ func (ds *DataServer) ListUsers(ctx context.Context, e *empty.Empty) (*types.Use
 
 	return tu, nil
 }
+
+// HasCapability returns true if the capability requested exists for the user provided.
+func (ds *DataServer) HasCapability(ctx context.Context, cr *data.CapabilityRequest) (*types.Bool, error) {
+	u, err := ds.H.Model.FindUserByID(cr.Id)
+	if err != nil {
+		return &types.Bool{Result: false}, err
+	}
+
+	res, err := ds.H.Model.HasCapability(u, model.Capability(cr.Capability), ds.H.Auth.FixedCapabilities)
+	if err != nil {
+		return &types.Bool{Result: false}, err
+	}
+
+	return &types.Bool{Result: res}, nil
+}
+
+// AddCapability adds a capability for a user.
+func (ds *DataServer) AddCapability(ctx context.Context, cr *data.CapabilityRequest) (*empty.Empty, error) {
+	u, err := ds.H.Model.FindUserByID(cr.Id)
+	if err != nil {
+		return &empty.Empty{}, err
+	}
+
+	if err := ds.H.Model.AddCapabilityToUser(u, model.Capability(cr.Capability)); err != nil {
+		return &empty.Empty{}, err
+	}
+
+	return &empty.Empty{}, nil
+}
+
+// RemoveCapability removes a capability from a user.
+func (ds *DataServer) RemoveCapability(ctx context.Context, cr *data.CapabilityRequest) (*empty.Empty, error) {
+	u, err := ds.H.Model.FindUserByID(cr.Id)
+	if err != nil {
+		return &empty.Empty{}, err
+	}
+
+	if err := ds.H.Model.RemoveCapabilityFromUser(u, model.Capability(cr.Capability)); err != nil {
+		return &empty.Empty{}, err
+	}
+
+	return &empty.Empty{}, nil
+}

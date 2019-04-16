@@ -43,8 +43,7 @@ type Service struct {
 	NoTLSServer bool            `yaml:"-"`
 	Formats     strfmt.Registry `yaml:"-"`
 
-	Clients         *Clients `yaml:"-"`
-	DefaultUsername string   `yaml:"-"`
+	Clients *Clients `yaml:"-"`
 
 	Model *model.Model `yaml:"-"`
 	Name  string       `yaml:"-"`

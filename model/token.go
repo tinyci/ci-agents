@@ -31,26 +31,26 @@ func (m *Model) unpackToken(token string) (string, []byte, *errors.Error) {
 }
 
 // ValidateToken checks that a token is valid for a given user.
-func (m *Model) ValidateToken(token string) (string, *errors.Error) {
+func (m *Model) ValidateToken(token string) (*User, *errors.Error) {
 	name, authToken, err := m.unpackToken(token)
 	if err != nil {
-		return "", err // except for in this case, where it's done already above.
+		return nil, err // except for in this case, where it's done already above.
 	}
 
 	u, err := m.FindUserByName(name)
 	if err != nil {
-		return "", errors.ErrInvalidAuth
+		return nil, errors.ErrInvalidAuth
 	}
 
 	if len(u.LoginToken) == 0 {
-		return "", errors.ErrInvalidAuth
+		return nil, errors.ErrInvalidAuth
 	}
 
 	if bytes.Equal(u.LoginToken, authToken) {
-		return name, nil
+		return u, nil
 	}
 
-	return "", errors.ErrInvalidAuth
+	return nil, errors.ErrInvalidAuth
 }
 
 // GetToken retrieves a new token for logging in. If one exists, the

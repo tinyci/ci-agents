@@ -85,5 +85,8 @@ func (hc HandlerConfig) Configure(router handlers.Routes) *errors.Error {
 	router.SetProcessor("/token", "delete", processors.DeleteToken)
 	router.SetWebsocketProcessor("/log/attach/{id}", processors.LogAttach)
 
+	router.SetProcessor("/capabilities/{username}/{capability}", "post", processors.AddCapability)
+	router.SetProcessor("/capabilities/{username}/{capability}", "delete", processors.RemoveCapability)
+
 	return nil
 }

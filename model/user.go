@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 
 	gh "github.com/google/go-github/github"
@@ -12,9 +13,25 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// Capability is a type of access gating mechanism. If present on the user
+// account access is granted, otherwise not.
+type Capability string
+
+const (
+	// CapabilityModifyCI is required for modifying CI properties such as adding or removing a repo.
+	CapabilityModifyCI Capability = "modify:ci"
+	// CapabilityModifyUser allows you to modify users; including caps.
+	CapabilityModifyUser Capability = "modify:user"
+	// CapabilitySubmit allows manual submissions
+	CapabilitySubmit Capability = "submit"
+	// CapabilityCancel allows cancels
+	CapabilityCancel Capability = "cancel"
+)
+
 var (
-	// DefaultAccessToken is the Token used with NoAuth strategies.
-	DefaultAccessToken string
+	// AllCapabilities comprises the superuser account's list of capabilities.
+	AllCapabilities = []Capability{CapabilityModifyCI, CapabilityModifyUser, CapabilitySubmit, CapabilityCancel}
+
 	// TokenCryptKey is the standard token crypt key.
 	// NOTE: the default is only used by tests; it is overwritten on service boot; see config/auth.go.
 	TokenCryptKey = []byte{1, 2, 3, 4, 5, 6, 7, 8}
@@ -250,7 +267,7 @@ func (m *Model) mkRepositoryFromGithub(repo *gh.Repository, owner *User, autoCre
 		Private:     repo.GetPrivate(),
 		Disabled:    true, // created repos are disabled by default
 		Github:      repo,
-		Owners:      []*User{owner},
+		Owner:       owner,
 		AutoCreated: autoCreated,
 	}
 }
@@ -264,15 +281,11 @@ func (m *Model) SaveRepositories(repos []*gh.Repository, username string, autoCr
 	}
 
 	for _, repo := range repos {
-		realRepo, err := m.GetRepositoryByName(repo.GetFullName())
+		_, err := m.GetRepositoryByName(repo.GetFullName())
 		if err != nil {
 			localRepo := m.mkRepositoryFromGithub(repo, owner, autoCreated)
 			if err := m.WrapError(m.Create(localRepo), "creating repository"); err != nil {
 				return err.Wrapf("could not create repository %q", repo.GetFullName())
-			}
-		} else {
-			if err := m.Model(realRepo).Association("Owners").Append(owner).Error; err != nil {
-				return errors.New(err)
 			}
 		}
 	}
@@ -292,4 +305,33 @@ func (m *Model) ListSubscribedTasksForUser(userID, page, perPage int64) ([]*Task
 	).Where("subscriptions.user_id = ?", userID).Find(&tasks)
 
 	return tasks, m.WrapError(call, "locating user's subscribed tasks")
+}
+
+// AddCapabilityToUser adds a capability to a user account.
+func (m *Model) AddCapabilityToUser(u *User, cap Capability) *errors.Error {
+	return m.WrapError(m.Exec("insert into user_capabilities (user_id, name) values (?, ?)", u.ID, cap), "adding capability for user")
+}
+
+// RemoveCapabilityFromUser removes a capability from a user account.
+func (m *Model) RemoveCapabilityFromUser(u *User, cap Capability) *errors.Error {
+	return m.WrapError(m.Exec("delete from user_capabilities where user_id = ? and name = ?", u.ID, cap), "removing capability from user")
+}
+
+// HasCapability returns true if the user is capable of performing the operation.
+func (m *Model) HasCapability(u *User, cap Capability, fixedCaps map[string][]string) (bool, *errors.Error) {
+	// if we have fixed caps, we consult that table only; these are overrides for
+	// users that exist within the configuration file for the datasvc.
+	if caps, ok := fixedCaps[u.Username]; ok {
+		for _, thisCap := range caps {
+			if strings.TrimSpace(thisCap) == strings.TrimSpace(string(cap)) {
+				return true, nil
+			}
+		}
+
+		return false, nil
+	}
+
+	var slice []int64
+	err := m.WrapError(m.Raw("select 1 from user_capabilities where user_id = ? and name = ?", u.ID, cap).Find(&slice), "checking capabilities for user")
+	return len(slice) > 0, err
 }

@@ -1,12 +1,15 @@
 auth:
-  no_auth: false # disable oauth and use a single account.
-  no_modify: false # turn off all UI control of the management plane
-  no_submit: false # block submits through the UI
-  github_token: "<your token>" # required in no_auth mode
   # key for session encryption -- bytes in hex format
   session_crypt_key: 1234567123456712345671234567123456712345671234567888888812345678
   # key for github token encryption -- bytes in hex format
   token_crypt_key: 1234567123456712345671234567123456712345671234567888888812345678
+  # fixed_capabilities allow you to give some users automatic access (And keep it that way)
+  fixed_capabilities:
+    exampleUser: # put your username here
+      - 'modify:user'
+      - 'modify:ci'
+      - 'submit'
+      - 'cancel'
 oauth:
   client_id: "<your id>"
   client_secret: "<your secret>"

@@ -92,9 +92,9 @@ func (ds *datasvcSuite) TestUserLoginToken(c *check.C) {
 
 	_, err = ds.client.Client().ValidateToken(accessToken)
 	c.Assert(err, check.NotNil)
-	name, err := ds.client.Client().ValidateToken(accessToken2)
+	u, err := ds.client.Client().ValidateToken(accessToken2)
 	c.Assert(err, check.IsNil)
-	c.Assert(name, check.Equals, username)
+	c.Assert(u.Username, check.Equals, username)
 }
 
 func (ds *datasvcSuite) TestUserErrors(c *check.C) {

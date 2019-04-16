@@ -29,7 +29,10 @@ const SessionUsername = "username"
 // library along with their other standard init operations.
 var AllowOrigin = "*"
 
-var errInvalidCookie = errors.New("cookie was invalid")
+var (
+	errNoCapability  = errors.New("no capability to perform desired operation")
+	errInvalidCookie = errors.New("cookie was invalid")
+)
 
 var routeTransformer = regexp.MustCompile(`(?:{([^}]+)})+`)
 
@@ -96,26 +99,6 @@ func Boot(t *transport.HTTP, handler *H) (chan struct{}, *errors.Error) {
 		return nil, err
 	}
 
-	if handler.Auth.NoAuth {
-		if config.DefaultGithubClient == nil {
-			config.DefaultGithubClient = handler.Auth.GetNoAuthClient()
-		}
-
-		var err *errors.Error
-		handler.DefaultUsername, err = config.DefaultGithubClient.MyLogin()
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = handler.Clients.Data.GetUser(handler.DefaultUsername)
-		if err != nil {
-			handler.Clients.Log.Infof("Creating no_auth user account for %q", handler.DefaultUsername)
-			if _, err := handler.Clients.Data.PutUser(&model.User{Username: handler.DefaultUsername, Token: &oauth2.Token{AccessToken: handler.Auth.GithubToken}}); err != nil {
-				return nil, err
-			}
-		}
-	}
-
 	if t == nil {
 		var err *errors.Error
 		t, err = handler.CreateTransport()
@@ -135,8 +118,8 @@ func Boot(t *transport.HTTP, handler *H) (chan struct{}, *errors.Error) {
 
 	go func() {
 		<-doneChan
-		l.Close()
 		s.Close()
+		l.Close()
 	}()
 
 	go s.Serve(l)
@@ -203,30 +186,40 @@ func (h *H) GetGithub(ctx *gin.Context) (*model.User, *errors.Error) {
 
 	token := ctx.Request.Header.Get("Authorization")
 	if token != "" {
-		username, err := h.Clients.Data.ValidateToken(token)
-		if err != nil {
-			return nil, err
-		}
-
-		return h.Clients.Data.GetUser(username)
+		return h.Clients.Data.ValidateToken(token)
 	}
 
 	return nil, errInvalidCookie
 }
 
-func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error) func(h *H, ctx *gin.Context, processor HandlerFunc) *errors.Error {
+func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error, cap model.Capability) func(h *H, ctx *gin.Context, processor HandlerFunc) *errors.Error {
 	return func(h *H, ctx *gin.Context, processor HandlerFunc) *errors.Error {
-		if !h.Auth.NoAuth {
-			token := ctx.Request.Header.Get("Authorization")
-			if token != "" {
-				if _, err := h.Clients.Data.ValidateToken(token); err != nil {
-					return err
-				}
-			} else {
-				_, err := h.GetGithub(ctx)
-				if err != nil {
-					return errors.New(err)
-				}
+		var (
+			u   *model.User
+			err *errors.Error
+		)
+
+		token := ctx.Request.Header.Get("Authorization")
+		if token != "" {
+			u, err = h.Clients.Data.ValidateToken(token)
+			if err != nil {
+				return err
+			}
+		} else {
+			u, err = h.GetGithub(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
+		if cap != "" {
+			res, err := h.Clients.Data.HasCapability(u, cap)
+			if err != nil {
+				return err
+			}
+
+			if !res {
+				return errNoCapability
 			}
 		}
 
@@ -287,7 +280,7 @@ func (h *H) configureRestHandler(r *gin.Engine, key string, route *Route, option
 	var handler func(*H, *gin.Context, HandlerFunc) *errors.Error = route.Handler
 
 	if route.UseAuth {
-		handler = h.authed(handler)
+		handler = h.authed(handler, route.Capability)
 	}
 
 	if route.UseCORS {

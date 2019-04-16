@@ -6,6 +6,7 @@ option go_package = "github.com/tinyci/ci-agents/grpc/services/data";
 
 import "github.com/golang/protobuf/ptypes/empty/empty.proto";
 
+import "github.com/tinyci/ci-agents/grpc/types/bool.proto";
 import "github.com/tinyci/ci-agents/grpc/types/queue_item.proto";
 import "github.com/tinyci/ci-agents/grpc/types/session.proto";
 import "github.com/tinyci/ci-agents/grpc/types/repository.proto";
@@ -121,8 +122,20 @@ service Data {
   rpc GetToken(Name)                returns (types.StringID)        {}; 
   // Delete the auth token
   rpc DeleteToken(Name)             returns (google.protobuf.Empty) {}; 
-  // Validate the auth token
-  rpc ValidateToken(types.StringID) returns (Name)                  {}; 
+  // Validate the auth token -- returns the user if successful
+  rpc ValidateToken(types.StringID) returns (types.User)            {}; 
+
+  // Returns true if the user has the capability
+  rpc HasCapability(CapabilityRequest)    returns (types.Bool)            {};
+  // Adds the capability for the user
+  rpc AddCapability(CapabilityRequest)    returns (google.protobuf.Empty) {};
+  // Removes the capability from the user
+  rpc RemoveCapability(CapabilityRequest) returns (google.protobuf.Empty) {};
+}
+
+message CapabilityRequest {
+  int64  id         = 1; // User ID
+  string capability = 2; // name of capability (See model/user.go)
 }
 
 message ListSubscribedTasksRequest {

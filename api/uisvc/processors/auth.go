@@ -11,7 +11,6 @@ import (
 	gh "github.com/google/go-github/github"
 	"github.com/gorilla/securecookie"
 	"github.com/tinyci/ci-agents/clients/github"
-	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 	"github.com/tinyci/ci-agents/model"
@@ -36,11 +35,14 @@ func getUser(h *handlers.H, ctx *gin.Context) (*model.User, *errors.Error) {
 
 	username := sess.Get(sessionUsername)
 
+	// FIXME clean up this spaghetti -erikh
+	var u *model.User
+
 	if username == nil {
 		if token := ctx.Request.Header.Get("Authorization"); token != "" {
 			token := ctx.Request.Header.Get("Authorization")
 			if token != "" {
-				name, err = h.Clients.Data.ValidateToken(token)
+				u, err = h.Clients.Data.ValidateToken(token)
 				if err != nil {
 					return nil, err
 				}
@@ -65,33 +67,29 @@ func getUser(h *handlers.H, ctx *gin.Context) (*model.User, *errors.Error) {
 		}
 	}
 
-	user, err := h.Clients.Data.GetUser(name)
+	if u == nil && name != "" {
+		u, err = h.Clients.Data.GetUser(name)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return u, nil
+}
+
+func getClient(h *handlers.H, ctx *gin.Context) (github.Client, *errors.Error) {
+	user, err := h.GetGithub(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return user, nil
-}
+	token := &oauth2.Token{}
 
-func getClient(h *handlers.H, ctx *gin.Context) (github.Client, *errors.Error) {
-	client := config.DefaultGithubClient
-
-	if !h.Auth.NoAuth {
-		user, err := h.GetGithub(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		token := &oauth2.Token{}
-
-		if err := topUtils.JSONIO(user.Token, token); err != nil {
-			return nil, err
-		}
-
-		client = h.GithubClient(token)
+	if err := topUtils.JSONIO(user.Token, token); err != nil {
+		return nil, err
 	}
 
-	return client, nil
+	return h.GithubClient(token), nil
 }
 
 func handleOAuth(h *handlers.H, code string) (*oauth2.Token, string, *errors.Error) {
@@ -149,14 +147,12 @@ func LoggedIn(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error)
 
 	res := "true"
 
-	if !h.Auth.NoAuth {
-		_, err := h.GetGithub(ctx)
+	_, err := h.GetGithub(ctx)
+	if err != nil {
+		var err *errors.Error
+		res, err = getOAuthURL(h, ctx)
 		if err != nil {
-			var err *errors.Error
-			res, err = getOAuthURL(h, ctx)
-			if err != nil {
-				return nil, 500, err
-			}
+			return nil, 500, err
 		}
 	}
 

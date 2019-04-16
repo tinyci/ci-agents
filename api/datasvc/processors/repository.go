@@ -27,7 +27,7 @@ func (ds *DataServer) EnableRepository(ctx context.Context, rus *data.RepoUserSe
 		return nil, err
 	}
 
-	if err := ds.H.Model.EnableRepository(repo); err != nil {
+	if err := ds.H.Model.EnableRepository(repo, user); err != nil {
 		return nil, err
 	}
 

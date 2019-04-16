@@ -16,6 +16,45 @@ var testToken = &oauth2.Token{
 	AccessToken: "123456",
 }
 
+func (ms *modelSuite) TestCapabilityModification(c *check.C) {
+	caps := []Capability{CapabilityCancel, CapabilityModifyCI, CapabilityModifyUser, CapabilitySubmit}
+
+	strCaps := []string{}
+	for _, cap := range caps {
+		strCaps = append(strCaps, string(cap))
+	}
+
+	fixedCaps := map[string][]string{
+		"erikh2": strCaps,
+	}
+
+	u, err := ms.model.CreateUser("erikh", &oauth2.Token{AccessToken: "dummy"})
+	c.Assert(err, check.IsNil)
+
+	for _, cap := range caps {
+		res, err := ms.model.HasCapability(u, cap, fixedCaps)
+		c.Assert(err, check.IsNil)
+		c.Assert(res, check.Equals, false)
+		c.Assert(ms.model.AddCapabilityToUser(u, cap), check.IsNil)
+		res, err = ms.model.HasCapability(u, cap, fixedCaps)
+		c.Assert(err, check.IsNil)
+		c.Assert(res, check.Equals, true)
+		c.Assert(ms.model.RemoveCapabilityFromUser(u, cap), check.IsNil)
+		res, err = ms.model.HasCapability(u, cap, fixedCaps)
+		c.Assert(err, check.IsNil)
+		c.Assert(res, check.Equals, false)
+	}
+
+	u2, err := ms.model.CreateUser("erikh2", &oauth2.Token{AccessToken: "dummy"})
+	c.Assert(err, check.IsNil)
+
+	for _, cap := range caps {
+		res, err := ms.model.HasCapability(u2, cap, fixedCaps)
+		c.Assert(err, check.IsNil)
+		c.Assert(res, check.Equals, true)
+	}
+}
+
 func (ms *modelSuite) TestUserValidate(c *check.C) {
 	failcases := []struct {
 		username string
