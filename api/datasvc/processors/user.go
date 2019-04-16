@@ -86,7 +86,7 @@ func (ds *DataServer) HasCapability(ctx context.Context, cr *data.CapabilityRequ
 		return &types.Bool{Result: false}, err
 	}
 
-	res, err := ds.H.Model.HasCapability(u, model.Capability(cr.Capability))
+	res, err := ds.H.Model.HasCapability(u, model.Capability(cr.Capability), ds.H.Auth.FixedCapabilities)
 	if err != nil {
 		return &types.Bool{Result: false}, err
 	}

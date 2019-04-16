@@ -36,7 +36,7 @@ var clients = config.ClientConfig{
 }
 
 // MakeUIServer makes a uisvc.
-func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Client, *errors.Error) {
+func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Client, *tinyci.Client, *errors.Error) {
 	h := &handlers.H{
 		Config: restapi.HandlerConfig{},
 		Service: config.Service{
@@ -64,41 +64,56 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 
 	d, err := d.New("localhost:6000", nil)
 	if err != nil {
-		return nil, nil, nil, errors.New(err)
+		return nil, nil, nil, nil, errors.New(err)
 	}
 
 	config.DefaultGithubClient = client
 	doneChan, err := handlers.Boot(nil, h)
 	if err != nil {
-		return nil, nil, nil, errors.New(err)
+		return nil, nil, nil, nil, errors.New(err)
 	}
 
 	u, err := d.PutUser(&model.User{Username: "erikh", Token: &oauth2.Token{AccessToken: "dummy"}})
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	for _, cap := range model.AllCapabilities {
 		if err := d.AddCapability(u, cap); err != nil {
-			return nil, nil, nil, err
+			return nil, nil, nil, nil, err
 		}
 	}
 
 	token, err := d.GetToken("erikh")
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	tc, err := tinyci.New("http://localhost:6010", token)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	if _, err := tc.Errors(); err != nil { // connectivity check
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
-	return h, doneChan, tc, nil
+	_, err = d.PutUser(&model.User{Username: "erikh2", Token: &oauth2.Token{AccessToken: "dummy"}})
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	token, err = d.GetToken("erikh2")
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	utc, err := tinyci.New("http://localhost:6010", token)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	return h, doneChan, tc, utc, nil
 }
 
 // MakeDataServer makes an instance of the datasvc on port 6000. It returns a

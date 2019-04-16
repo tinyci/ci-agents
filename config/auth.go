@@ -77,8 +77,9 @@ func (oc OAuthConfig) Config() *oauth2.Config {
 // AuthConfig is the configuration for auth and secrets in the case auth isn't
 // used.
 type AuthConfig struct {
-	SessionCryptKey string `yaml:"session_crypt_key"`
-	TokenCryptKey   string `yaml:"token_crypt_key"`
+	SessionCryptKey   string              `yaml:"session_crypt_key"`
+	TokenCryptKey     string              `yaml:"token_crypt_key"`
+	FixedCapabilities map[string][]string `yaml:"fixed_capabilities"`
 
 	sessionCryptKey []byte
 	tokenCryptKey   []byte
@@ -129,6 +130,10 @@ func (ac *AuthConfig) Validate(parseCrypt bool) *errors.Error {
 		if err := ac.ParseTokenKey(); err != nil {
 			return err.Wrap("parsing token_crypt_key")
 		}
+	}
+
+	if ac.FixedCapabilities == nil {
+		ac.FixedCapabilities = map[string][]string{}
 	}
 
 	return nil

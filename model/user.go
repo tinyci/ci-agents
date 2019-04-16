@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 
 	gh "github.com/google/go-github/github"
@@ -317,7 +318,19 @@ func (m *Model) RemoveCapabilityFromUser(u *User, cap Capability) *errors.Error 
 }
 
 // HasCapability returns true if the user is capable of performing the operation.
-func (m *Model) HasCapability(u *User, cap Capability) (bool, *errors.Error) {
+func (m *Model) HasCapability(u *User, cap Capability, fixedCaps map[string][]string) (bool, *errors.Error) {
+	// if we have fixed caps, we consult that table only; these are overrides for
+	// users that exist within the configuration file for the datasvc.
+	if caps, ok := fixedCaps[u.Username]; ok {
+		for _, thisCap := range caps {
+			if strings.TrimSpace(thisCap) == strings.TrimSpace(string(cap)) {
+				return true, nil
+			}
+		}
+
+		return false, nil
+	}
+
 	var slice []int64
 	err := m.WrapError(m.Raw("select 1 from user_capabilities where user_id = ? and name = ?", u.ID, cap).Find(&slice), "checking capabilities for user")
 	return len(slice) > 0, err
