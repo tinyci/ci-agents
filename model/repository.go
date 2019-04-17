@@ -127,13 +127,7 @@ func (m *Model) GetRepositoryByNameForUser(name string, u *User) (*Repository, *
 
 // GetOwnedRepos returns all repos the user owns.
 func (m *Model) GetOwnedRepos(u *User, search string) (RepositoryList, *errors.Error) {
-	r := []*Repository{}
-	where := "owner_id = ?"
-	if search == "" {
-		return RepositoryList(r), m.WrapError(m.Where(where, u.ID).Find(&r), "obtaining owned repositories")
-	}
-	return RepositoryList(r), m.WrapError(m.Where(where+" and name like ?", u.ID, "%"+search+"%").Find(&r), "obtaining owned repositories")
-
+	return m.getRepoSearch("owner_id = ?", search, u.ID)
 }
 
 // GetVisibleReposForUser retrieves all repos the user can "see" in the
@@ -153,34 +147,27 @@ func (m *Model) GetVisibleReposForUser(u *User, search string) (RepositoryList, 
 	return append(r2, r...), nil
 }
 
+func (m *Model) getRepoSearch(where, search string, args ...interface{}) (RepositoryList, *errors.Error) {
+	r := []*Repository{}
+
+	search = strings.Replace(search, "%", "\\%", -1)
+	search = strings.Replace(search, "_", "\\_", -1)
+	if search == "" {
+		return RepositoryList(r), m.WrapError(m.Where(where, args...).Find(&r), "obtaining repositories")
+	}
+
+	args = append(args, "%"+search+"%")
+	return RepositoryList(r), m.WrapError(m.Where(where+" and name like ? escape '\\'", args...).Find(&r), "obtaining repositories")
+}
+
 // GetAllPublicRepos retrieves all repos that are not private
 func (m *Model) GetAllPublicRepos(search string) (RepositoryList, *errors.Error) {
-	// this call is probably a terrible idea for scaling things
-	r := []*Repository{}
-	where := "not private"
-	if search == "" {
-		return RepositoryList(r), m.WrapError(m.Where(where).Find(&r), "obtaining public repositories")
-	}
-	return RepositoryList(r), m.WrapError(m.Where(where+" and name like ?", "%"+search+"%").Find(&r), "obtaining public repositories")
+	return m.getRepoSearch("not private", search)
 }
 
 // GetPrivateReposForUser retrieves all private repos that the user owns.
 func (m *Model) GetPrivateReposForUser(u *User, search string) (RepositoryList, *errors.Error) {
-	r := []*Repository{}
-
-	where := "owner_id = ? and private"
-	if search == "" {
-		return RepositoryList(r), m.WrapError(
-			m.Where(where, u.ID).
-				Find(&r),
-			"obtaining private repositories for user",
-		)
-	}
-	return RepositoryList(r), m.WrapError(
-		m.Where(where+" and name like ?", u.ID, "%"+search+"%").
-			Find(&r),
-		"obtaining private repositories for user",
-	)
+	return m.getRepoSearch("owner_id = ? and private", search, u.ID)
 }
 
 // GetRepositoryByName retrieves the repository by its unique name.
