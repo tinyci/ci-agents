@@ -69,13 +69,13 @@ func (ds *DataServer) SaveRepositories(ctx context.Context, gh *data.GithubJSON)
 }
 
 // PrivateRepositories returns the list of private repositories the user can see.
-func (ds *DataServer) PrivateRepositories(ctx context.Context, name *data.Name) (*types.RepositoryList, error) {
-	u, err := ds.H.Model.FindUserByName(name.Name)
+func (ds *DataServer) PrivateRepositories(ctx context.Context, nameSearch *data.NameSearch) (*types.RepositoryList, error) {
+	u, err := ds.H.Model.FindUserByName(nameSearch.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	repos, err := ds.H.Model.GetPrivateReposForUser(u)
+	repos, err := ds.H.Model.GetPrivateReposForUser(u, nameSearch.Search)
 	if err != nil {
 		return nil, err
 	}
@@ -84,13 +84,13 @@ func (ds *DataServer) PrivateRepositories(ctx context.Context, name *data.Name) 
 }
 
 // OwnedRepositories returns the list of owned repositories by the user
-func (ds *DataServer) OwnedRepositories(ctx context.Context, name *data.Name) (*types.RepositoryList, error) {
-	u, err := ds.H.Model.FindUserByName(name.Name)
+func (ds *DataServer) OwnedRepositories(ctx context.Context, nameSearch *data.NameSearch) (*types.RepositoryList, error) {
+	u, err := ds.H.Model.FindUserByName(nameSearch.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	repos, err := ds.H.Model.GetOwnedRepos(u)
+	repos, err := ds.H.Model.GetOwnedRepos(u, nameSearch.Search)
 	if err != nil {
 		return nil, err
 	}
@@ -99,13 +99,13 @@ func (ds *DataServer) OwnedRepositories(ctx context.Context, name *data.Name) (*
 }
 
 // AllRepositories returns the list of repositories the user can see.
-func (ds *DataServer) AllRepositories(ctx context.Context, name *data.Name) (*types.RepositoryList, error) {
-	u, err := ds.H.Model.FindUserByName(name.Name)
+func (ds *DataServer) AllRepositories(ctx context.Context, nameSearch *data.NameSearch) (*types.RepositoryList, error) {
+	u, err := ds.H.Model.FindUserByName(nameSearch.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	repos, err := ds.H.Model.GetVisibleReposForUser(u)
+	repos, err := ds.H.Model.GetVisibleReposForUser(u, nameSearch.Search)
 	if err != nil {
 		return nil, err
 	}
@@ -114,8 +114,8 @@ func (ds *DataServer) AllRepositories(ctx context.Context, name *data.Name) (*ty
 }
 
 // PublicRepositories returns the list of repositories the user can see.
-func (ds *DataServer) PublicRepositories(ctx context.Context, empty *empty.Empty) (*types.RepositoryList, error) {
-	repos, err := ds.H.Model.GetAllPublicRepos()
+func (ds *DataServer) PublicRepositories(ctx context.Context, search *data.Search) (*types.RepositoryList, error) {
+	repos, err := ds.H.Model.GetAllPublicRepos(search.Search)
 	if err != nil {
 		return nil, err
 	}

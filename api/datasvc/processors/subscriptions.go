@@ -48,8 +48,8 @@ func (ds *DataServer) AddSubscription(ctx context.Context, rus *data.RepoUserSel
 }
 
 // ListSubscriptions lists all subscriptions for a user
-func (ds *DataServer) ListSubscriptions(ctx context.Context, name *data.Name) (*types.RepositoryList, error) {
-	u, err := ds.H.Model.FindUserByNameWithSubscriptions(name.Name)
+func (ds *DataServer) ListSubscriptions(ctx context.Context, nameSearch *data.NameSearch) (*types.RepositoryList, error) {
+	u, err := ds.H.Model.FindUserByNameWithSubscriptions(nameSearch.Name, nameSearch.Search)
 	if err != nil {
 		return nil, err
 	}

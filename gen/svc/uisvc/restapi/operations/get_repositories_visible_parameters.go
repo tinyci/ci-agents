@@ -9,6 +9,9 @@ import (
 // GetRepositoriesVisibleValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
 func GetRepositoriesVisibleValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
+	search := ctx.Query("search")
+
+	ctx.Set("search", search)
 
 	return nil
 }

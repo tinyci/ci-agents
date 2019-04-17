@@ -198,7 +198,7 @@ func (ms *modelSuite) TestSaveRepositories(c *check.C) {
 	}, owners[0].Username, false)
 	c.Assert(err, check.IsNil)
 
-	list, err := ms.model.GetAllPublicRepos()
+	list, err := ms.model.GetAllPublicRepos("")
 	c.Assert(err, check.IsNil)
 
 	sort.Stable(list)

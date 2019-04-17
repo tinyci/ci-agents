@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/grpc/services/data"
@@ -73,8 +72,8 @@ func (c *Client) DisableRepository(user, name string) *errors.Error {
 }
 
 // OwnedRepositories lists the owned repositories by the user.
-func (c *Client) OwnedRepositories(name string) (model.RepositoryList, *errors.Error) {
-	list, err := c.client.OwnedRepositories(context.Background(), &data.Name{Name: name})
+func (c *Client) OwnedRepositories(name, search string) (model.RepositoryList, *errors.Error) {
+	list, err := c.client.OwnedRepositories(context.Background(), &data.NameSearch{Name: name, Search: search})
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -83,8 +82,8 @@ func (c *Client) OwnedRepositories(name string) (model.RepositoryList, *errors.E
 }
 
 // AllRepositories lists all visible repositories by the user.
-func (c *Client) AllRepositories(name string) (model.RepositoryList, *errors.Error) {
-	list, err := c.client.AllRepositories(context.Background(), &data.Name{Name: name})
+func (c *Client) AllRepositories(name, search string) (model.RepositoryList, *errors.Error) {
+	list, err := c.client.AllRepositories(context.Background(), &data.NameSearch{Name: name, Search: search})
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -93,8 +92,8 @@ func (c *Client) AllRepositories(name string) (model.RepositoryList, *errors.Err
 }
 
 // PrivateRepositories lists all visible private repositories by the user.
-func (c *Client) PrivateRepositories(name string) (model.RepositoryList, *errors.Error) {
-	list, err := c.client.PrivateRepositories(context.Background(), &data.Name{Name: name})
+func (c *Client) PrivateRepositories(name, search string) (model.RepositoryList, *errors.Error) {
+	list, err := c.client.PrivateRepositories(context.Background(), &data.NameSearch{Name: name, Search: search})
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -103,8 +102,8 @@ func (c *Client) PrivateRepositories(name string) (model.RepositoryList, *errors
 }
 
 // PublicRepositories lists all owned public repositories by the user.
-func (c *Client) PublicRepositories() (model.RepositoryList, *errors.Error) {
-	list, err := c.client.PublicRepositories(context.Background(), &empty.Empty{})
+func (c *Client) PublicRepositories(search string) (model.RepositoryList, *errors.Error) {
+	list, err := c.client.PublicRepositories(context.Background(), &data.Search{Search: search})
 	if err != nil {
 		return nil, errors.New(err)
 	}

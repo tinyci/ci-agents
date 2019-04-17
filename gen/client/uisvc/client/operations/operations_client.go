@@ -547,7 +547,7 @@ func (c *Client) GetRepositoriesCiDelOwnerRepo(ctx context.Context, owner string
 }
 
 // GetRepositoriesMy fetch all the writable repositories for the user
-func (c *Client) GetRepositoriesMy(ctx context.Context) (models.RepositoryList, *errors.Error) {
+func (c *Client) GetRepositoriesMy(ctx context.Context, search string) (models.RepositoryList, *errors.Error) {
 	route := "/repositories/my"
 
 	tmp := *c.url
@@ -555,6 +555,7 @@ func (c *Client) GetRepositoriesMy(ctx context.Context) (models.RepositoryList, 
 	u.Path += route
 
 	m := map[string]interface{}{}
+	m["search"] = search
 
 	if len(m) > 0 {
 		q := u.Query()
@@ -715,7 +716,7 @@ func (c *Client) GetRepositoriesSubDelOwnerRepo(ctx context.Context, owner strin
 }
 
 // GetRepositoriesSubscribed list all subscribed repositories
-func (c *Client) GetRepositoriesSubscribed(ctx context.Context) (models.RepositoryList, *errors.Error) {
+func (c *Client) GetRepositoriesSubscribed(ctx context.Context, search string) (models.RepositoryList, *errors.Error) {
 	route := "/repositories/subscribed"
 
 	tmp := *c.url
@@ -723,6 +724,7 @@ func (c *Client) GetRepositoriesSubscribed(ctx context.Context) (models.Reposito
 	u.Path += route
 
 	m := map[string]interface{}{}
+	m["search"] = search
 
 	if len(m) > 0 {
 		q := u.Query()
@@ -773,7 +775,7 @@ func (c *Client) GetRepositoriesSubscribed(ctx context.Context) (models.Reposito
 }
 
 // GetRepositoriesVisible fetch all the repositories the user can view
-func (c *Client) GetRepositoriesVisible(ctx context.Context) (models.RepositoryList, *errors.Error) {
+func (c *Client) GetRepositoriesVisible(ctx context.Context, search string) (models.RepositoryList, *errors.Error) {
 	route := "/repositories/visible"
 
 	tmp := *c.url
@@ -781,6 +783,7 @@ func (c *Client) GetRepositoriesVisible(ctx context.Context) (models.RepositoryL
 	u.Path += route
 
 	m := map[string]interface{}{}
+	m["search"] = search
 
 	if len(m) > 0 {
 		q := u.Query()

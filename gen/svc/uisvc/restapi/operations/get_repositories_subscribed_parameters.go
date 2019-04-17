@@ -9,6 +9,9 @@ import (
 // GetRepositoriesSubscribedValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
 func GetRepositoriesSubscribedValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
+	search := ctx.Query("search")
+
+	ctx.Set("search", search)
 
 	return nil
 }

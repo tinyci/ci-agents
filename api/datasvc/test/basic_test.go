@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 	"sort"
+	"strconv"
 	"time"
 
 	check "github.com/erikh/check"
@@ -134,24 +135,36 @@ func (ds *datasvcSuite) TestRepositories(c *check.C) {
 	repos := []string{}
 
 	for i := 0; i < 10; i++ {
-		owner := testutil.RandString(8)
+		owner := testutil.RandString(8) + "_" + strconv.Itoa(i)
 		repo := testutil.RandString(8)
 		fullRepo := path.Join(owner, repo)
 		c.Assert(ds.client.MakeRepo(fullRepo, username, i%2 == 0), check.IsNil)
 		repos = append(repos, fullRepo)
 	}
 
-	all, err := ds.client.Client().AllRepositories(username)
+	all, err := ds.client.Client().AllRepositories(username, "")
 	c.Assert(err, check.IsNil)
 	c.Assert(len(all), check.Equals, 10)
 
-	private, err := ds.client.Client().PrivateRepositories(username)
+	all, err = ds.client.Client().AllRepositories(username, "_2")
+	c.Assert(err, check.IsNil)
+	c.Assert(len(all), check.Equals, 1)
+
+	private, err := ds.client.Client().PrivateRepositories(username, "")
 	c.Assert(err, check.IsNil)
 	c.Assert(len(private), check.Equals, 5)
 
-	public, err := ds.client.Client().PublicRepositories()
+	private, err = ds.client.Client().PrivateRepositories(username, "_2")
+	c.Assert(err, check.IsNil)
+	c.Assert(len(private), check.Equals, 1)
+
+	public, err := ds.client.Client().PublicRepositories("")
 	c.Assert(err, check.IsNil)
 	c.Assert(len(public), check.Equals, 5)
+
+	public, err = ds.client.Client().PublicRepositories("_3")
+	c.Assert(err, check.IsNil)
+	c.Assert(len(public), check.Equals, 1)
 
 	repo, err := ds.client.Client().GetRepository(repos[0])
 	c.Assert(err, check.IsNil)
@@ -179,7 +192,7 @@ func (ds *datasvcSuite) TestSubscriptions(c *check.C) {
 	repos := []string{}
 
 	for i := 0; i < 10; i++ {
-		owner := testutil.RandString(8)
+		owner := testutil.RandString(8) + "_" + strconv.Itoa(i)
 		repo := testutil.RandString(8)
 		fullRepo := path.Join(owner, repo)
 		c.Assert(ds.client.MakeRepo(fullRepo, username, false), check.IsNil)
@@ -197,9 +210,13 @@ func (ds *datasvcSuite) TestSubscriptions(c *check.C) {
 		)
 	}
 
-	subs, err := ds.client.Client().ListSubscriptions(username2)
+	subs, err := ds.client.Client().ListSubscriptions(username2, "")
 	c.Assert(err, check.IsNil)
 	c.Assert(len(subs), check.Equals, 10)
+
+	subs, err = ds.client.Client().ListSubscriptions(username2, "_1")
+	c.Assert(err, check.IsNil)
+	c.Assert(len(subs), check.Equals, 1)
 
 	c.Assert(ds.client.MakeRepo("erikh/private", username, true), check.IsNil)
 	c.Assert(

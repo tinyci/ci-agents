@@ -274,6 +274,12 @@ paths:
         - session: []
       summary: List all subscribed repositories
       description: Returns a types.RepositoryList of all the repos the user is subscribed to.
+      parameters:
+        - in: query
+          name: search
+          required: false
+          type: string
+          description: search string by which to filter results
       responses:
         200:
           description: OK
@@ -290,6 +296,12 @@ paths:
         - session: []
       summary: Fetch all the writable repositories for the user.
       description: Returns a types.RepositoryList for all the repos a user has write access to.
+      parameters:
+        - in: query
+          name: search
+          required: false
+          type: string
+          description: search string by which to filter results
       responses:
         200:
           description: OK
@@ -306,6 +318,12 @@ paths:
         - session: []
       summary: Fetch all the repositories the user can view.
       description: Returns a types.RepositoryList for all the repos a user has view access to.
+      parameters:
+        - in: query
+          name: search
+          required: false
+          type: string
+          description: search string by which to filter results
       responses:
         200:
           description: OK

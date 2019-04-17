@@ -376,6 +376,14 @@ func init() {
         ],
         "description": "Returns a types.RepositoryList for all the repos a user has write access to.",
         "summary": "Fetch all the writable repositories for the user.",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "search string by which to filter results",
+            "name": "search",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -486,6 +494,14 @@ func init() {
         ],
         "description": "Returns a types.RepositoryList of all the repos the user is subscribed to.",
         "summary": "List all subscribed repositories",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "search string by which to filter results",
+            "name": "search",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -514,6 +530,14 @@ func init() {
         ],
         "description": "Returns a types.RepositoryList for all the repos a user has view access to.",
         "summary": "Fetch all the repositories the user can view.",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "search string by which to filter results",
+            "name": "search",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1384,6 +1408,14 @@ func init() {
         ],
         "description": "Returns a types.RepositoryList for all the repos a user has write access to.",
         "summary": "Fetch all the writable repositories for the user.",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "search string by which to filter results",
+            "name": "search",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1494,6 +1526,14 @@ func init() {
         ],
         "description": "Returns a types.RepositoryList of all the repos the user is subscribed to.",
         "summary": "List all subscribed repositories",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "search string by which to filter results",
+            "name": "search",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1522,6 +1562,14 @@ func init() {
         ],
         "description": "Returns a types.RepositoryList for all the repos a user has view access to.",
         "summary": "Fetch all the repositories the user can view.",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "search string by which to filter results",
+            "name": "search",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",

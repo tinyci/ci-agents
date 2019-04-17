@@ -126,20 +126,25 @@ func (m *Model) GetRepositoryByNameForUser(name string, u *User) (*Repository, *
 }
 
 // GetOwnedRepos returns all repos the user owns.
-func (m *Model) GetOwnedRepos(u *User) (RepositoryList, *errors.Error) {
+func (m *Model) GetOwnedRepos(u *User, search string) (RepositoryList, *errors.Error) {
 	r := []*Repository{}
-	return RepositoryList(r), m.WrapError(m.Where("owner_id = ?", u.ID).Find(&r), "obtaining owned repositories")
+	where := "owner_id = ?"
+	if search == "" {
+		return RepositoryList(r), m.WrapError(m.Where(where, u.ID).Find(&r), "obtaining owned repositories")
+	}
+	return RepositoryList(r), m.WrapError(m.Where(where+" and name like ?", u.ID, "%"+search+"%").Find(&r), "obtaining owned repositories")
+
 }
 
 // GetVisibleReposForUser retrieves all repos the user can "see" in the
 // database.
-func (m *Model) GetVisibleReposForUser(u *User) (RepositoryList, *errors.Error) {
-	r, err := m.GetAllPublicRepos()
+func (m *Model) GetVisibleReposForUser(u *User, search string) (RepositoryList, *errors.Error) {
+	r, err := m.GetAllPublicRepos(search)
 	if err != nil {
 		return nil, err
 	}
 
-	r2, err := m.GetPrivateReposForUser(u)
+	r2, err := m.GetPrivateReposForUser(u, search)
 	if err != nil {
 		return nil, err
 	}
@@ -149,18 +154,30 @@ func (m *Model) GetVisibleReposForUser(u *User) (RepositoryList, *errors.Error) 
 }
 
 // GetAllPublicRepos retrieves all repos that are not private
-func (m *Model) GetAllPublicRepos() (RepositoryList, *errors.Error) {
+func (m *Model) GetAllPublicRepos(search string) (RepositoryList, *errors.Error) {
 	// this call is probably a terrible idea for scaling things
 	r := []*Repository{}
-	return RepositoryList(r), m.WrapError(m.Where("not private").Find(&r), "obtaining public repositories")
+	where := "not private"
+	if search == "" {
+		return RepositoryList(r), m.WrapError(m.Where(where).Find(&r), "obtaining public repositories")
+	}
+	return RepositoryList(r), m.WrapError(m.Where(where+" and name like ?", "%"+search+"%").Find(&r), "obtaining public repositories")
 }
 
 // GetPrivateReposForUser retrieves all private repos that the user owns.
-func (m *Model) GetPrivateReposForUser(u *User) (RepositoryList, *errors.Error) {
+func (m *Model) GetPrivateReposForUser(u *User, search string) (RepositoryList, *errors.Error) {
 	r := []*Repository{}
 
+	where := "owner_id = ? and private"
+	if search == "" {
+		return RepositoryList(r), m.WrapError(
+			m.Where(where, u.ID).
+				Find(&r),
+			"obtaining private repositories for user",
+		)
+	}
 	return RepositoryList(r), m.WrapError(
-		m.Where("owner_id = ? and private", u.ID).
+		m.Where(where+" and name like ?", u.ID, "%"+search+"%").
 			Find(&r),
 		"obtaining private repositories for user",
 	)
