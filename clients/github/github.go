@@ -53,17 +53,6 @@ func NewClientFromAccessToken(accessToken string) Client {
 	return &HTTPClient{github: github.NewClient(tc)}
 }
 
-// NewClientFromOAuthToken returns a Client from a full oauth2.Token struct.
-func NewClientFromOAuthToken(config *oauth2.Config, token *oauth2.Token) Client {
-	return &HTTPClient{
-		github: github.NewClient(
-			oauth2.NewClient(
-				context.Background(),
-				config.TokenSource(context.Background(), token),
-			)),
-	}
-}
-
 // PendingStatus updates the status for the sha for the given repo on github.
 func (c *HTTPClient) PendingStatus(owner, repo, name, sha, url string) *errors.Error {
 	_, _, err := c.github.Repositories.CreateStatus(context.Background(), owner, repo, sha, &github.RepoStatus{

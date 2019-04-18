@@ -76,7 +76,7 @@ func ListSubscribedTasksForUser(h *handlers.H, ctx *gin.Context) (interface{}, i
 		return nil, 500, err
 	}
 
-	uname := h.Session(ctx).Get(sessionUsername)
+	uname := h.Session(ctx).Get(handlers.SessionUsername)
 	u, ok := uname.(string)
 	if !ok {
 		return nil, 500, errors.New("invalid cookie")

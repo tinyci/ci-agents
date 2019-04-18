@@ -23,7 +23,7 @@ import (
 	"github.com/tinyci/ci-agents/handlers"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/testutil"
-	"golang.org/x/oauth2"
+	"github.com/tinyci/ci-agents/types"
 	"google.golang.org/grpc"
 )
 
@@ -73,7 +73,7 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 		return nil, nil, nil, nil, errors.New(err)
 	}
 
-	u, err := d.PutUser(&model.User{Username: "erikh", Token: &oauth2.Token{AccessToken: "dummy"}})
+	u, err := d.PutUser(&model.User{Username: "erikh", Token: &types.OAuthToken{Token: "dummy", Scopes: []string{"repo"}}})
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -98,7 +98,7 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 		return nil, nil, nil, nil, err
 	}
 
-	_, err = d.PutUser(&model.User{Username: "erikh2", Token: &oauth2.Token{AccessToken: "dummy"}})
+	_, err = d.PutUser(&model.User{Username: "erikh2", Token: &types.OAuthToken{Token: "dummy"}})
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

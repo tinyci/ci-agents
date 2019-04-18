@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+	"encoding/base32"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -11,14 +13,19 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/strfmt"
+	"github.com/gorilla/securecookie"
 	apiSess "github.com/tinyci/ci-agents/api/sessions"
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/clients/log"
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
+	"github.com/tinyci/ci-agents/types"
+	"github.com/tinyci/ci-agents/utils"
 	"golang.org/x/net/websocket"
 	"golang.org/x/oauth2"
+
+	gh "github.com/google/go-github/github"
 )
 
 // SessionUsername is the name of the session key that contains our username value.
@@ -29,12 +36,15 @@ const SessionUsername = "username"
 // library along with their other standard init operations.
 var AllowOrigin = "*"
 
+// ErrRedirect indicates that the error intends to redirect the user to the proper spot.
+var ErrRedirect = errors.New("redirection")
+
 var (
 	errNoCapability  = errors.New("no capability to perform desired operation")
 	errInvalidCookie = errors.New("cookie was invalid")
-)
 
-var routeTransformer = regexp.MustCompile(`(?:{([^}]+)})+`)
+	routeTransformer = regexp.MustCompile(`(?:{([^}]+)})+`)
+)
 
 // HandlerConfig provides an interface to managing the HandlerConfig.
 type HandlerConfig interface {
@@ -54,8 +64,131 @@ type H struct {
 	config.Service
 }
 
+// GetUser retrieves the user based on information in the gin context.
+func (h *H) GetUser(ctx *gin.Context) (*model.User, *errors.Error) {
+	client, err := h.GetClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var name string
+	sess := h.Session(ctx)
+
+	username := sess.Get(SessionUsername)
+
+	// FIXME clean up this spaghetti. Too much branching and ultimately, we're
+	// looking to get this into the `name` or `u` variables and that isn't very
+	// obvious.  Make this a function. -erikh
+	var u *model.User
+
+	if username == nil {
+		if token := ctx.Request.Header.Get("Authorization"); token != "" {
+			token := ctx.Request.Header.Get("Authorization")
+			if token != "" {
+				u, err = h.Clients.Data.ValidateToken(token)
+				if err != nil {
+					return nil, err
+				}
+			}
+		} else {
+			var err *errors.Error
+			name, err = client.MyLogin()
+			if err != nil {
+				return nil, errors.New(err)
+			}
+
+			sess.Set(SessionUsername, name)
+			if err := sess.Save(); err != nil {
+				return nil, errors.New(err)
+			}
+		}
+	} else {
+		var ok bool
+		name, ok = username.(string)
+		if !ok {
+			return nil, errors.ErrInvalidAuth
+		}
+	}
+
+	if u == nil && name != "" {
+		u, err = h.Clients.Data.GetUser(name)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return u, nil
+}
+
+// GetClient returns a github client that works with the credentials in the given context.
+func (h *H) GetClient(ctx *gin.Context) (github.Client, *errors.Error) {
+	user, err := h.GetGithub(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	token := &types.OAuthToken{}
+
+	if err := utils.JSONIO(user.Token, token); err != nil {
+		return nil, err
+	}
+
+	return h.GithubClient(token), nil
+}
+
+// HandleOAuth handles oauth codes, and transforming them into tokens.
+func (h *H) HandleOAuth(code string, scopes []string) (*oauth2.Token, string, *errors.Error) {
+	conf := h.OAuth.Config(scopes)
+
+	tok, err := conf.Exchange(context.Background(), code)
+	if err != nil {
+		switch err.(type) {
+		case *oauth2.RetrieveError:
+			return nil, "", errors.New(err)
+		default:
+			h.Clients.Log.Error(err)
+			return nil, "", ErrRedirect
+		}
+	}
+
+	client := conf.Client(context.Background(), tok)
+	c := gh.NewClient(client)
+	u, _, err := c.Users.Get(context.Background(), "")
+	if err != nil {
+		return nil, "", errors.New(err)
+	}
+
+	return tok, u.GetLogin(), nil
+}
+
+// GetOAuthURL retrieves the OAuth redirection URL based on the provided requirements.
+func (h *H) GetOAuthURL(ctx *gin.Context, scopes []string) (string, *errors.Error) {
+	conf := h.OAuth.Config(scopes)
+
+	state := strings.TrimRight(base32.StdEncoding.EncodeToString(securecookie.GenerateRandomKey(64)), "=")
+	if err := h.Clients.Data.OAuthRegisterState(state, scopes); err != nil {
+		return "", err
+	}
+
+	return conf.AuthCodeURL(
+		state,
+		oauth2.AccessTypeOffline,
+	), nil
+}
+
+// OAuthRedirect redirects the user to the OAuth redirection URL.
+func (h *H) OAuthRedirect(ctx *gin.Context, scopes []string) *errors.Error {
+	url, err := h.GetOAuthURL(ctx, scopes)
+	if err != nil {
+		return err
+	}
+
+	ctx.Redirect(302, url)
+	return nil
+}
+
 // GithubClient is a wrapper for config.GithubClient.
-func (h *H) GithubClient(token *oauth2.Token) github.Client {
+func (h *H) GithubClient(token *types.OAuthToken) github.Client {
 	return h.OAuth.GithubClient(token)
 }
 
@@ -192,7 +325,7 @@ func (h *H) GetGithub(ctx *gin.Context) (*model.User, *errors.Error) {
 	return nil, errInvalidCookie
 }
 
-func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error, cap model.Capability) func(h *H, ctx *gin.Context, processor HandlerFunc) *errors.Error {
+func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error, cap model.Capability, scope string) func(h *H, ctx *gin.Context, processor HandlerFunc) *errors.Error {
 	return func(h *H, ctx *gin.Context, processor HandlerFunc) *errors.Error {
 		var (
 			u   *model.User
@@ -221,6 +354,14 @@ func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error
 			if !res {
 				return errNoCapability
 			}
+		}
+
+		if scope != "" && !u.Token.Can(scope) {
+			if err := h.OAuthRedirect(ctx, append([]string{scope}, u.Token.Scopes...)); err != nil {
+				return err
+			}
+
+			return ErrRedirect
 		}
 
 		return gatewayFunc(h, ctx, processor)
@@ -280,7 +421,7 @@ func (h *H) configureRestHandler(r *gin.Engine, key string, route *Route, option
 	var handler func(*H, *gin.Context, HandlerFunc) *errors.Error = route.Handler
 
 	if route.UseAuth {
-		handler = h.authed(handler, route.Capability)
+		handler = h.authed(handler, route.Capability, route.TokenScope)
 	}
 
 	if route.UseCORS {
@@ -321,6 +462,9 @@ func (h *H) wrapHandler(handler func(*H, *gin.Context, HandlerFunc) *errors.Erro
 	return func(ctx *gin.Context) {
 		err := handler(h, ctx, processor)
 		if err != nil {
+			if err == ErrRedirect {
+				return
+			}
 			h.WriteError(ctx, err)
 		}
 	}

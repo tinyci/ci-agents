@@ -55,6 +55,7 @@ func (hc HandlerConfig) DBConfigure(h *handlers.H) *errors.Error {
 func (hc HandlerConfig) Configure(router handlers.Routes) *errors.Error {
 	router.SetProcessor("/errors", "get", processors.Errors)
 	router.SetProcessor("/login", "get", processors.Login)
+	router.SetProcessor("/login/upgrade", "get", processors.Upgrade)
 	router.SetProcessor("/loggedin", "get", processors.LoggedIn)
 	router.SetProcessor("/logout", "get", processors.Logout)
 	router.SetProcessor("/user/properties", "get", processors.GetUserProperties)

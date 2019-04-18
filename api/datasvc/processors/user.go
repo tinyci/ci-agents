@@ -9,7 +9,7 @@ import (
 	"github.com/tinyci/ci-agents/grpc/services/data"
 	"github.com/tinyci/ci-agents/grpc/types"
 	"github.com/tinyci/ci-agents/model"
-	"golang.org/x/oauth2"
+	topTypes "github.com/tinyci/ci-agents/types"
 )
 
 // UserByName retrieves the user by name and returns it.
@@ -46,7 +46,7 @@ func (ds *DataServer) PatchUser(ctx context.Context, u *types.User) (*empty.Empt
 
 // PutUser creates a new user.
 func (ds *DataServer) PutUser(ctx context.Context, u *types.User) (*types.User, error) {
-	ot := &oauth2.Token{}
+	ot := &topTypes.OAuthToken{}
 	if err := json.Unmarshal(u.TokenJSON, ot); err != nil {
 		return nil, err
 	}

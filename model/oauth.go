@@ -1,50 +1,70 @@
 package model
 
 import (
+	"strings"
 	"time"
 
 	"github.com/tinyci/ci-agents/errors"
+	"github.com/tinyci/ci-agents/grpc/services/data"
 )
 
 // OAuth schema is for checking state return values from github.
 type OAuth struct {
 	State     string    `gorm:"primary key" json:"state"`
+	Scopes    string    `json:"scopes"`
 	ExpiresOn time.Time `json:"expires_on"`
+}
+
+// ToProto returns a protobuf representation of the model oauth request
+func (o *OAuth) ToProto() *data.OAuthState {
+	return &data.OAuthState{
+		State:  o.State,
+		Scopes: o.GetScopesList(),
+	}
+}
+
+// SetScopes takes a []string of scope names, and marshals them to the struct field.
+func (o *OAuth) SetScopes(scopes []string) {
+	o.Scopes = strings.Join(scopes, ",")
+}
+
+// GetScopesList returns the split list of scopes
+func (o *OAuth) GetScopesList() []string {
+	return strings.Split(o.Scopes, ",")
+}
+
+// GetScopes returns the split list of scopes, mapped for easy comparison.
+func (o *OAuth) GetScopes() map[string]struct{} {
+	ret := map[string]struct{}{}
+	for _, scope := range o.GetScopesList() {
+		ret[scope] = struct{}{}
+	}
+
+	return ret
 }
 
 // OAuthRegisterState registers a state code in a uniqueness table that tracks
 // it.
-func (m *Model) OAuthRegisterState(state string) *errors.Error {
-	return m.WrapError(
-		m.Save(
-			&OAuth{
-				State:     state,
-				ExpiresOn: time.Now().Add(10 * time.Minute),
-			},
-		), "registering oauth state")
+func (m *Model) OAuthRegisterState(state string, scopes []string) *errors.Error {
+	oa := &OAuth{
+		State:     state,
+		ExpiresOn: time.Now().Add(10 * time.Minute),
+	}
+
+	oa.SetScopes(scopes)
+	return m.WrapError(m.Save(oa), "registering oauth state")
 }
 
 // OAuthValidateState validates that the state we sent actually exists and is
 // ready to be consumed. In the event it is not, it returns *errors.Error.
-func (m *Model) OAuthValidateState(state string) *errors.Error {
-	var count int64
-
-	err := m.WrapError(
-		m.
-			Model(&OAuth{}).
-			Where("state = ? and expires_on > now()", state).
-			Count(&count),
-		"validating oauth state")
-
+func (m *Model) OAuthValidateState(state string) (*OAuth, *errors.Error) {
+	oa := &OAuth{}
+	err := m.WrapError(m.Where("state = ? and expires_on > now()", state).Find(&oa), "validating oauth state")
 	if err != nil {
-		return errors.New(err)
+		return nil, errors.New(err).Wrap(errors.ErrNotFound)
 	}
 
 	defer m.Delete(&OAuth{State: state})
 
-	if count > 0 {
-		return nil
-	}
-
-	return errors.ErrNotFound
+	return oa, nil
 }

@@ -14,7 +14,6 @@ import (
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
-	"golang.org/x/oauth2"
 )
 
 const defaultMasterBranch = "heads/master"
@@ -374,7 +373,7 @@ func resolveParentInfo(h *handler.H, sub *types.Submission) (*types.Submission, 
 		return nil, eErr
 	}
 
-	token := &oauth2.Token{}
+	token := &types.OAuthToken{}
 	if err := utils.JSONIO(user.Token, token); err != nil {
 		return nil, err
 	}

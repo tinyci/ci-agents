@@ -22,6 +22,7 @@ type Route struct {
 	Processor          HandlerFunc
 	ParamValidator     func(*H, *gin.Context) *errors.Error
 	Capability         model.Capability
+	TokenScope         string
 }
 
 // HandlerFunc is the basic kind of HandlerFunc.

@@ -384,6 +384,58 @@ func (c *Client) GetLogin(ctx context.Context, code string, state string) *error
 
 }
 
+// GetLoginUpgrade log into the system with upgraded permissions
+func (c *Client) GetLoginUpgrade(ctx context.Context) *errors.Error {
+	route := "/login/upgrade"
+
+	tmp := *c.url
+	u := &tmp
+	u.Path += route
+
+	m := map[string]interface{}{}
+
+	if len(m) > 0 {
+		q := u.Query()
+
+		for key, value := range m {
+			q.Add(key, fmt.Sprintf("%v", value))
+		}
+
+		u.RawQuery = q.Encode()
+	}
+
+	var body []byte
+
+	req, err := http.NewRequest("GET", u.String(), bytes.NewBuffer(body))
+	if err != nil {
+		return errors.New(err)
+	}
+
+	req.Header.Add("Authorization", c.token)
+
+	resp, err := c.client.Do(req.WithContext(ctx))
+	if err != nil {
+		return errors.New(err)
+	}
+
+	if resp.StatusCode == 500 {
+		origErr := &errors.Error{}
+		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
+			return errors.New(err)
+		}
+		if origErr == nil {
+			panic("Cannot return 500 without error")
+		}
+
+		return origErr
+	}
+
+	defer resp.Body.Close()
+
+	return nil
+
+}
+
 // GetLogout log out of the system
 func (c *Client) GetLogout(ctx context.Context) *errors.Error {
 	route := "/logout"

@@ -87,6 +87,21 @@ paths:
           description: An error occurred. Body has error result.
           schema:
             $ref: '../models.yml#/definitions/Error'
+  /login/upgrade:
+    get:
+      summary: Log into the system with upgraded permissions
+      description: >
+        This upgrades the permissions of the user (which requires confirmation
+        from the OAuthing site) to allow repository access, so that additional
+        permission to manipulate repositories and scan additional ones is available.
+      responses:
+        302:
+          description: >
+            This will be the redirection to github.
+        500:
+          description: An error occurred. Body has error result.
+          schema:
+            $ref: '../models.yml#/definitions/Error'
   /logout:
     get:
       security:
@@ -339,6 +354,7 @@ paths:
         - token: []
         - session: []
       x-capability: "modify:ci"
+      x-token-scope: "repo"
       parameters:
         - in: path
           name: owner 
@@ -372,6 +388,7 @@ paths:
         - token: []
         - session: []
       x-capability: "modify:ci"
+      x-token-scope: "repo"
       parameters:
         - in: path
           name: owner 

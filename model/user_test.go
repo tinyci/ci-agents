@@ -9,11 +9,11 @@ import (
 	gh "github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/testutil"
-	"golang.org/x/oauth2"
+	"github.com/tinyci/ci-agents/types"
 )
 
-var testToken = &oauth2.Token{
-	AccessToken: "123456",
+var testToken = &types.OAuthToken{
+	Token: "123456",
 }
 
 func (ms *modelSuite) TestCapabilityModification(c *check.C) {
@@ -28,7 +28,7 @@ func (ms *modelSuite) TestCapabilityModification(c *check.C) {
 		"erikh2": strCaps,
 	}
 
-	u, err := ms.model.CreateUser("erikh", &oauth2.Token{AccessToken: "dummy"})
+	u, err := ms.model.CreateUser("erikh", &types.OAuthToken{Token: "dummy"})
 	c.Assert(err, check.IsNil)
 
 	for _, cap := range caps {
@@ -45,7 +45,7 @@ func (ms *modelSuite) TestCapabilityModification(c *check.C) {
 		c.Assert(res, check.Equals, false)
 	}
 
-	u2, err := ms.model.CreateUser("erikh2", &oauth2.Token{AccessToken: "dummy"})
+	u2, err := ms.model.CreateUser("erikh2", &types.OAuthToken{Token: "dummy"})
 	c.Assert(err, check.IsNil)
 
 	for _, cap := range caps {
@@ -58,12 +58,12 @@ func (ms *modelSuite) TestCapabilityModification(c *check.C) {
 func (ms *modelSuite) TestUserValidate(c *check.C) {
 	failcases := []struct {
 		username string
-		token    *oauth2.Token
+		token    *types.OAuthToken
 	}{
 		{"", nil},
 		{"", testToken},
 		{"erikh", nil},
-		{"erikh", &oauth2.Token{}},
+		{"erikh", &types.OAuthToken{}},
 	}
 
 	for _, failure := range failcases {
@@ -85,7 +85,7 @@ func (ms *modelSuite) TestUserValidate(c *check.C) {
 	u2.Token = nil
 	c.Assert(ms.model.Save(u2).Error, check.NotNil)
 
-	u2.Token = &oauth2.Token{AccessToken: "567890"}
+	u2.Token = &types.OAuthToken{Token: "567890"}
 	c.Assert(ms.model.Save(u2).Error, check.IsNil)
 
 	u3, err := ms.model.FindUserByName("erikh")
