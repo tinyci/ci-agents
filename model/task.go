@@ -159,7 +159,7 @@ func (m *Model) CancelTasksForPR(repository string, prID int64, baseURL string) 
 
 	for _, task := range tasks {
 		if task.Parent.Owner != nil {
-			client := github.NewClientFromAccessToken(task.Parent.Owner.Token.AccessToken)
+			client := github.NewClientFromAccessToken(task.Parent.Owner.Token.Token)
 			if task.FinishedAt != nil {
 				continue
 			}

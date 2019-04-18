@@ -8,7 +8,7 @@ import (
 
 // Errors processes the /errors GET endpoint
 func Errors(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	user, err := getUser(h, ctx)
+	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
 	}

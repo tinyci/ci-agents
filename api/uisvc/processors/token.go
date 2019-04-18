@@ -9,7 +9,7 @@ import (
 // GetToken obtains a new token from the db. If one is already set, you must
 // delete it before this will return a new one.
 func GetToken(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	u, err := getUser(h, ctx)
+	u, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -24,7 +24,7 @@ func GetToken(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error)
 
 // DeleteToken removes the existing token for the user.
 func DeleteToken(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	u, err := getUser(h, ctx)
+	u, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
 	}

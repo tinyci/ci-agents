@@ -15,7 +15,6 @@ import (
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
-	"golang.org/x/oauth2"
 )
 
 // QueueServer encapsulates a GRPC server for the queuesvc.
@@ -74,7 +73,7 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 		return nil, err
 	}
 
-	token := &oauth2.Token{}
+	token := &types.OAuthToken{}
 	if err := utils.JSONIO(qi.Run.Task.Parent.Owner.Token, token); err != nil {
 		return &gtypes.QueueItem{}, err
 	}

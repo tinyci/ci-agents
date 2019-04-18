@@ -40,6 +40,7 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
     UseCORS: true,
     {{ if $op.Authorized }}UseAuth: true,{{ end }}
     {{ if index $op.Extensions "x-capability" }}Capability: {{ printf "%q" (index $op.Extensions "x-capability") }},{{ end }}
+    {{ if index $op.Extensions "x-token-scope" }}TokenScope: {{ printf "%q" (index $op.Extensions "x-token-scope") }},{{ end }}
   }
   {{ end -}}
 }

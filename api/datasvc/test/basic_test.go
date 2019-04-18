@@ -13,7 +13,7 @@ import (
 	"github.com/tinyci/ci-agents/mocks/github"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/testutil"
-	"golang.org/x/oauth2"
+	"github.com/tinyci/ci-agents/types"
 )
 
 func (ds *datasvcSuite) TestBasicUser(c *check.C) {
@@ -27,12 +27,12 @@ func (ds *datasvcSuite) TestBasicUser(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(resp, check.DeepEquals, user)
 
-	user.Token = &oauth2.Token{AccessToken: "this is in this test"}
+	user.Token = &types.OAuthToken{Token: "this is in this test"}
 	c.Assert(ds.client.Client().PatchUser(user), check.IsNil)
 	user, err = ds.client.Client().GetUser(username)
 	c.Assert(err, check.IsNil)
 	c.Assert(user.Token, check.NotNil)
-	c.Assert(user.Token.AccessToken, check.Equals, "this is in this test")
+	c.Assert(user.Token.Token, check.Equals, "this is in this test")
 
 	user.Token = testutil.DummyToken
 	c.Assert(ds.client.Client().PatchUser(user), check.IsNil)
@@ -292,9 +292,12 @@ func (ds *datasvcSuite) TestQueue(c *check.C) {
 }
 
 func (ds *datasvcSuite) TestOAuth(c *check.C) {
-	c.Assert(ds.client.Client().OAuthRegisterState("asdf"), check.IsNil)
-	c.Assert(ds.client.Client().OAuthValidateState("asdf"), check.IsNil)
-	c.Assert(ds.client.Client().OAuthValidateState("asdf2"), check.NotNil)
+	c.Assert(ds.client.Client().OAuthRegisterState("asdf", []string{"repo"}), check.IsNil)
+	res, err := ds.client.Client().OAuthValidateState("asdf")
+	c.Assert(err, check.IsNil)
+	c.Assert(res, check.DeepEquals, []string{"repo"})
+	_, err = ds.client.Client().OAuthValidateState("asdf2")
+	c.Assert(err, check.NotNil)
 }
 
 func (ds *datasvcSuite) TestRef(c *check.C) {

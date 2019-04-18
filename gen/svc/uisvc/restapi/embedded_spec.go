@@ -258,6 +258,23 @@ func init() {
         }
       }
     },
+    "/login/upgrade": {
+      "get": {
+        "description": "This upgrades the permissions of the user (which requires confirmation from the OAuthing site) to allow repository access, so that additional permission to manipulate repositories and scan additional ones is available.\n",
+        "summary": "Log into the system with upgraded permissions",
+        "responses": {
+          "302": {
+            "description": "This will be the redirection to github.\n"
+          },
+          "500": {
+            "description": "An error occurred. Body has error result.",
+            "schema": {
+              "$ref": "../models.yml#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/logout": {
       "get": {
         "security": [
@@ -319,7 +336,8 @@ func init() {
             }
           }
         },
-        "x-capability": "modify:ci"
+        "x-capability": "modify:ci",
+        "x-token-scope": "repo"
       }
     },
     "/repositories/ci/del/{owner}/{repo}": {
@@ -361,7 +379,8 @@ func init() {
             }
           }
         },
-        "x-capability": "modify:ci"
+        "x-capability": "modify:ci",
+        "x-token-scope": "repo"
       }
     },
     "/repositories/my": {
@@ -1290,6 +1309,23 @@ func init() {
         }
       }
     },
+    "/login/upgrade": {
+      "get": {
+        "description": "This upgrades the permissions of the user (which requires confirmation from the OAuthing site) to allow repository access, so that additional permission to manipulate repositories and scan additional ones is available.\n",
+        "summary": "Log into the system with upgraded permissions",
+        "responses": {
+          "302": {
+            "description": "This will be the redirection to github.\n"
+          },
+          "500": {
+            "description": "An error occurred. Body has error result.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
     "/logout": {
       "get": {
         "security": [
@@ -1351,7 +1387,8 @@ func init() {
             }
           }
         },
-        "x-capability": "modify:ci"
+        "x-capability": "modify:ci",
+        "x-token-scope": "repo"
       }
     },
     "/repositories/ci/del/{owner}/{repo}": {
@@ -1393,7 +1430,8 @@ func init() {
             }
           }
         },
-        "x-capability": "modify:ci"
+        "x-capability": "modify:ci",
+        "x-token-scope": "repo"
       }
     },
     "/repositories/my": {

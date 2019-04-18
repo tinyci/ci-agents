@@ -91,6 +91,18 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
 		Method:         "GET",
 		UseCORS:        true,
 	}
+	p = handlers.TransformSwaggerRoute("/login/upgrade")
+
+	if h.Routes[p] == nil {
+		h.Routes[p] = map[string]*handlers.Route{}
+	}
+
+	h.Routes[p][strings.ToLower("GET")] = &handlers.Route{
+		ParamValidator: operations.GetLoginUpgradeValidateURLParams,
+		Handler:        operations.GetLoginUpgrade,
+		Method:         "GET",
+		UseCORS:        true,
+	}
 	p = handlers.TransformSwaggerRoute("/logout")
 
 	if h.Routes[p] == nil {
@@ -117,6 +129,7 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
 		UseCORS:        true,
 		UseAuth:        true,
 		Capability:     "modify:ci",
+		TokenScope:     "repo",
 	}
 	p = handlers.TransformSwaggerRoute("/repositories/ci/del/{owner}/{repo}")
 
@@ -131,6 +144,7 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
 		UseCORS:        true,
 		UseAuth:        true,
 		Capability:     "modify:ci",
+		TokenScope:     "repo",
 	}
 	p = handlers.TransformSwaggerRoute("/repositories/my")
 

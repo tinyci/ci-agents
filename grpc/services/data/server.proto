@@ -29,7 +29,7 @@ service Data {
   // Register state with the database.
   rpc OAuthRegisterState(OAuthState) returns (google.protobuf.Empty) {};
   // Validate returned state within the database.
-  rpc OAuthValidateState(OAuthState) returns (google.protobuf.Empty) {};
+  rpc OAuthValidateState(OAuthState) returns (OAuthState) {};
 
   // QueueCount is the count of the queue
   rpc QueueCount(google.protobuf.Empty)        returns (Count)                  {}; 
@@ -207,7 +207,8 @@ message NameSearch {
 }
 
 message OAuthState {
-  string state = 1;
+           string state  = 1;
+  repeated string scopes = 2;
 }
 
 message GithubJSON {

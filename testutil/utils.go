@@ -8,8 +8,8 @@ import (
 	check "github.com/erikh/check"
 	"github.com/jinzhu/gorm"
 	"github.com/tinyci/ci-agents/errors"
+	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
-	"golang.org/x/oauth2"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 	TestDBConfig = "host=localhost user=tinyci password=tinyci"
 
 	// DummyToken is a fake oauth2 token.
-	DummyToken = &oauth2.Token{AccessToken: "123456"}
+	DummyToken = &types.OAuthToken{Token: "123456"}
 )
 
 // WipeDB wipes all tables with `truncate table`.

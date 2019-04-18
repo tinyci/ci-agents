@@ -19,7 +19,7 @@ func Submit(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 		all = false
 	}
 
-	user, err := getUser(h, ctx)
+	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
 	}

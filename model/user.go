@@ -10,7 +10,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/grpc/types"
-	"golang.org/x/oauth2"
+
+	topTypes "github.com/tinyci/ci-agents/types"
 )
 
 // Capability is a type of access gating mechanism. If present on the user
@@ -72,8 +73,8 @@ type User struct {
 	Subscribed       []*Repository `gorm:"many2many:subscriptions;preload:false" json:"subscribed,omitempty"`
 	LoginToken       []byte        `json:"-"`
 
-	TokenJSON []byte        `gorm:"column:token;not null" json:"-"`
-	Token     *oauth2.Token `json:"token,omitempty"`
+	TokenJSON []byte               `gorm:"column:token;not null" json:"-"`
+	Token     *topTypes.OAuthToken `json:"token,omitempty"`
 }
 
 // SetToken sets the token's byte stream, and encrypts it.
@@ -94,7 +95,7 @@ func (u *User) FetchToken() *errors.Error {
 	return err
 }
 
-func encryptToken(key []byte, tok *oauth2.Token) ([]byte, *errors.Error) {
+func encryptToken(key []byte, tok *topTypes.OAuthToken) ([]byte, *errors.Error) {
 	str, err := securecookie.EncodeMulti("token", tok, securecookie.CodecsFromPairs(key)...)
 	if err != nil {
 		return nil, errors.New(err)
@@ -103,8 +104,8 @@ func encryptToken(key []byte, tok *oauth2.Token) ([]byte, *errors.Error) {
 	return []byte(str), nil
 }
 
-func decryptToken(key, tokenBytes []byte) (*oauth2.Token, *errors.Error) {
-	tok := oauth2.Token{}
+func decryptToken(key, tokenBytes []byte) (*topTypes.OAuthToken, *errors.Error) {
+	tok := topTypes.OAuthToken{}
 
 	if len(tokenBytes) == 0 {
 		return &tok, nil
@@ -128,7 +129,7 @@ func NewUserFromProto(u *types.User) (*User, *errors.Error) {
 		}
 	}
 
-	token := &oauth2.Token{}
+	token := &topTypes.OAuthToken{}
 
 	if u.TokenJSON != nil {
 		if err := json.Unmarshal(u.TokenJSON, token); err != nil {
@@ -168,7 +169,7 @@ func (u *User) ToProto() *types.User {
 }
 
 // CreateUser initializes a user struct and writes it to the db.
-func (m *Model) CreateUser(username string, token *oauth2.Token) (*User, *errors.Error) {
+func (m *Model) CreateUser(username string, token *topTypes.OAuthToken) (*User, *errors.Error) {
 	u := &User{Username: username, Token: token}
 	return u, m.WrapError(m.Create(u), "creating user")
 }
@@ -248,7 +249,7 @@ func (u *User) BeforeSave(tx *gorm.DB) error {
 
 // ValidateWrite is for write-only validations.
 func (u *User) ValidateWrite() *errors.Error {
-	if u.Token == nil || u.Token.AccessToken == "" || !u.Token.Valid() {
+	if u.Token == nil || u.Token.Token == "" {
 		return errors.New("cannot be written because the oauth credentials are not valid")
 	}
 
