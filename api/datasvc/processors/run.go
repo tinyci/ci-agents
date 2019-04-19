@@ -69,7 +69,7 @@ func (ds *DataServer) RunList(ctx context.Context, rq *data.RunListRequest) (*ty
 func (ds *DataServer) GetRun(ctx context.Context, id *types.IntID) (*types.Run, error) {
 	run := &model.Run{}
 
-	if err := ds.H.Model.Preload("Task.Parent.Owners").Where("id = ?", id.ID).First(run).Error; err != nil {
+	if err := ds.H.Model.Preload("Task.Parent").Where("id = ?", id.ID).First(run).Error; err != nil {
 		return nil, errors.New(err)
 	}
 

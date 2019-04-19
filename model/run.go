@@ -212,7 +212,7 @@ func (m *Model) getRunBits(runID int64, gh github.Client) (*runBits, *errors.Err
 	load := m.DB
 
 	if gh == nil {
-		load = m.Preload("Task.Parent.Owners")
+		load = m.Preload("Task.Parent")
 	}
 
 	if err := m.WrapError(load.Where("id = ?", runID).First(run), "locating run"); err != nil {
