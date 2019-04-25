@@ -18,9 +18,9 @@ DEBUG_PORTS= -p 3000:3000 \
 
 BUILD_DOCKER_RUN=\
 								$(DOCKER_RUN) \
-								-v ${PWD}/build/tinyci-$(VERSION):/build \
+								-v ${PWD}/build/:/build \
 								-w $(CONTAINER_DIR) \
-								-e GOBIN=/build \
+								-e GOBIN=/build/tinyci-$(VERSION) \
 								$(BUILD_DOCKER_IMAGE)
 
 TEST_DOCKER_RUN=\
@@ -81,7 +81,10 @@ do-build:
 build: build-build-image
 	$(BUILD_DOCKER_RUN) make do-build
 
-dist: build
+distclean:
+	$(BUILD_DOCKER_RUN) bash -c 'rm -rf /build/*'
+
+dist: distclean build
 	tar -C build -cvzf tinyci-$(VERSION).tar.gz tinyci-$(VERSION)
 
 demo: build-demo-image
