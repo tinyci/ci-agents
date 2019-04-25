@@ -168,10 +168,10 @@ gen-javascript:
 		-o /swagger
 
 swagger-serve:
-	docker run -p 8080:8080 -it -v ${PWD}:/swagger redoc-cli serve file:///swagger/uisvc/swagger.yml
+	docker run -p 8080:8080 -it -v ${PWD}:/swagger tinyci/redoc-cli serve file:///swagger/uisvc/swagger.yml
 
 swagger-docs:
-	docker run -it -u $(shell id -u):$(shell id -g) -v ${PWD}/swagger:/swagger redoc-cli bundle file:///swagger/uisvc/swagger.yml -o /swagger/docs.html
+	docker run -it -u $(shell id -u):$(shell id -g) -v ${PWD}/swagger:/swagger tinyci/redoc-cli bundle file:///swagger/uisvc/swagger.yml -o /swagger/docs.html
 
 check-s3cmd:
 	@which s3cmd 2>&1 >/dev/null || echo "You must install a working copy of s3cmd configured to upload to the docs.tinyci.org bucket."
