@@ -22,6 +22,7 @@ clients:
   uisvc: 'http://localhost:6010' # uisvc uses http, so urls.
 services:
   last_scanned_wait: 1h
+  logs_root_path: /var/tinyci/logs # default, will need to change if non-root or set perms beforehand
 websockets:
   insecure_websockets: true
 db: 'host=localhost database=tinyci user=tinyci password=tinyci'
