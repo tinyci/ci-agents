@@ -5,7 +5,7 @@ command-line client, `tinycli`.
 
 To get a tinyCI release, head over to
 https://github.com/tinyci/tinyci/releases. The rest of this page is largely
-about developer setup. Check out our [docs](http://docs.tinyci.org) if you're
+about developer setup. Check out our [docs](http://tinyci.org) if you're
 interested in using or testing out tinyCI.
 
 ## Developer Setup
@@ -65,7 +65,7 @@ After that, you can submit code through the Manual Submission dialog or any
 push or pull request will also trigger a CI run. Enjoy!
 
 Please note that actually running your code requires that you launch a runner
-(ideally on a separate server) which is covered in our [documentation](https://docs.tinyci.org).
+(ideally on a separate server) which is covered in our [documentation](https://tinyci.org).
 
 ## License
 
