@@ -177,15 +177,15 @@ swagger-docs:
 	docker run -it -u $(shell id -u):$(shell id -g) -v ${PWD}/swagger:/swagger tinyci/redoc-cli bundle file:///swagger/uisvc/swagger.yml -o /swagger/docs.html
 
 check-s3cmd:
-	@which s3cmd 2>&1 >/dev/null || echo "You must install a working copy of s3cmd configured to upload to the docs.tinyci.org bucket."
+	@which s3cmd 2>&1 >/dev/null || echo "You must install a working copy of s3cmd configured to upload to the tinyci.org bucket."
 
 grpc-docs: build-debug-image
 	mkdir -p grpc/docs
 	$(DEBUG_DOCKER_RUN) bash -c "protoc --doc_out=grpc/docs --doc_opt=html,index.html --proto_path=/go/src $(CONTAINER_DIR)/grpc/services/**/*.proto $(CONTAINER_DIR)/grpc/types/*.proto"
 
 upload-docs: check-s3cmd swagger-docs grpc-docs
-	s3cmd put swagger/docs.html -m text/html s3://docs.tinyci.org/swagger/index.html
-	s3cmd put grpc/docs/index.html -m text/html s3://docs.tinyci.org/grpc/index.html
+	s3cmd put swagger/docs.html -m text/html s3://tinyci.org/swagger/index.html
+	s3cmd put grpc/docs/index.html -m text/html s3://tinyci.org/grpc/index.html
 
 swagger-validate: require-spec build-demo-image
 	$(DOCKER_RUN) -u $$(id -u):$$(id -g) $(DOCKER_CONTAINER_DIR) --entrypoint /go/bin/swagger $(DEMO_DOCKER_IMAGE) \
