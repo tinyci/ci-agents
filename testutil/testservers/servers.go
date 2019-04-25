@@ -165,7 +165,7 @@ func MakeAssetServer() (*handler.H, chan struct{}, *errors.Error) {
 	}
 
 	srv := grpc.NewServer()
-	asset.RegisterAssetServer(srv, &assetsvc.AssetServer{})
+	asset.RegisterAssetServer(srv, &assetsvc.AssetServer{H: h})
 
 	doneChan, err := h.Boot(t, srv)
 	return h, doneChan, errors.New(err)

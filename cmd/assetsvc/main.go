@@ -65,7 +65,7 @@ func serve(ctx *cli.Context) error {
 	}
 
 	s := grpc.NewServer()
-	asset.RegisterAssetServer(s, &processors.AssetServer{})
+	asset.RegisterAssetServer(s, &processors.AssetServer{H: h})
 
 	doneChan, err := h.Boot(t, s)
 	if err != nil {

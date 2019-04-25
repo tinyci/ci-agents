@@ -10,29 +10,42 @@ import (
 	"unicode/utf8"
 
 	"github.com/fatih/color"
+	"github.com/tinyci/ci-agents/grpc/handler"
 	"github.com/tinyci/ci-agents/grpc/services/asset"
 	"github.com/tinyci/ci-agents/grpc/types"
 	"google.golang.org/grpc/metadata"
 )
 
 const (
-	defaultLogsRoot = "/var/tinyci/logs"
+	defaultLogsRoot   = "/var/tinyci/logs"
+	logsRootConfigKey = "logs_root_path"
 )
 
 // AssetServer is the handler anchor for the GRPC network system.
-type AssetServer struct{}
+type AssetServer struct {
+	H *handler.H
+}
+
+func (as *AssetServer) getLogsRoot() string {
+	p, ok := as.H.ServiceConfig[logsRootConfigKey].(string)
+	if !ok {
+		p = defaultLogsRoot
+	}
+
+	return p
+}
 
 // PutLog writes the log to disk
 func (as *AssetServer) PutLog(ap asset.Asset_PutLogServer) error {
-	return submit(ap)
+	return as.submit(ap, as.getLogsRoot())
 }
 
 // GetLog spills the log back to connecting websocket.
 func (as *AssetServer) GetLog(id *types.IntID, ag asset.Asset_GetLogServer) error {
-	return attach(id.ID, ag)
+	return as.attach(id.ID, ag, as.getLogsRoot())
 }
 
-func submit(ap asset.Asset_PutLogServer) (retErr error) {
+func (as *AssetServer) submit(ap asset.Asset_PutLogServer, p string) (retErr error) {
 	defer func() {
 		if retErr != nil {
 			md := metadata.New(nil)
@@ -40,7 +53,7 @@ func submit(ap asset.Asset_PutLogServer) (retErr error) {
 			ap.SetTrailer(md)
 		}
 	}()
-	if err := os.MkdirAll(defaultLogsRoot, 0700); err != nil {
+	if err := os.MkdirAll(p, 0700); err != nil {
 		return err
 	}
 
@@ -49,7 +62,7 @@ func submit(ap asset.Asset_PutLogServer) (retErr error) {
 		return err
 	}
 
-	file := path.Join(defaultLogsRoot, fmt.Sprintf("%d", ls.ID))
+	file := path.Join(p, fmt.Sprintf("%d", ls.ID))
 
 	if _, err := os.Stat(file); err == nil {
 		return errors.New("log already exists")
@@ -88,10 +101,10 @@ func write(ag asset.Asset_GetLogServer, buf []byte) error {
 	return ag.Send(&asset.LogChunk{Chunk: buf})
 }
 
-func attach(id int64, ag asset.Asset_GetLogServer) error {
+func (as *AssetServer) attach(id int64, ag asset.Asset_GetLogServer, p string) error {
 	defer write(ag, []byte(color.New(color.FgGreen).Sprintln("---- LOG COMPLETE ----")))
 
-	file := path.Join(defaultLogsRoot, fmt.Sprintf("%d", id))
+	file := path.Join(p, fmt.Sprintf("%d", id))
 
 	log, err := os.Open(file) // #nosec
 	if err != nil {
