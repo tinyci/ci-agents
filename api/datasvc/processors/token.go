@@ -6,6 +6,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/tinyci/ci-agents/grpc/services/data"
 	"github.com/tinyci/ci-agents/grpc/types"
+	"google.golang.org/grpc/codes"
 )
 
 // GetToken retrieves a token, creating it if necessary, for the user supplied.
@@ -17,7 +18,7 @@ import (
 func (ds *DataServer) GetToken(ctx context.Context, name *data.Name) (*types.StringID, error) {
 	token, err := ds.H.Model.GetToken(name.Name)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &types.StringID{ID: token}, nil
@@ -27,7 +28,7 @@ func (ds *DataServer) GetToken(ctx context.Context, name *data.Name) (*types.Str
 func (ds *DataServer) DeleteToken(ctx context.Context, name *data.Name) (*empty.Empty, error) {
 	err := ds.H.Model.DeleteToken(name.Name)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -37,7 +38,7 @@ func (ds *DataServer) DeleteToken(ctx context.Context, name *data.Name) (*empty.
 func (ds *DataServer) ValidateToken(ctx context.Context, id *types.StringID) (*types.User, error) {
 	u, err := ds.H.Model.ValidateToken(id.ID)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return u.ToProto(), nil

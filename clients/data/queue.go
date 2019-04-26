@@ -7,12 +7,13 @@ import (
 	"github.com/tinyci/ci-agents/grpc/services/data"
 	"github.com/tinyci/ci-agents/grpc/types"
 	"github.com/tinyci/ci-agents/model"
+	"google.golang.org/grpc"
 )
 
 // NextQueueItem return the next queue item. The runningOn is a hostname which
 // is provided for tracking purposes. It should be unique (but, is ultimately not necessary).
 func (c *Client) NextQueueItem(queueName, runningOn string) (*model.QueueItem, *errors.Error) {
-	item, err := c.client.QueueNext(context.Background(), &types.QueueRequest{QueueName: queueName, RunningOn: runningOn})
+	item, err := c.client.QueueNext(context.Background(), &types.QueueRequest{QueueName: queueName, RunningOn: runningOn}, grpc.WaitForReady(false))
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -22,7 +23,7 @@ func (c *Client) NextQueueItem(queueName, runningOn string) (*model.QueueItem, *
 
 // PutStatus returns the status of the run.
 func (c *Client) PutStatus(runID int64, status bool, msg string) *errors.Error {
-	_, err := c.client.PutStatus(context.Background(), &types.Status{AdditionalMessage: msg, Id: runID, Status: status})
+	_, err := c.client.PutStatus(context.Background(), &types.Status{AdditionalMessage: msg, Id: runID, Status: status}, grpc.WaitForReady(true))
 	return errors.New(err)
 }
 
@@ -34,7 +35,7 @@ func (c *Client) PutQueue(qis []*model.QueueItem) ([]*model.QueueItem, *errors.E
 		ql.Items = append(ql.Items, qi.ToProto())
 	}
 
-	ql, err := c.client.QueueAdd(context.Background(), ql)
+	ql, err := c.client.QueueAdd(context.Background(), ql, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -55,13 +56,13 @@ func (c *Client) PutQueue(qis []*model.QueueItem) ([]*model.QueueItem, *errors.E
 
 // SetCancel cancels a run, and any other task-level runs.
 func (c *Client) SetCancel(id int64) *errors.Error {
-	_, err := c.client.SetCancel(context.Background(), &types.IntID{ID: id})
+	_, err := c.client.SetCancel(context.Background(), &types.IntID{ID: id}, grpc.WaitForReady(true))
 	return errors.New(err)
 }
 
 // GetCancel returns the state for the run.
 func (c *Client) GetCancel(id int64) (bool, *errors.Error) {
-	status, err := c.client.GetCancel(context.Background(), &types.IntID{ID: id})
+	status, err := c.client.GetCancel(context.Background(), &types.IntID{ID: id}, grpc.WaitForReady(true))
 	if err != nil {
 		return false, errors.New(err)
 	}

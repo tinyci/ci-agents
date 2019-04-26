@@ -15,6 +15,7 @@ import (
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
+	"google.golang.org/grpc/codes"
 )
 
 // QueueServer encapsulates a GRPC server for the queuesvc.
@@ -25,7 +26,7 @@ type QueueServer struct {
 // SetCancel mirrors the cancel in datasvc -- just easier to access by runners.
 func (qs *QueueServer) SetCancel(ctx context.Context, id *gtypes.IntID) (*empty.Empty, error) {
 	if err := qs.H.Clients.Data.SetCancel(id.ID); err != nil {
-		return &empty.Empty{}, err
+		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -35,7 +36,7 @@ func (qs *QueueServer) SetCancel(ctx context.Context, id *gtypes.IntID) (*empty.
 func (qs *QueueServer) GetCancel(ctx context.Context, id *gtypes.IntID) (*gtypes.Status, error) {
 	state, err := qs.H.Clients.Data.GetCancel(id.ID)
 	if err != nil {
-		return &gtypes.Status{}, err
+		return &gtypes.Status{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &gtypes.Status{Status: state}, nil
@@ -45,7 +46,7 @@ func (qs *QueueServer) GetCancel(ctx context.Context, id *gtypes.IntID) (*gtypes
 // datasvc.
 func (qs *QueueServer) PutStatus(ctx context.Context, status *gtypes.Status) (*empty.Empty, error) {
 	if err := qs.H.Clients.Data.PutStatus(status.Id, status.Status, status.AdditionalMessage); err != nil {
-		return &empty.Empty{}, err
+		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -60,7 +61,7 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 		if err.Contains(errors.ErrNotFound) {
 			err.SetLog(false)
 		}
-		return &gtypes.QueueItem{}, err
+		return &gtypes.QueueItem{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	if qi.Run.Task.Parent.Owner == nil {
@@ -70,18 +71,18 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 			"run_id":     fmt.Sprintf("%d", qi.Run.ID),
 		}).Error(err)
 
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	token := &types.OAuthToken{}
 	if err := utils.JSONIO(qi.Run.Task.Parent.Owner.Token, token); err != nil {
-		return &gtypes.QueueItem{}, err
+		return &gtypes.QueueItem{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	github := qs.H.OAuth.GithubClient(token)
 	parts := strings.SplitN(qi.Run.Task.Parent.Name, "/", 2)
 	if len(parts) != 2 {
-		return &gtypes.QueueItem{}, errors.New("invalid repository")
+		return &gtypes.QueueItem{}, errors.New("invalid repository").ToGRPC(codes.FailedPrecondition)
 	}
 
 	go func() {
@@ -126,14 +127,14 @@ func (qs *QueueServer) Submit(ctx context.Context, sub *queue.Submission) (*empt
 
 	qis, err := Process(qs.H, submission)
 	if err != nil {
-		return &empty.Empty{}, err
+		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	if err := doSubmit(qs.H, qis); err != nil {
 		for _, qi := range qis {
 			qs.H.Clients.Data.PutStatus(qi.Run.ID, false, fmt.Sprintf("Canceled due to error: %v", err))
 		}
-		return &empty.Empty{}, err
+		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil

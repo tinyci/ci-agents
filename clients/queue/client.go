@@ -8,6 +8,7 @@ import (
 	"github.com/tinyci/ci-agents/grpc/services/queue"
 	"github.com/tinyci/ci-agents/grpc/types"
 	"github.com/tinyci/ci-agents/model"
+	"google.golang.org/grpc"
 )
 
 // Client is the queue client.
@@ -27,7 +28,7 @@ func New(addr string, cert *transport.Cert) (*Client, *errors.Error) {
 
 // GetCancel retrieves the cancel state of the run.
 func (c *Client) GetCancel(id int64) (bool, *errors.Error) {
-	status, err := c.client.GetCancel(context.Background(), &types.IntID{ID: id})
+	status, err := c.client.GetCancel(context.Background(), &types.IntID{ID: id}, grpc.WaitForReady(true))
 	if err != nil {
 		return false, errors.New(err)
 	}
@@ -37,7 +38,7 @@ func (c *Client) GetCancel(id int64) (bool, *errors.Error) {
 
 // SetCancel sets the cancel state for a given run id.
 func (c *Client) SetCancel(id int64) *errors.Error {
-	_, err := c.client.SetCancel(context.Background(), &types.IntID{ID: id})
+	_, err := c.client.SetCancel(context.Background(), &types.IntID{ID: id}, grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)
 	}
@@ -47,7 +48,7 @@ func (c *Client) SetCancel(id int64) *errors.Error {
 
 // NextQueueItem returns the next item in the queue.
 func (c *Client) NextQueueItem(queueName, hostname string) (*model.QueueItem, *errors.Error) {
-	qi, err := c.client.NextQueueItem(context.Background(), &types.QueueRequest{QueueName: queueName, RunningOn: hostname})
+	qi, err := c.client.NextQueueItem(context.Background(), &types.QueueRequest{QueueName: queueName, RunningOn: hostname}, grpc.WaitForReady(false))
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -57,7 +58,7 @@ func (c *Client) NextQueueItem(queueName, hostname string) (*model.QueueItem, *e
 
 // SetStatus completes the run by returning its status back to the system.
 func (c *Client) SetStatus(id int64, status bool) *errors.Error {
-	_, err := c.client.PutStatus(context.Background(), &types.Status{Id: id, Status: status})
+	_, err := c.client.PutStatus(context.Background(), &types.Status{Id: id, Status: status}, grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)
 	}

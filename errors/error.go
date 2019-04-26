@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"golang.org/x/xerrors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Error encapsulates a series of errors.
@@ -50,6 +52,11 @@ func doinit(str string, log bool) *Error {
 // NewNoLog returns an error which will not be logged.
 func NewNoLog(str string) *Error {
 	return doinit(str, false)
+}
+
+// ToGRPC converts an error to a coded GRPC error, useful in returns from API handlers.
+func (e *Error) ToGRPC(code codes.Code) error {
+	return status.Errorf(code, "%v", e)
 }
 
 // SetLog sets the state for whether or not logging is permitted.

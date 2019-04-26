@@ -1,7 +1,6 @@
 package processors
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -10,9 +9,11 @@ import (
 	"unicode/utf8"
 
 	"github.com/fatih/color"
+	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/grpc/handler"
 	"github.com/tinyci/ci-agents/grpc/services/asset"
 	"github.com/tinyci/ci-agents/grpc/types"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -48,6 +49,7 @@ func (as *AssetServer) GetLog(id *types.IntID, ag asset.Asset_GetLogServer) erro
 func (as *AssetServer) submit(ap asset.Asset_PutLogServer, p string) (retErr error) {
 	defer func() {
 		if retErr != nil {
+			retErr = errors.New(retErr).ToGRPC(codes.FailedPrecondition)
 			md := metadata.New(nil)
 			md.Append("errors", retErr.Error())
 			ap.SetTrailer(md)
@@ -101,7 +103,12 @@ func write(ag asset.Asset_GetLogServer, buf []byte) error {
 	return ag.Send(&asset.LogChunk{Chunk: buf})
 }
 
-func (as *AssetServer) attach(id int64, ag asset.Asset_GetLogServer, p string) error {
+func (as *AssetServer) attach(id int64, ag asset.Asset_GetLogServer, p string) (retErr error) {
+	defer func() {
+		if retErr != nil {
+			retErr = errors.New(retErr).ToGRPC(codes.FailedPrecondition)
+		}
+	}()
 	defer write(ag, []byte(color.New(color.FgGreen).Sprintln("---- LOG COMPLETE ----")))
 
 	file := path.Join(p, fmt.Sprintf("%d", id))
