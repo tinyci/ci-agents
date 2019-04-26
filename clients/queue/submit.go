@@ -6,6 +6,7 @@ import (
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/grpc/services/queue"
 	"github.com/tinyci/ci-agents/types"
+	"google.golang.org/grpc"
 )
 
 // Submit submits a push or pull request to the queue.
@@ -19,6 +20,6 @@ func (c *Client) Submit(sub *types.Submission) *errors.Error {
 		SubmittedBy: sub.SubmittedBy,
 		Manual:      sub.Manual,
 		PullRequest: sub.PullRequest,
-	})
+	}, grpc.WaitForReady(true))
 	return errors.New(err)
 }

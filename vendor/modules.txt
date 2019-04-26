@@ -120,13 +120,13 @@ golang.org/x/crypto/ssh/terminal
 # golang.org/x/net v0.0.0-20190328230028-74de082e2cca
 golang.org/x/net/websocket
 golang.org/x/net/trace
-golang.org/x/net/context/ctxhttp
 golang.org/x/net/internal/timeseries
 golang.org/x/net/http2
 golang.org/x/net/http2/hpack
-golang.org/x/net/context
+golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
 golang.org/x/net/idna
+golang.org/x/net/context
 # golang.org/x/oauth2 v0.0.0-20190319182350-c85d3e98c914
 golang.org/x/oauth2
 golang.org/x/oauth2/github

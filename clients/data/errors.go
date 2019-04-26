@@ -7,11 +7,12 @@ import (
 	"github.com/tinyci/ci-agents/grpc/services/data"
 	"github.com/tinyci/ci-agents/grpc/types"
 	"github.com/tinyci/ci-agents/model"
+	"google.golang.org/grpc"
 )
 
 // GetErrors retrieves all the errors for the user.
 func (c *Client) GetErrors(name string) ([]*model.UserError, *errors.Error) {
-	errs, err := c.client.GetErrors(context.Background(), &data.Name{Name: name})
+	errs, err := c.client.GetErrors(context.Background(), &data.Name{Name: name}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -27,12 +28,12 @@ func (c *Client) GetErrors(name string) ([]*model.UserError, *errors.Error) {
 
 // AddError adds an error.
 func (c *Client) AddError(msg, username string) *errors.Error {
-	u, err := c.client.UserByName(context.Background(), &data.Name{Name: username})
+	u, err := c.client.UserByName(context.Background(), &data.Name{Name: username}, grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)
 	}
 
-	_, err = c.client.AddError(context.Background(), &types.UserError{Error: msg, UserID: u.Id})
+	_, err = c.client.AddError(context.Background(), &types.UserError{Error: msg, UserID: u.Id}, grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)
 	}
@@ -42,6 +43,6 @@ func (c *Client) AddError(msg, username string) *errors.Error {
 
 // DeleteError removes an error.
 func (c *Client) DeleteError(id, userID int64) *errors.Error {
-	_, err := c.client.DeleteError(context.Background(), &types.UserError{Id: id, UserID: userID})
+	_, err := c.client.DeleteError(context.Background(), &types.UserError{Id: id, UserID: userID}, grpc.WaitForReady(true))
 	return errors.New(err)
 }

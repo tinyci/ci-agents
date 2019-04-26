@@ -19,6 +19,7 @@ import (
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/grpc/services/log"
 	"github.com/tinyci/ci-agents/model"
+	"google.golang.org/grpc"
 )
 
 // RemoteClient is the swagger-based syslogsvc client.
@@ -189,7 +190,7 @@ func (sub *SubLogger) makeMsg(level, msg string, values []interface{}) *log.LogM
 // Logf logs a thing with formats!
 func (sub *SubLogger) Logf(level string, msg string, values []interface{}, localLog func(string, ...interface{})) *errors.Error {
 	if RemoteClient != nil {
-		_, err := RemoteClient.Put(context.Background(), sub.makeMsg(level, msg, values))
+		_, err := RemoteClient.Put(context.Background(), sub.makeMsg(level, msg, values), grpc.WaitForReady(true))
 		return errors.New(err)
 	}
 
@@ -200,7 +201,7 @@ func (sub *SubLogger) Logf(level string, msg string, values []interface{}, local
 // Log logs a thing
 func (sub *SubLogger) Log(level string, msg interface{}, localLog func(...interface{})) *errors.Error {
 	if RemoteClient != nil {
-		_, err := RemoteClient.Put(context.Background(), sub.makeMsg(level, fmt.Sprintf("%v", msg), nil))
+		_, err := RemoteClient.Put(context.Background(), sub.makeMsg(level, fmt.Sprintf("%v", msg), nil), grpc.WaitForReady(true))
 		return errors.New(err)
 	}
 
