@@ -8,6 +8,7 @@ import (
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/grpc/services/asset"
 	"github.com/tinyci/ci-agents/grpc/types"
+	"google.golang.org/grpc"
 )
 
 // Client is a handle into the asset client.
@@ -26,7 +27,7 @@ func NewClient(cert *transport.Cert, addr string) (*Client, *errors.Error) {
 
 // Write writes a log at id with the supplied reader providing the content.
 func (c *Client) Write(id int64, f io.Reader) *errors.Error {
-	s, err := c.ac.PutLog(context.Background())
+	s, err := c.ac.PutLog(context.Background(), grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)
 	}
@@ -64,7 +65,7 @@ func (c *Client) Write(id int64, f io.Reader) *errors.Error {
 }
 
 func (c *Client) Read(id int64, w io.Writer) *errors.Error {
-	as, err := c.ac.GetLog(context.Background(), &types.IntID{ID: id})
+	as, err := c.ac.GetLog(context.Background(), &types.IntID{ID: id}, grpc.WaitForReady(false))
 	if err != nil {
 		return errors.New(err)
 	}

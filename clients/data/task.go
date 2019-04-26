@@ -7,11 +7,12 @@ import (
 	"github.com/tinyci/ci-agents/grpc/services/data"
 	"github.com/tinyci/ci-agents/grpc/types"
 	"github.com/tinyci/ci-agents/model"
+	"google.golang.org/grpc"
 )
 
 // CancelTasksByPR cancels tasks by PR ID.
 func (c *Client) CancelTasksByPR(repository string, prID int64) *errors.Error {
-	if _, err := c.client.CancelTasksByPR(context.Background(), &types.CancelPRRequest{Repository: repository, Id: prID}); err != nil {
+	if _, err := c.client.CancelTasksByPR(context.Background(), &types.CancelPRRequest{Repository: repository, Id: prID}, grpc.WaitForReady(true)); err != nil {
 		return errors.New(err)
 	}
 
@@ -20,7 +21,7 @@ func (c *Client) CancelTasksByPR(repository string, prID int64) *errors.Error {
 
 // PutTask adds a task to the database.
 func (c *Client) PutTask(task *model.Task) (*model.Task, *errors.Error) {
-	t, err := c.client.PutTask(context.Background(), task.ToProto())
+	t, err := c.client.PutTask(context.Background(), task.ToProto(), grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -37,7 +38,7 @@ func (c *Client) ListTasks(repository, sha string, page, perPage int64) ([]*mode
 		Sha:        sha,
 		Page:       page,
 		PerPage:    perPage,
-	})
+	}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -58,7 +59,7 @@ func (c *Client) ListTasks(repository, sha string, page, perPage int64) ([]*mode
 
 // CountTasks counts the tasks with the filters applied.
 func (c *Client) CountTasks(repository, sha string) (int64, *errors.Error) {
-	count, err := c.client.CountTasks(context.Background(), &data.TaskListRequest{Repository: repository, Sha: sha})
+	count, err := c.client.CountTasks(context.Background(), &data.TaskListRequest{Repository: repository, Sha: sha}, grpc.WaitForReady(true))
 	if err != nil {
 		return 0, errors.New(err)
 	}
@@ -68,7 +69,7 @@ func (c *Client) CountTasks(repository, sha string) (int64, *errors.Error) {
 
 // GetRunsForTask retrieves all the runs by task ID.
 func (c *Client) GetRunsForTask(taskID, page, perPage int64) ([]*model.Run, *errors.Error) {
-	runs, err := c.client.RunsForTask(context.Background(), &data.RunsForTaskRequest{Id: taskID, Page: page, PerPage: perPage})
+	runs, err := c.client.RunsForTask(context.Background(), &data.RunsForTaskRequest{Id: taskID, Page: page, PerPage: perPage}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -89,7 +90,7 @@ func (c *Client) GetRunsForTask(taskID, page, perPage int64) ([]*model.Run, *err
 
 // CountRunsForTask counts all the runs associated with the task.
 func (c *Client) CountRunsForTask(taskID int64) (int64, *errors.Error) {
-	count, err := c.client.CountRunsForTask(context.Background(), &types.IntID{ID: taskID})
+	count, err := c.client.CountRunsForTask(context.Background(), &types.IntID{ID: taskID}, grpc.WaitForReady(true))
 	if err != nil {
 		return 0, errors.New(err)
 	}
@@ -101,7 +102,7 @@ func (c *Client) CountRunsForTask(taskID int64) (int64, *errors.Error) {
 func (c *Client) ListSubscribedTasksForUser(userID, page, perPage int64) ([]*model.Task, *errors.Error) {
 	modelTasks := []*model.Task{}
 
-	tasks, err := c.client.ListSubscribedTasksForUser(context.Background(), &data.ListSubscribedTasksRequest{Id: userID, Page: page, PerPage: perPage})
+	tasks, err := c.client.ListSubscribedTasksForUser(context.Background(), &data.ListSubscribedTasksRequest{Id: userID, Page: page, PerPage: perPage}, grpc.WaitForReady(true))
 	if err != nil {
 		return modelTasks, errors.New(err)
 	}

@@ -8,12 +8,13 @@ import (
 	"github.com/tinyci/ci-agents/grpc/services/data"
 	"github.com/tinyci/ci-agents/grpc/types"
 	"github.com/tinyci/ci-agents/model"
+	"google.golang.org/grpc/codes"
 )
 
 // CancelTasksByPR cancels multiple tasks by Pull Request ID.
 func (ds *DataServer) CancelTasksByPR(ctx context.Context, prq *types.CancelPRRequest) (*empty.Empty, error) {
 	if err := ds.H.Model.CancelTasksForPR(prq.Repository, prq.Id, ds.H.URL); err != nil {
-		return nil, errors.New(err).Wrapf("Could not cancel tasks for repo %q, PR #%d", prq.Repository, prq.Id)
+		return nil, err.Wrapf("Could not cancel tasks for repo %q, PR #%d", prq.Repository, prq.Id).ToGRPC(codes.FailedPrecondition)
 	}
 	return &empty.Empty{}, nil
 }
@@ -26,7 +27,7 @@ func (ds *DataServer) PutTask(ctx context.Context, task *types.Task) (*types.Tas
 	}
 
 	if err := ds.H.Model.Create(t).Error; err != nil {
-		return nil, errors.New(err)
+		return nil, errors.New(err).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return t.ToProto(), nil
@@ -36,7 +37,7 @@ func (ds *DataServer) PutTask(ctx context.Context, task *types.Task) (*types.Tas
 func (ds *DataServer) ListTasks(ctx context.Context, req *data.TaskListRequest) (*types.TaskList, error) {
 	tasks, err := ds.H.Model.ListTasks(req.Repository, req.Sha, req.Page, req.PerPage)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	retTasks := &types.TaskList{}
@@ -52,7 +53,7 @@ func (ds *DataServer) ListTasks(ctx context.Context, req *data.TaskListRequest) 
 func (ds *DataServer) CountTasks(ctx context.Context, req *data.TaskListRequest) (*data.Count, error) {
 	count, err := ds.H.Model.CountTasks(req.Repository, req.Sha)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &data.Count{Count: count}, nil
@@ -62,7 +63,7 @@ func (ds *DataServer) CountTasks(ctx context.Context, req *data.TaskListRequest)
 func (ds *DataServer) RunsForTask(ctx context.Context, req *data.RunsForTaskRequest) (*types.RunList, error) {
 	runs, err := ds.H.Model.GetRunsForTask(req.Id, req.Page, req.PerPage)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	rl := &types.RunList{}
@@ -78,7 +79,7 @@ func (ds *DataServer) RunsForTask(ctx context.Context, req *data.RunsForTaskRequ
 func (ds *DataServer) CountRunsForTask(ctx context.Context, id *types.IntID) (*data.Count, error) {
 	count, err := ds.H.Model.CountRunsForTask(id.ID)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &data.Count{Count: count}, nil
@@ -88,7 +89,7 @@ func (ds *DataServer) CountRunsForTask(ctx context.Context, id *types.IntID) (*d
 func (ds *DataServer) ListSubscribedTasksForUser(ctx context.Context, lstr *data.ListSubscribedTasksRequest) (*types.TaskList, error) {
 	tasks, err := ds.H.Model.ListSubscribedTasksForUser(lstr.Id, lstr.Page, lstr.PerPage)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 	grpcTask := &types.TaskList{}
 

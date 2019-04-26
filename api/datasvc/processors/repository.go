@@ -6,29 +6,31 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/go-github/github"
+	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/grpc/services/data"
 	"github.com/tinyci/ci-agents/grpc/types"
 	"github.com/tinyci/ci-agents/model"
+	"google.golang.org/grpc/codes"
 )
 
 // EnableRepository adds the repository to the CI system. It must already exist.
 func (ds *DataServer) EnableRepository(ctx context.Context, rus *data.RepoUserSelection) (*empty.Empty, error) {
 	user, err := ds.H.Model.FindUserByName(rus.Username)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	repo, err := ds.H.Model.GetRepositoryByNameForUser(rus.RepoName, user)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	if err := ds.H.Model.AddSubscriptionsForUser(user, model.RepositoryList{repo}); err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	if err := ds.H.Model.EnableRepository(repo, user); err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -38,16 +40,16 @@ func (ds *DataServer) EnableRepository(ctx context.Context, rus *data.RepoUserSe
 func (ds *DataServer) DisableRepository(ctx context.Context, rus *data.RepoUserSelection) (*empty.Empty, error) {
 	user, err := ds.H.Model.FindUserByName(rus.Username)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	repo, err := ds.H.Model.GetRepositoryByNameForUser(rus.RepoName, user)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	if err := ds.H.Model.DisableRepository(repo); err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -58,11 +60,11 @@ func (ds *DataServer) SaveRepositories(ctx context.Context, gh *data.GithubJSON)
 	repos := []*github.Repository{}
 
 	if err := json.Unmarshal(gh.JSON, &repos); err != nil {
-		return nil, err
+		return nil, errors.New(err).ToGRPC(codes.FailedPrecondition)
 	}
 
 	if err := ds.H.Model.SaveRepositories(repos, gh.Username, gh.AutoCreated); err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -72,12 +74,12 @@ func (ds *DataServer) SaveRepositories(ctx context.Context, gh *data.GithubJSON)
 func (ds *DataServer) PrivateRepositories(ctx context.Context, nameSearch *data.NameSearch) (*types.RepositoryList, error) {
 	u, err := ds.H.Model.FindUserByName(nameSearch.Name)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	repos, err := ds.H.Model.GetPrivateReposForUser(u, nameSearch.Search)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return model.RepositoryList(repos).ToProto(), nil
@@ -87,12 +89,12 @@ func (ds *DataServer) PrivateRepositories(ctx context.Context, nameSearch *data.
 func (ds *DataServer) OwnedRepositories(ctx context.Context, nameSearch *data.NameSearch) (*types.RepositoryList, error) {
 	u, err := ds.H.Model.FindUserByName(nameSearch.Name)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	repos, err := ds.H.Model.GetOwnedRepos(u, nameSearch.Search)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return model.RepositoryList(repos).ToProto(), nil
@@ -102,12 +104,12 @@ func (ds *DataServer) OwnedRepositories(ctx context.Context, nameSearch *data.Na
 func (ds *DataServer) AllRepositories(ctx context.Context, nameSearch *data.NameSearch) (*types.RepositoryList, error) {
 	u, err := ds.H.Model.FindUserByName(nameSearch.Name)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	repos, err := ds.H.Model.GetVisibleReposForUser(u, nameSearch.Search)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return model.RepositoryList(repos).ToProto(), nil
@@ -117,7 +119,7 @@ func (ds *DataServer) AllRepositories(ctx context.Context, nameSearch *data.Name
 func (ds *DataServer) PublicRepositories(ctx context.Context, search *data.Search) (*types.RepositoryList, error) {
 	repos, err := ds.H.Model.GetAllPublicRepos(search.Search)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return model.RepositoryList(repos).ToProto(), nil
@@ -127,7 +129,7 @@ func (ds *DataServer) PublicRepositories(ctx context.Context, search *data.Searc
 func (ds *DataServer) GetRepository(ctx context.Context, name *data.Name) (*types.Repository, error) {
 	repo, err := ds.H.Model.GetRepositoryByName(name.Name)
 	if err != nil {
-		return nil, err
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return repo.ToProto(), nil

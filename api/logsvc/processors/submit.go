@@ -8,13 +8,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/grpc/services/log"
+	"google.golang.org/grpc/codes"
 )
 
 // Put submits a log message to the service, which in our current case, echoes it to stdout by way of sirupsen/logrus.
 func (ls *LogServer) Put(ctx context.Context, lm *log.LogMessage) (*empty.Empty, error) {
 	dispatcher, ok := ls.DispatchTable[lm.GetLevel()]
 	if !ok {
-		return &empty.Empty{}, errors.Errorf("Invalid log level %q", lm.GetLevel())
+		return &empty.Empty{}, errors.Errorf("Invalid log level %q", lm.GetLevel()).ToGRPC(codes.FailedPrecondition)
 	}
 
 	fields := map[string]interface{}{}
@@ -24,7 +25,7 @@ func (ls *LogServer) Put(ctx context.Context, lm *log.LogMessage) (*empty.Empty,
 		case *_struct.Value_StringValue:
 			fields[key] = kind.StringValue
 		default:
-			return &empty.Empty{}, errors.Errorf("%q must be a string value", key)
+			return &empty.Empty{}, errors.Errorf("%q must be a string value", key).ToGRPC(codes.FailedPrecondition)
 		}
 	}
 

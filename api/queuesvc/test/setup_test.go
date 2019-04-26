@@ -19,8 +19,10 @@ type queuesvcSuite struct {
 	queuesvcClient *testclients.QueueClient
 	queueDoneChan  chan struct{}
 	dataDoneChan   chan struct{}
+	logDoneChan    chan struct{}
 	model          *model.Model
 	dataHandler    *handler.H
+	logHandler     *handler.H
 	queueHandler   *handler.H
 }
 
@@ -40,6 +42,9 @@ func (qs *queuesvcSuite) SetUpTest(c *check.C) {
 	qs.dataHandler, qs.dataDoneChan, err = testservers.MakeDataServer()
 	c.Assert(err, check.IsNil)
 
+	qs.logHandler, qs.logDoneChan, _, err = testservers.MakeLogServer()
+	c.Assert(err, check.IsNil)
+
 	qs.queueHandler, qs.queueDoneChan, err = testservers.MakeQueueServer()
 	c.Assert(err, check.IsNil)
 
@@ -51,6 +56,7 @@ func (qs *queuesvcSuite) SetUpTest(c *check.C) {
 }
 
 func (qs *queuesvcSuite) TearDownTest(c *check.C) {
+	close(qs.logDoneChan)
 	close(qs.dataDoneChan)
 	close(qs.queueDoneChan)
 	time.Sleep(100 * time.Millisecond)
