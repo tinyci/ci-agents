@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/tinyci/ci-agents/clients/tinyci"
 	"github.com/tinyci/ci-agents/errors"
@@ -327,7 +328,9 @@ func tasks(ctx *cli.Context) error {
 
 		if task.StartedAt != nil && task.FinishedAt != nil {
 			d := task.FinishedAt.Sub(*task.StartedAt)
-			duration = d.String()
+			duration = d.Round(time.Millisecond).String()
+		} else if task.StartedAt != nil {
+			duration = time.Since(*task.StartedAt).Round(time.Millisecond).String()
 		}
 
 		refName := task.Ref.RefName
@@ -380,7 +383,7 @@ func runs(ctx *cli.Context) error {
 		duration := ""
 
 		if run.StartedAt != nil && run.FinishedAt != nil {
-			d := run.FinishedAt.Sub(*run.StartedAt)
+			d := run.FinishedAt.Sub(*run.StartedAt).Round(time.Millisecond)
 			duration = d.String()
 		}
 
