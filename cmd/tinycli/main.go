@@ -338,7 +338,12 @@ func tasks(ctx *cli.Context) error {
 			return err
 		}
 
-		w.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d/%d/%d\t%s\t%s\n", task.ID, task.Ref.Repository.Name, refName, sha, task.Path, runningCount, finishedCount, totalCount, statusStr, duration)))
+		path := task.Path
+		if path == "." {
+			path = "*root*"
+		}
+
+		w.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d/%d/%d\t%s\t%s\n", task.ID, task.Ref.Repository.Name, refName, sha, path, runningCount, finishedCount, totalCount, statusStr, duration)))
 	}
 	w.Flush()
 
