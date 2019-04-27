@@ -166,7 +166,8 @@ func (m *Model) NextQueueItem(runningOn string, queueName string) (*QueueItem, *
 	qi.StartedAt = &t
 	qi.Run.StartedAt = &t
 	if qi.Run.Task.StartedAt == nil {
-		if err := m.WrapError(db.Model(qi.Run.Task).Update("started_at = ?", &t), "updating task started_at"); err != nil {
+		qi.Run.Task.StartedAt = &t
+		if err := m.WrapError(db.Save(qi.Run.Task), "updating task started_at"); err != nil {
 			return nil, err
 		}
 	}
