@@ -247,9 +247,6 @@ type TaskListItems0Parent struct {
 	// github
 	Github interface{} `json:"github,omitempty"`
 
-	// hook secret
-	HookSecret string `json:"hook_secret,omitempty"`
-
 	// id
 	ID int64 `json:"id,omitempty"`
 
@@ -362,9 +359,6 @@ type TaskListItems0RefRepository struct {
 
 	// github
 	Github interface{} `json:"github,omitempty"`
-
-	// hook secret
-	HookSecret string `json:"hook_secret,omitempty"`
 
 	// id
 	ID int64 `json:"id,omitempty"`

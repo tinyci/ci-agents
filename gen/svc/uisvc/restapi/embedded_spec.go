@@ -2137,9 +2137,6 @@ func init() {
             "type": "object",
             "additionalProperties": true
           },
-          "hook_secret": {
-            "type": "string"
-          },
           "id": {
             "type": "integer"
           },
@@ -2241,9 +2238,6 @@ func init() {
                   "type": "object",
                   "additionalProperties": true
                 },
-                "hook_secret": {
-                  "type": "string"
-                },
                 "id": {
                   "type": "integer"
                 },
@@ -2282,9 +2276,6 @@ func init() {
                     "github": {
                       "type": "object",
                       "additionalProperties": true
-                    },
-                    "hook_secret": {
-                      "type": "string"
                     },
                     "id": {
                       "type": "integer"
@@ -2487,9 +2478,6 @@ func init() {
                     "type": "object",
                     "additionalProperties": true
                   },
-                  "hook_secret": {
-                    "type": "string"
-                  },
                   "id": {
                     "type": "integer"
                   },
@@ -2528,9 +2516,6 @@ func init() {
                       "github": {
                         "type": "object",
                         "additionalProperties": true
-                      },
-                      "hook_secret": {
-                        "type": "string"
                       },
                       "id": {
                         "type": "integer"
@@ -2679,9 +2664,6 @@ func init() {
                 "type": "object",
                 "additionalProperties": true
               },
-              "hook_secret": {
-                "type": "string"
-              },
               "id": {
                 "type": "integer"
               },
@@ -2720,9 +2702,6 @@ func init() {
                   "github": {
                     "type": "object",
                     "additionalProperties": true
-                  },
-                  "hook_secret": {
-                    "type": "string"
                   },
                   "id": {
                     "type": "integer"
