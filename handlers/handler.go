@@ -357,11 +357,7 @@ func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error
 		}
 
 		if scope != "" && !u.Token.Can(scope) {
-			if err := h.OAuthRedirect(ctx, append([]string{scope}, u.Token.Scopes...)); err != nil {
-				return err
-			}
-
-			return ErrRedirect
+			return errors.New("cannot perform operation with current oauth scopes; must upgrade")
 		}
 
 		return gatewayFunc(h, ctx, processor)
