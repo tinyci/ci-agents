@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/tinyci/ci-agents/api/hooksvc"
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/handlers/hooksvc"
 	"github.com/urfave/cli"
 )
 
