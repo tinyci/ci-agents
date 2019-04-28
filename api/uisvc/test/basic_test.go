@@ -170,6 +170,11 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 	runs, err = tc.RunsForTask(runs[0].Task.ID, 0, 200)
 	c.Assert(err, check.IsNil)
 
+	for _, run := range runs {
+		c.Assert(run.Task.Parent.HookSecret, check.Equals, "")
+		c.Assert(run.Task.Ref.Repository.HookSecret, check.Equals, "")
+	}
+
 	for i := 0; i < len(runs); i++ {
 		client.EXPECT().ErrorStatus(
 			"erikh",
@@ -201,6 +206,10 @@ func (us *uisvcSuite) TestAddDeleteCI(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(len(repos), check.Not(check.Equals), 0)
 
+	for _, repo := range repos {
+		c.Assert(repo.HookSecret, check.Equals, "")
+	}
+
 	c.Assert(tc.AddToCI("erikh/not-real"), check.NotNil) // not saved
 
 	client.EXPECT().TeardownHook("erikh", "test", h.HookURL).Return(errors.New("wat's up"))
@@ -217,6 +226,16 @@ func (us *uisvcSuite) TestAddDeleteCI(c *check.C) {
 
 	c.Assert(utc.AddToCI("erikh/test"), check.ErrorMatches, ".*capability.*")
 	c.Assert(tc.AddToCI("erikh/test"), check.IsNil)
+
+	client.EXPECT().MyRepositories().Return([]*gh.Repository{{FullName: gh.String("erikh/test")}}, nil)
+
+	visible, err := tc.Visible("erikh/test")
+	c.Assert(err, check.IsNil)
+	c.Assert(len(visible), check.Equals, 1)
+
+	for _, repo := range visible {
+		c.Assert(repo.HookSecret, check.Equals, "")
+	}
 
 	c.Assert(tc.DeleteFromCI("erikh/not-real"), check.NotNil)
 

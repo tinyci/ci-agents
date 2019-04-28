@@ -203,3 +203,14 @@ func (c *Client) AddCapability(username string, capability model.Capability) *er
 func (c *Client) RemoveCapability(username string, capability model.Capability) *errors.Error {
 	return c.client.DeleteCapabilitiesUsernameCapability(context.Background(), string(capability), username)
 }
+
+// VisibleRepos retrieves the visible repositories to the user, a search may also be provided to limit scope.
+func (c *Client) VisibleRepos(search string) ([]*model.Repository, *errors.Error) {
+	repos, err := c.client.GetRepositoriesVisible(context.Background(), search)
+	if err != nil {
+		return nil, err
+	}
+
+	newRepos := model.RepositoryList{}
+	return newRepos, utils.JSONIO(repos, newRepos)
+}

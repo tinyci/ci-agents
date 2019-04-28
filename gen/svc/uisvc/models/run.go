@@ -416,9 +416,6 @@ type RunTaskParent struct {
 	// github
 	Github interface{} `json:"github,omitempty"`
 
-	// hook secret
-	HookSecret string `json:"hook_secret,omitempty"`
-
 	// id
 	ID int64 `json:"id,omitempty"`
 
@@ -531,9 +528,6 @@ type RunTaskRefRepository struct {
 
 	// github
 	Github interface{} `json:"github,omitempty"`
-
-	// hook secret
-	HookSecret string `json:"hook_secret,omitempty"`
 
 	// id
 	ID int64 `json:"id,omitempty"`

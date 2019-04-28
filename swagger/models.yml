@@ -60,8 +60,6 @@ definitions:
       github:
         type: object
         additionalProperties: true
-      hook_secret:
-        type: string
   RepositoryList:
     type: array
     items:
