@@ -52,7 +52,7 @@ type Repository struct {
 	OwnerID     int64  `json:"-"`
 	Owner       *User  `gorm:"association_autoupdate:false" json:"-"`
 	AutoCreated bool   `json:"auto_created"`
-	HookSecret  string
+	HookSecret  string `json:"-"`
 
 	Github *gh.Repository `json:"github"`
 }
