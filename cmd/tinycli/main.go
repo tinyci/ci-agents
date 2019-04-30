@@ -26,7 +26,29 @@ type Config struct {
 	Token    string
 }
 
-func loadConfig(filename string) (*tinyci.Client, *errors.Error) {
+func getConfigPath(ctx *cli.Context) (string, *errors.Error) {
+	if fi, err := os.Stat(tinyCIConfig); err != nil {
+		if mkerr := os.MkdirAll(tinyCIConfig, 0700); mkerr != nil {
+			return "", errors.New("Could not make config dir").Wrap(mkerr).Wrap(err)
+		}
+	} else if !fi.IsDir() {
+		return "", errors.Errorf("tinycli configuration path %q exists and is not a directory", tinyCIConfig)
+	}
+
+	config := ctx.GlobalString("config")
+	if config == "" {
+		return "", errors.New("invalid config name")
+	}
+
+	return path.Join(tinyCIConfig, config), nil
+}
+
+func loadConfig(ctx *cli.Context) (*tinyci.Client, *errors.Error) {
+	filename, e := getConfigPath(ctx)
+	if e != nil {
+		return nil, e
+	}
+
 	f, err := os.Open(filename) // #nosec
 	if err != nil {
 		return nil, errors.New(err).Wrapf("Cannot open tinyci configuration file %q", filename)
@@ -55,8 +77,28 @@ var TinyCIVersion = "" // to be changed by build processes
 func main() {
 	app := cli.NewApp()
 	app.Name = "tinycli"
-	app.Description = "Commandline client to control tinyCI"
+	app.Description = `
+Commandline client to control tinyCI. Useful for a variety of querying and
+control operations.
+
+To select a configuation at 'init' time, please specify the configuration you
+want to init like you would with other -c / command combinations:
+
+tinycli -c foo init
+
+You can also specify the TINYCLI_CONFIG environment variable.
+`
+
 	app.Version = fmt.Sprintf("%s (tinyCI version %s)", Version, TinyCIVersion)
+
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:   "config, c",
+			Usage:  fmt.Sprintf("Name of configuration to use; comes from %q", tinyCIConfig),
+			Value:  "default",
+			EnvVar: "TINYCLI_CONFIG",
+		},
+	}
 
 	app.Commands = []cli.Command{
 		{
@@ -232,11 +274,16 @@ func doInit(ctx *cli.Context) error {
 		Token:    token,
 	}
 
-	f, ferr := os.Create(tinyCIConfig)
+	filename, err := getConfigPath(ctx)
+	if err != nil {
+		return err
+	}
+	f, ferr := os.Create(filename)
 	if ferr != nil {
-		return errors.New(ferr).Wrap("Could not create configuration file")
+		return errors.New(ferr).Wrapf("Could not create configuration file %v", filename)
 	}
 	defer f.Close()
+	defer fmt.Printf("Created configuration file %q\n", filename)
 
 	return json.NewEncoder(f).Encode(c)
 }
@@ -246,7 +293,7 @@ func submit(ctx *cli.Context) error {
 		return errors.New("Invalid arguments: [repository] [sha] required")
 	}
 
-	client, err := loadConfig(tinyCIConfig)
+	client, err := loadConfig(ctx)
 	if err != nil {
 		return err
 	}
@@ -308,7 +355,7 @@ func mkTaskRunCounts(client *tinyci.Client, task *model.Task) (int64, int64, int
 }
 
 func tasks(ctx *cli.Context) error {
-	client, err := loadConfig(tinyCIConfig)
+	client, err := loadConfig(ctx)
 	if err != nil {
 		return err
 	}
@@ -354,7 +401,7 @@ func tasks(ctx *cli.Context) error {
 }
 
 func runs(ctx *cli.Context) error {
-	client, err := loadConfig(tinyCIConfig)
+	client, err := loadConfig(ctx)
 	if err != nil {
 		return err
 	}
@@ -402,7 +449,7 @@ func log(ctx *cli.Context) error {
 		return errors.New("Invalid arguments: [run id] required")
 	}
 
-	client, err := loadConfig(tinyCIConfig)
+	client, err := loadConfig(ctx)
 	if err != nil {
 		return err
 	}
@@ -420,7 +467,7 @@ func addCapability(ctx *cli.Context) error {
 		return errors.New("Invalid arguments: [username] [capability] required")
 	}
 
-	client, err := loadConfig(tinyCIConfig)
+	client, err := loadConfig(ctx)
 	if err != nil {
 		return err
 	}
@@ -433,7 +480,7 @@ func removeCapability(ctx *cli.Context) error {
 		return errors.New("Invalid arguments: [username] [capability] required")
 	}
 
-	client, err := loadConfig(tinyCIConfig)
+	client, err := loadConfig(ctx)
 	if err != nil {
 		return err
 	}
