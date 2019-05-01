@@ -84,7 +84,7 @@ build: build-build-image
 distclean:
 	$(BUILD_DOCKER_RUN) bash -c 'rm -rf /build/*'
 
-dist: distclean build
+dist: build-build-image distclean build
 	tar -C build -cvzf tinyci-$(VERSION).tar.gz tinyci-$(VERSION)
 
 demo: build-demo-image
