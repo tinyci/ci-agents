@@ -181,7 +181,7 @@ check-s3cmd:
 
 grpc-docs: build-debug-image
 	mkdir -p grpc/docs
-	$(DEBUG_DOCKER_RUN) bash -c "protoc --doc_out=grpc/docs --doc_opt=html,index.html --proto_path=/go/src $(CONTAINER_DIR)/grpc/services/**/*.proto $(CONTAINER_DIR)/grpc/types/*.proto"
+	$(DOCKER_RUN) $(DOCKER_CONTAINER_DIR) --entrypoint '' $(DEBUG_DOCKER_IMAGE) bash -c "protoc --doc_out=grpc/docs --doc_opt=html,index.html --proto_path=/go/src $(CONTAINER_DIR)/grpc/services/**/*.proto $(CONTAINER_DIR)/grpc/types/*.proto"
 
 upload-docs: check-s3cmd swagger-docs grpc-docs
 	s3cmd put swagger/docs.html -m text/html s3://tinyci.org/swagger/index.html
