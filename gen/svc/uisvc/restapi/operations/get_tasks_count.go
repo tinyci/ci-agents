@@ -18,7 +18,8 @@ import (
 )
 
 // GetTasksCount swagger:route GET /tasks/count getTasksCount
-// Count the Tasks// Perform a full count of tasks that meet the filter criteria (which can be no filter) and return it as integer.
+// Count the Tasks
+// Perform a full count of tasks that meet the filter criteria (which can be no filter) and return it as integer.
 //
 func GetTasksCount(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

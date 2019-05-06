@@ -18,7 +18,8 @@ import (
 )
 
 // GetTasksSubscribed swagger:route GET /tasks/subscribed getTasksSubscribed
-// Obtain the list of tasks that belong to repositories you are subscribed to.// This call implements basic pagination over the entire task corpus that intersects with your subscription list. It returns a list of tasks.
+// Obtain the list of tasks that belong to repositories you are subscribed to.
+// This call implements basic pagination over the entire task corpus that intersects with your subscription list. It returns a list of tasks.
 //
 func GetTasksSubscribed(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

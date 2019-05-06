@@ -18,7 +18,8 @@ import (
 )
 
 // GetLoggedin swagger:route GET /loggedin getLoggedin
-// Check logged in state// Validate the logged-in status of the user. Validates the session cookie against the internal database.
+// Check logged in state
+// Validate the logged-in status of the user. Validates the session cookie against the internal database.
 // If the user is logged in, a JSON string of "true" will be sent; otherwise an oauth redirect url will be passed for calling out to by the client.
 //
 func GetLoggedin(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {

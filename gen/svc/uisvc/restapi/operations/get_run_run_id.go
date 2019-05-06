@@ -18,7 +18,8 @@ import (
 )
 
 // GetRunRunID swagger:route GET /run/{run_id} getRunRunId
-// Get a run by ID// Retrieve a Run by ID; this will return the full Run object including all relationships.
+// Get a run by ID
+// Retrieve a Run by ID; this will return the full Run object including all relationships.
 func GetRunRunID(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()

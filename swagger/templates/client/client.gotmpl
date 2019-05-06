@@ -63,7 +63,7 @@ func (c *Client) UnmarshalCookies(content []byte) error {
 
 {{ range $op := .Operations }}
 // {{ pascalize .Name }} {{ humanize .Summary }}
-func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .Params -}}, {{ $param.Name }} {{ $param.GoType }}{{ end -}}{{- if index .Extensions "x-websocket" }}{{- if eq (index .Extensions "x-websocket") "write" }},r io.Reader{{ else }},w io.WriteCloser{{ end }}{{ end }}) (
+func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .Params -}}, {{ varname $param.Name }} {{ $param.GoType }}{{ end -}}{{- if index .Extensions "x-websocket" }}{{- if eq (index .Extensions "x-websocket") "write" }},r io.Reader{{ else }},w io.WriteCloser{{ end }}{{ end }}) (
 {{- if .SuccessResponse }}
 {{- if .SuccessResponse.Schema }}
 {{- if .SuccessResponse.Schema.IsNullable }}*{{ .SuccessResponse.Schema.GoType }},
@@ -75,7 +75,7 @@ func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .
   route := {{ printf "%q" .Path }}
 
   {{- range $param := .Params }}
-  {{ if $param.IsPathParam }}route = strings.Replace(route, {{ printf "%q" (print "{" $param.Name "}") }}, url.PathEscape(fmt.Sprintf("%v", {{ $param.Name }})), -1){{ end }}
+  {{ if $param.IsPathParam }}route = strings.Replace(route, {{ printf "%q" (print "{" $param.Name "}") }}, url.PathEscape(fmt.Sprintf("%v", {{ varname $param.Name }})), -1){{ end }}
   {{ end }}
 
   tmp := *c.url
@@ -85,7 +85,7 @@ func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .
   m := map[string]interface{}{}
 
   {{- range $param := .Params }} 
-  {{ if $param.IsQueryParam }}m[{{ printf "%q" $param.Name }}] = {{ $param.Name }}{{ end }}
+  {{ if $param.IsQueryParam }}m[{{ printf "%q" $param.Name }}] = {{ varname $param.Name }}{{ end }}
   {{ end }}
 
   if len(m) > 0 {
@@ -136,9 +136,9 @@ func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .
   {{ range $param := .Params }}
   {{ if $param.IsFormParam }}
   {{ if eq $param.GoType "string" }}
-  postForm.Add({{ printf "%q" $param.Name }}, {{ $param.Name }})
+  postForm.Add({{ printf "%q" $param.Name }}, {{ varname $param.Name }})
   {{ else }}
-  if content, err := json.Marshal({{ $param.Name }}); err != nil {
+  if content, err := json.Marshal({{ varname $param.Name }}); err != nil {
     return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if $op.SuccessResponse }}{{ if $op.SuccessResponse.Schema }}{{ if $op.SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ $op.SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} errors.New(err)
   } else {
     postForm.Add({{ printf "%q" $param.Name }}, string(content))
@@ -152,7 +152,7 @@ func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .
   {{ else -}}
   {{- range $param := .Params }}
   {{ if $param.IsBodyParam -}}
-  body, err = json.Marshal({{ $param.Name }})
+  body, err = json.Marshal({{ varname $param.Name }})
   if err != nil {
     return {{ if index $op.Extensions "x-websocket" }}nil, nil,{{ else if $op.SuccessResponse }}{{ if $op.SuccessResponse.Schema }}{{ if $op.SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ $op.SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} errors.New(err)
   }

@@ -18,7 +18,8 @@ import (
 )
 
 // GetRepositoriesVisible swagger:route GET /repositories/visible getRepositoriesVisible
-// Fetch all the repositories the user can view.// Returns a types.RepositoryList for all the repos a user has view access to.
+// Fetch all the repositories the user can view.
+// Returns a types.RepositoryList for all the repos a user has view access to.
 func GetRepositoriesVisible(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()

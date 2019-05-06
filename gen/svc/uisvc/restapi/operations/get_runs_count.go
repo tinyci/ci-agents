@@ -18,7 +18,8 @@ import (
 )
 
 // GetRunsCount swagger:route GET /runs/count getRunsCount
-// Count the runs// Count the runs, optionally filtering by repository or repository+SHA.
+// Count the runs
+// Count the runs, optionally filtering by repository or repository+SHA.
 //
 func GetRunsCount(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

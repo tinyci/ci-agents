@@ -18,7 +18,8 @@ import (
 )
 
 // GetRepositoriesCiDelOwnerRepo swagger:route GET /repositories/ci/del/{owner}/{repo} getRepositoriesCiDelOwnerRepo
-// Removes a specific repository from CI.// Will fail if not added to CI already; does not currently clear the hook.
+// Removes a specific repository from CI.
+// Will fail if not added to CI already; does not currently clear the hook.
 //
 func GetRepositoriesCiDelOwnerRepo(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

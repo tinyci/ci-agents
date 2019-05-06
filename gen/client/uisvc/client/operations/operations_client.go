@@ -886,9 +886,9 @@ func (c *Client) GetRepositoriesVisible(ctx context.Context, search string) (mod
 }
 
 // GetRunRunID get a run by ID
-func (c *Client) GetRunRunID(ctx context.Context, run_id int64) (*models.Run, *errors.Error) {
+func (c *Client) GetRunRunID(ctx context.Context, runID int64) (*models.Run, *errors.Error) {
 	route := "/run/{run_id}"
-	route = strings.Replace(route, "{run_id}", url.PathEscape(fmt.Sprintf("%v", run_id)), -1)
+	route = strings.Replace(route, "{run_id}", url.PathEscape(fmt.Sprintf("%v", runID)), -1)
 
 	tmp := *c.url
 	u := &tmp
@@ -1547,9 +1547,9 @@ func (c *Client) GetUserProperties(ctx context.Context) *errors.Error {
 }
 
 // PostCancelRunID cancel by run ID
-func (c *Client) PostCancelRunID(ctx context.Context, run_id int64) *errors.Error {
+func (c *Client) PostCancelRunID(ctx context.Context, runID int64) *errors.Error {
 	route := "/cancel/{run_id}"
-	route = strings.Replace(route, "{run_id}", url.PathEscape(fmt.Sprintf("%v", run_id)), -1)
+	route = strings.Replace(route, "{run_id}", url.PathEscape(fmt.Sprintf("%v", runID)), -1)
 
 	tmp := *c.url
 	u := &tmp

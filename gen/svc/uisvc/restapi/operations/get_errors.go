@@ -18,7 +18,8 @@ import (
 )
 
 // GetErrors swagger:route GET /errors getErrors
-// Retrieve errors// Server retrieves any errors the last call(s) have set for you.
+// Retrieve errors
+// Server retrieves any errors the last call(s) have set for you.
 func GetErrors(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()

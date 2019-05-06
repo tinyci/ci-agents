@@ -18,7 +18,8 @@ import (
 )
 
 // GetToken swagger:route GET /token getToken
-// Get a tinyCI access token// This will allow you unfettered access to the system as your user that you request the token with.
+// Get a tinyCI access token
+// This will allow you unfettered access to the system as your user that you request the token with.
 //
 func GetToken(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

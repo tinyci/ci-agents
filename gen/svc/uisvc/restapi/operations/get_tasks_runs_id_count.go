@@ -18,7 +18,8 @@ import (
 )
 
 // GetTasksRunsIDCount swagger:route GET /tasks/runs/{id}/count getTasksRunsIdCount
-// Count the runs corresponding to the task ID.// Get the count of runs that correspond to the task ID. Returns an integer.
+// Count the runs corresponding to the task ID.
+// Get the count of runs that correspond to the task ID. Returns an integer.
 //
 func GetTasksRunsIDCount(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

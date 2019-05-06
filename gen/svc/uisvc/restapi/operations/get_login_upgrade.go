@@ -18,7 +18,8 @@ import (
 )
 
 // GetLoginUpgrade swagger:route GET /login/upgrade getLoginUpgrade
-// Log into the system with upgraded permissions// This upgrades the permissions of the user (which requires confirmation from the OAuthing site) to allow repository access, so that additional permission to manipulate repositories and scan additional ones is available.
+// Log into the system with upgraded permissions
+// This upgrades the permissions of the user (which requires confirmation from the OAuthing site) to allow repository access, so that additional permission to manipulate repositories and scan additional ones is available.
 //
 func GetLoginUpgrade(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

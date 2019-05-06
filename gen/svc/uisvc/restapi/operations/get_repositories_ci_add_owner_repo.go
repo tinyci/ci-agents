@@ -18,7 +18,8 @@ import (
 )
 
 // GetRepositoriesCiAddOwnerRepo swagger:route GET /repositories/ci/add/{owner}/{repo} getRepositoriesCiAddOwnerRepo
-// Add a specific repository to CI.// Generates a hook secret and populates the user's repository with it and the hook URL. Returns 200 on success, 500 + error message on failure, or if the repository has already been added to CI.
+// Add a specific repository to CI.
+// Generates a hook secret and populates the user's repository with it and the hook URL. Returns 200 on success, 500 + error message on failure, or if the repository has already been added to CI.
 //
 func GetRepositoriesCiAddOwnerRepo(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

@@ -18,7 +18,8 @@ import (
 )
 
 // GetSubmit swagger:route GET /submit getSubmit
-// Perform a manual submission to tinyCI// This allows a user to push a job instead of pushing to git or filing a pull request to trigger a job. It is available on the tinyCI UI and CLI client.
+// Perform a manual submission to tinyCI
+// This allows a user to push a job instead of pushing to git or filing a pull request to trigger a job. It is available on the tinyCI UI and CLI client.
 //
 func GetSubmit(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
