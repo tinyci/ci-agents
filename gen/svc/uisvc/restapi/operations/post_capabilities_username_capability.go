@@ -18,7 +18,8 @@ import (
 )
 
 // PostCapabilitiesUsernameCapability swagger:route POST /capabilities/{username}/{capability} postCapabilitiesUsernameCapability
-// Add a named capability// Add a named capability for a provided user ID. Requires the user have the 'modify:user' capability.
+// Add a named capability
+// Add a named capability for a provided user ID. Requires the user have the 'modify:user' capability.
 func PostCapabilitiesUsernameCapability(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()

@@ -18,7 +18,8 @@ import (
 )
 
 // GetLogout swagger:route GET /logout getLogout
-// Log out of the system// Conveniently clears session cookies. You will need to login again. Does not clear oauth tokens.
+// Log out of the system
+// Conveniently clears session cookies. You will need to login again. Does not clear oauth tokens.
 //
 func GetLogout(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

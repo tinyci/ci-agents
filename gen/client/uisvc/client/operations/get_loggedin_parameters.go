@@ -8,6 +8,7 @@ package operations
 import (
 	"context"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/go-openapi/errors"
@@ -110,4 +111,16 @@ func (o *GetLoggedinParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.R
 		return errors.CompositeValidationError(res...)
 	}
 	return nil
+}
+
+func (o *GetLoggedinParams) HandleQueryParam(r runtime.ClientRequest, reg strfmt.Registry, name string, param interface{}, formatter func(interface{}) string) error {
+	if (reflect.TypeOf(param).Kind() == reflect.Ptr) && param == nil {
+		return nil
+	}
+
+	if formatter == nil {
+		formatter = func(i interface{}) string { return i.(string) }
+	}
+
+	return r.SetQueryParam(name, formatter(param))
 }

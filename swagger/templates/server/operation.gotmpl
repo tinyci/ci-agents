@@ -27,7 +27,7 @@ import (
 
 // {{pascalize .Name }} swagger:route {{ .Method }} {{ .Path }}{{ range .Tags }} {{ . }}{{ end }} {{ camelize .Name }}
 // {{ if .Summary }}{{ comment .Summary }}{{ end }}
-{{- if .Description }}// {{ comment .Description }}{{ end }}
+{{ if .Description }}// {{ comment .Description }}{{ end }}
 func {{ .Name }}(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
   if h.RequestLogging {
     start := time.Now()

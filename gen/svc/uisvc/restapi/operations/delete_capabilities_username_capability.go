@@ -18,7 +18,8 @@ import (
 )
 
 // DeleteCapabilitiesUsernameCapability swagger:route DELETE /capabilities/{username}/{capability} deleteCapabilitiesUsernameCapability
-// Remove a named capability// Remove a named capability from a provided user ID. Requires the user have the 'modify:user' capability.
+// Remove a named capability
+// Remove a named capability from a provided user ID. Requires the user have the 'modify:user' capability.
 func DeleteCapabilitiesUsernameCapability(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()

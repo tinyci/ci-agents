@@ -18,7 +18,8 @@ import (
 )
 
 // GetRepositoriesSubDelOwnerRepo swagger:route GET /repositories/sub/del/{owner}/{repo} getRepositoriesSubDelOwnerRepo
-// Unsubscribe from a repository// Unsubscribing removes any existing subscription. Either way, if nothing broke, it returns 200. Otherwise it returns 500 and the error.
+// Unsubscribe from a repository
+// Unsubscribing removes any existing subscription. Either way, if nothing broke, it returns 200. Otherwise it returns 500 and the error.
 //
 func GetRepositoriesSubDelOwnerRepo(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

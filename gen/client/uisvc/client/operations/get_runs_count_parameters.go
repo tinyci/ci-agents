@@ -8,6 +8,7 @@ package operations
 import (
 	"context"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/go-openapi/errors"
@@ -136,33 +137,13 @@ func (o *GetRunsCountParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.
 
 	if o.Repository != nil {
 
-		// query param repository
-		var qrRepository string
-		if o.Repository != nil {
-			qrRepository = *o.Repository
-		}
-		qRepository := qrRepository
-		if qRepository != "" {
-			if err := r.SetQueryParam("repository", qRepository); err != nil {
-				return err
-			}
-		}
+		o.HandleQueryParam(r, reg, "repository", o.Repository, nil)
 
 	}
 
 	if o.Sha != nil {
 
-		// query param sha
-		var qrSha string
-		if o.Sha != nil {
-			qrSha = *o.Sha
-		}
-		qSha := qrSha
-		if qSha != "" {
-			if err := r.SetQueryParam("sha", qSha); err != nil {
-				return err
-			}
-		}
+		o.HandleQueryParam(r, reg, "sha", o.Sha, nil)
 
 	}
 
@@ -170,4 +151,16 @@ func (o *GetRunsCountParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.
 		return errors.CompositeValidationError(res...)
 	}
 	return nil
+}
+
+func (o *GetRunsCountParams) HandleQueryParam(r runtime.ClientRequest, reg strfmt.Registry, name string, param interface{}, formatter func(interface{}) string) error {
+	if (reflect.TypeOf(param).Kind() == reflect.Ptr) && param == nil {
+		return nil
+	}
+
+	if formatter == nil {
+		formatter = func(i interface{}) string { return i.(string) }
+	}
+
+	return r.SetQueryParam(name, formatter(param))
 }

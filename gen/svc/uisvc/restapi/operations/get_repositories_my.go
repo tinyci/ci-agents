@@ -18,7 +18,8 @@ import (
 )
 
 // GetRepositoriesMy swagger:route GET /repositories/my getRepositoriesMy
-// Fetch all the writable repositories for the user.// Returns a types.RepositoryList for all the repos a user has write access to.
+// Fetch all the writable repositories for the user.
+// Returns a types.RepositoryList for all the repos a user has write access to.
 func GetRepositoriesMy(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()

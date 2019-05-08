@@ -14,8 +14,10 @@ import (
 	"github.com/tinyci/ci-agents/gen/svc/uisvc/restapi"
 )
 
+// Version of API service
 const Version = "1.0.0"
 
+// TinyCIVersion is the global version of tinyCI
 var TinyCIVersion = "" // to be changed by build processes
 
 func main() {

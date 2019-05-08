@@ -18,7 +18,8 @@ import (
 )
 
 // GetRuns swagger:route GET /runs getRuns
-// Obtain the run list for the user// List all the runs, optionally filtering by repository or repository+SHA. Pagination controls are available.
+// Obtain the run list for the user
+// List all the runs, optionally filtering by repository or repository+SHA. Pagination controls are available.
 //
 func GetRuns(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

@@ -18,7 +18,8 @@ import (
 )
 
 // GetTasks swagger:route GET /tasks getTasks
-// Obtain the task list optionally filtering by repository and sha.// The tasks list returns a list of Task objects that correspond to the query. Each query may contain pagination or filtering rules to limit its contents. It is strongly recommended to look at the "count" equivalents for these endpoints so that you can implement pagination more simply.
+// Obtain the task list optionally filtering by repository and sha.
+// The tasks list returns a list of Task objects that correspond to the query. Each query may contain pagination or filtering rules to limit its contents. It is strongly recommended to look at the "count" equivalents for these endpoints so that you can implement pagination more simply.
 //
 func GetTasks(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

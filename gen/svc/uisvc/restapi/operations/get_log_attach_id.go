@@ -18,7 +18,8 @@ import (
 )
 
 // GetLogAttachID swagger:route GET /log/attach/{id} getLogAttachId
-// Attach to a running log// For a given ID, find the log and if it is running, attach to it and start receiving the latest content from it.
+// Attach to a running log
+// For a given ID, find the log and if it is running, attach to it and start receiving the latest content from it.
 //
 func GetLogAttachID(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

@@ -18,7 +18,8 @@ import (
 )
 
 // GetRepositoriesSubscribed swagger:route GET /repositories/subscribed getRepositoriesSubscribed
-// List all subscribed repositories// Returns a types.RepositoryList of all the repos the user is subscribed to.
+// List all subscribed repositories
+// Returns a types.RepositoryList of all the repos the user is subscribed to.
 func GetRepositoriesSubscribed(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()

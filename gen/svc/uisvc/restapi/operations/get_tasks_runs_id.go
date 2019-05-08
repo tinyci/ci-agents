@@ -18,7 +18,8 @@ import (
 )
 
 // GetTasksRunsID swagger:route GET /tasks/runs/{id} getTasksRunsId
-// Obtain the run list based on the task ID.// The queue list only contains: * stuff * other junk
+// Obtain the run list based on the task ID.
+// The queue list only contains: * stuff * other junk
 //
 func GetTasksRunsID(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

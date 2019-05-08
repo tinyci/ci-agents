@@ -18,7 +18,8 @@ import (
 )
 
 // GetUserProperties swagger:route GET /user/properties getUserProperties
-// Get information about the current user// Get information about the current user, such as the username.
+// Get information about the current user
+// Get information about the current user, such as the username.
 //
 func GetUserProperties(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

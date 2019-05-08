@@ -18,7 +18,8 @@ import (
 )
 
 // GetRepositoriesSubAddOwnerRepo swagger:route GET /repositories/sub/add/{owner}/{repo} getRepositoriesSubAddOwnerRepo
-// Subscribe to a repository running CI// Subscribing makes that repo's queue items appear in your home view. Returns 200 on success, 500 + error on failure.
+// Subscribe to a repository running CI
+// Subscribing makes that repo's queue items appear in your home view. Returns 200 on success, 500 + error on failure.
 //
 func GetRepositoriesSubAddOwnerRepo(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

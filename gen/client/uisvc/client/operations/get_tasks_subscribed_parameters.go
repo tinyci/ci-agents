@@ -8,6 +8,7 @@ package operations
 import (
 	"context"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/go-openapi/errors"
@@ -163,33 +164,13 @@ func (o *GetTasksSubscribedParams) WriteToRequest(r runtime.ClientRequest, reg s
 
 	if o.Page != nil {
 
-		// query param page
-		var qrPage int64
-		if o.Page != nil {
-			qrPage = *o.Page
-		}
-		qPage := swag.FormatInt64(qrPage)
-		if qPage != "" {
-			if err := r.SetQueryParam("page", qPage); err != nil {
-				return err
-			}
-		}
+		o.HandleQueryParam(r, reg, "page", o.Page, func(i interface{}) string { return swag.FormatInt64(i.(int64)) })
 
 	}
 
 	if o.PerPage != nil {
 
-		// query param perPage
-		var qrPerPage int64
-		if o.PerPage != nil {
-			qrPerPage = *o.PerPage
-		}
-		qPerPage := swag.FormatInt64(qrPerPage)
-		if qPerPage != "" {
-			if err := r.SetQueryParam("perPage", qPerPage); err != nil {
-				return err
-			}
-		}
+		o.HandleQueryParam(r, reg, "perPage", o.PerPage, func(i interface{}) string { return swag.FormatInt64(i.(int64)) })
 
 	}
 
@@ -197,4 +178,16 @@ func (o *GetTasksSubscribedParams) WriteToRequest(r runtime.ClientRequest, reg s
 		return errors.CompositeValidationError(res...)
 	}
 	return nil
+}
+
+func (o *GetTasksSubscribedParams) HandleQueryParam(r runtime.ClientRequest, reg strfmt.Registry, name string, param interface{}, formatter func(interface{}) string) error {
+	if (reflect.TypeOf(param).Kind() == reflect.Ptr) && param == nil {
+		return nil
+	}
+
+	if formatter == nil {
+		formatter = func(i interface{}) string { return i.(string) }
+	}
+
+	return r.SetQueryParam(name, formatter(param))
 }

@@ -17,7 +17,10 @@ import (
   {{ end }}
 )
 
+// Version of API service
 const Version = {{ printf "%q" .Info.Version }}
+
+// TinyCIVersion is the global version of tinyCI
 var TinyCIVersion = "" // to be changed by build processes
 
 func main() {

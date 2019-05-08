@@ -18,7 +18,8 @@ import (
 )
 
 // DeleteToken swagger:route DELETE /token deleteToken
-// Remove and reset your tinyCI access token// The next GET /token will create a new one. This will just remove it.
+// Remove and reset your tinyCI access token
+// The next GET /token will create a new one. This will just remove it.
 //
 func DeleteToken(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {

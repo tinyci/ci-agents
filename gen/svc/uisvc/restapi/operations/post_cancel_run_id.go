@@ -18,7 +18,8 @@ import (
 )
 
 // PostCancelRunID swagger:route POST /cancel/{run_id} postCancelRunId
-// Cancel by Run ID// Cancel the run by ID; this will actually trickle back and cancel the whole task, since it can no longer succeed in any way.
+// Cancel by Run ID
+// Cancel the run by ID; this will actually trickle back and cancel the whole task, since it can no longer succeed in any way.
 // Please keep in mind to stop runs, runners must implement a cancel poller.
 //
 func PostCancelRunID(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {

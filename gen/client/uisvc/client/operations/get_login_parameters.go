@@ -8,6 +8,7 @@ package operations
 import (
 	"context"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/go-openapi/errors"
@@ -142,26 +143,24 @@ func (o *GetLoginParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Regi
 	}
 	var res []error
 
-	// query param code
-	qrCode := o.Code
-	qCode := qrCode
-	if qCode != "" {
-		if err := r.SetQueryParam("code", qCode); err != nil {
-			return err
-		}
-	}
+	o.HandleQueryParam(r, reg, "code", o.Code, nil)
 
-	// query param state
-	qrState := o.State
-	qState := qrState
-	if qState != "" {
-		if err := r.SetQueryParam("state", qState); err != nil {
-			return err
-		}
-	}
+	o.HandleQueryParam(r, reg, "state", o.State, nil)
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
 	return nil
+}
+
+func (o *GetLoginParams) HandleQueryParam(r runtime.ClientRequest, reg strfmt.Registry, name string, param interface{}, formatter func(interface{}) string) error {
+	if (reflect.TypeOf(param).Kind() == reflect.Ptr) && param == nil {
+		return nil
+	}
+
+	if formatter == nil {
+		formatter = func(i interface{}) string { return i.(string) }
+	}
+
+	return r.SetQueryParam(name, formatter(param))
 }
