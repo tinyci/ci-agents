@@ -8,6 +8,7 @@ package operations
 import (
 	"context"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/go-openapi/errors"
@@ -126,17 +127,7 @@ func (o *GetRepositoriesSubscribedParams) WriteToRequest(r runtime.ClientRequest
 
 	if o.Search != nil {
 
-		// query param search
-		var qrSearch string
-		if o.Search != nil {
-			qrSearch = *o.Search
-		}
-		qSearch := qrSearch
-		if qSearch != "" {
-			if err := r.SetQueryParam("search", qSearch); err != nil {
-				return err
-			}
-		}
+		o.HandleQueryParam(r, reg, "search", o.Search, nil)
 
 	}
 
@@ -144,4 +135,16 @@ func (o *GetRepositoriesSubscribedParams) WriteToRequest(r runtime.ClientRequest
 		return errors.CompositeValidationError(res...)
 	}
 	return nil
+}
+
+func (o *GetRepositoriesSubscribedParams) HandleQueryParam(r runtime.ClientRequest, reg strfmt.Registry, name string, param interface{}, formatter func(interface{}) string) error {
+	if (reflect.TypeOf(param).Kind() == reflect.Ptr) && param == nil {
+		return nil
+	}
+
+	if formatter == nil {
+		formatter = func(i interface{}) string { return i.(string) }
+	}
+
+	return r.SetQueryParam(name, formatter(param))
 }

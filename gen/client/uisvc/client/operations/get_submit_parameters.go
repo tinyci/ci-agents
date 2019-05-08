@@ -8,6 +8,7 @@ package operations
 import (
 	"context"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/go-openapi/errors"
@@ -159,40 +160,28 @@ func (o *GetSubmitParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Reg
 
 	if o.All != nil {
 
-		// query param all
-		var qrAll bool
-		if o.All != nil {
-			qrAll = *o.All
-		}
-		qAll := swag.FormatBool(qrAll)
-		if qAll != "" {
-			if err := r.SetQueryParam("all", qAll); err != nil {
-				return err
-			}
-		}
+		o.HandleQueryParam(r, reg, "all", o.All, func(i interface{}) string { return swag.FormatBool(i.(bool)) })
 
 	}
 
-	// query param repository
-	qrRepository := o.Repository
-	qRepository := qrRepository
-	if qRepository != "" {
-		if err := r.SetQueryParam("repository", qRepository); err != nil {
-			return err
-		}
-	}
+	o.HandleQueryParam(r, reg, "repository", o.Repository, nil)
 
-	// query param sha
-	qrSha := o.Sha
-	qSha := qrSha
-	if qSha != "" {
-		if err := r.SetQueryParam("sha", qSha); err != nil {
-			return err
-		}
-	}
+	o.HandleQueryParam(r, reg, "sha", o.Sha, nil)
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
 	return nil
+}
+
+func (o *GetSubmitParams) HandleQueryParam(r runtime.ClientRequest, reg strfmt.Registry, name string, param interface{}, formatter func(interface{}) string) error {
+	if (reflect.TypeOf(param).Kind() == reflect.Ptr) && param == nil {
+		return nil
+	}
+
+	if formatter == nil {
+		formatter = func(i interface{}) string { return i.(string) }
+	}
+
+	return r.SetQueryParam(name, formatter(param))
 }

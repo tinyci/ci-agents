@@ -8,6 +8,7 @@ package operations
 import (
 	"context"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/go-openapi/errors"
@@ -156,4 +157,16 @@ func (o *GetRepositoriesCiAddOwnerRepoParams) WriteToRequest(r runtime.ClientReq
 		return errors.CompositeValidationError(res...)
 	}
 	return nil
+}
+
+func (o *GetRepositoriesCiAddOwnerRepoParams) HandleQueryParam(r runtime.ClientRequest, reg strfmt.Registry, name string, param interface{}, formatter func(interface{}) string) error {
+	if (reflect.TypeOf(param).Kind() == reflect.Ptr) && param == nil {
+		return nil
+	}
+
+	if formatter == nil {
+		formatter = func(i interface{}) string { return i.(string) }
+	}
+
+	return r.SetQueryParam(name, formatter(param))
 }

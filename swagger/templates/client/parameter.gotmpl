@@ -157,17 +157,7 @@ func ({{ .ReceiverName }} *{{ pascalize .Name }}Params) WriteToRequest(r runtime
   {{if not (or .IsArray .IsMap .IsBodyParam) }}
   {{ if and .IsNullable (not .AllowEmptyValue) }}if {{ .ValueExpression }} != nil { {{ end}}
   {{ if .IsQueryParam }}
-  // query param {{ .Name }}
-  {{ if .IsNullable }}var qr{{ pascalize .Name }} {{ .GoType }}
-  if {{ .ValueExpression }} != nil {
-    qr{{ pascalize .Name }} = *{{ .ValueExpression }}
-  }{{ else }}qr{{ pascalize .Name }} := {{ .ValueExpression }}{{ end}}
-  q{{ pascalize .Name}} := {{ if .Formatter }}{{ .Formatter }}(qr{{ pascalize .Name }}){{ else }}qr{{ pascalize .Name }}{{ if .IsCustomFormatter }}.String(){{end}}{{end}}{{ if not .AllowEmptyValue }}
-  if q{{ pascalize .Name }} != "" { {{ end }}
-  if err := r.SetQueryParam({{ printf "%q" .Name }}, q{{ pascalize .Name }}); err != nil {
-    return err
-  }
-  {{ if not .AllowEmptyValue }}}{{ end }}
+  {{ .ReceiverName }}.HandleQueryParam(r, reg, {{ printf "%q" .Name }}, {{ .ValueExpression }}, {{ if .Formatter }}func(i interface{}) string { return {{ .Formatter }}(i.({{ .GoType }})) }{{ else }}nil{{end}})
   {{ else if .IsPathParam }}
   // path param {{ .Name }}
   if err := r.SetPathParam({{ printf "%q" .Name }}, {{ if .Formatter }}{{ .Formatter }}({{ if .IsNullable }}*{{end}}{{ .ValueExpression }}){{ else }}{{ if and (not .IsCustomFormatter) .IsNullable }}*{{end}}{{ .ValueExpression }}{{ if .IsCustomFormatter }}.String(){{end}}{{end}}); err != nil {
@@ -247,4 +237,16 @@ func ({{ .ReceiverName }} *{{ pascalize .Name }}Params) WriteToRequest(r runtime
     return errors.CompositeValidationError(res...)
   }
   return nil
+}
+
+func ({{ .ReceiverName }} *{{ pascalize .Name }}Params) HandleQueryParam(r runtime.ClientRequest, reg strfmt.Registry, name string, param interface{}, formatter func(interface{}) string) error {
+  if (reflect.TypeOf(param).Kind() == reflect.Ptr) && param == nil {
+    return nil
+  }
+
+  if formatter == nil {
+    formatter = func(i interface{}) string { return i.(string) }
+  }
+
+  return r.SetQueryParam(name, formatter(param))
 }
