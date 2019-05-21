@@ -26,10 +26,8 @@ func main() {
 
 	app.Action = serve
 
-	err := app.Run(os.Args)
-	if e, _ := err.(*errors.Error); e != nil {
-		fmt.Fprintln(os.Stderr, e.Error())
-		os.Exit(1)
+	if err := app.Run(os.Args); err != nil {
+		errors.New(err).Exit()
 	}
 }
 

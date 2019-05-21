@@ -2,6 +2,7 @@ package errors
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"golang.org/x/xerrors"
@@ -166,4 +167,15 @@ func (e *Error) Contains(err interface{}) bool {
 	}
 
 	return false
+}
+
+// Exit exits the program leveraging the error for output before exiting with
+// error code 1. If DEBUG is set, it will output a stack trace.
+func (e *Error) Exit() {
+	if os.Getenv("DEBUG") != "" {
+		fmt.Fprintf(os.Stderr, "%+v\n", e)
+	} else {
+		fmt.Fprintln(os.Stderr, e)
+	}
+	os.Exit(1)
 }
