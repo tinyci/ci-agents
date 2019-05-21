@@ -217,11 +217,7 @@ You can also specify the TINYCLI_CONFIG environment variable.
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		if e, ok := err.(*errors.Error); ok && e == nil {
-			return
-		}
-
-		fmt.Fprintf(os.Stderr, "%+v\n", err)
+		errors.New(err).Exit()
 	}
 }
 

@@ -38,11 +38,7 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		if e, ok := err.(*errors.Error); ok && e == nil {
-			return
-		}
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		errors.New(err).Exit()
 	}
 }
 
