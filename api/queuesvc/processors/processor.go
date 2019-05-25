@@ -384,6 +384,7 @@ func resolveParentInfo(h *handler.H, sub *types.Submission) (*types.Submission, 
 		return nil, err
 	}
 
+	// FIXME this fork management logic should really be in the model
 	if repo.GetFork() {
 		sub.Parent = repo.GetParent().GetFullName()
 	} else {
