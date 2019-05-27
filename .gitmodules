@@ -1,0 +1,3 @@
+[submodule "ci-gen"]
+	path = ci-gen
+	url = https://github.com/tinyci/ci-gen
