@@ -4,8 +4,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
+	"github.com/tinyci/ci-agents/errors"
 )
 
 // OAuth schema is for checking state return values from github.

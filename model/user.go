@@ -8,8 +8,8 @@ import (
 	gh "github.com/google/go-github/github"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/gorm"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
+	"github.com/tinyci/ci-agents/errors"
 
 	topTypes "github.com/tinyci/ci-agents/types"
 )

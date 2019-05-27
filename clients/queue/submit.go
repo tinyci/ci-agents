@@ -3,8 +3,8 @@ package queue
 import (
 	"context"
 
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/queue"
+	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/types"
 	"google.golang.org/grpc"
 )

@@ -5,8 +5,8 @@ import (
 	"time"
 
 	_struct "github.com/golang/protobuf/ptypes/struct"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
+	"github.com/tinyci/ci-agents/errors"
 	yaml "gopkg.in/yaml.v2"
 )
 

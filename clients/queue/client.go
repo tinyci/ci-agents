@@ -4,9 +4,9 @@ import (
 	"context"
 
 	transport "github.com/erikh/go-transport"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/queue"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
+	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"google.golang.org/grpc"
 )

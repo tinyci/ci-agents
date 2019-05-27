@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
+	"github.com/tinyci/ci-agents/errors"
 )
 
 // MakeTimestamp takes a time.Time and makes a protobuf timestamp out of it.

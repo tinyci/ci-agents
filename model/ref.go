@@ -2,9 +2,9 @@ package model
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 )
 
 // Ref encapsulates git ref -- sha or branch name -- which is tied to a task

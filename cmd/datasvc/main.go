@@ -8,10 +8,10 @@ import (
 
 	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/api/datasvc/processors"
-	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
+	"github.com/tinyci/ci-agents/config"
+	"github.com/tinyci/ci-agents/errors"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
 )

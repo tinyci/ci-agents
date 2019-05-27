@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
+	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/model"
 	"google.golang.org/grpc/codes"
 )

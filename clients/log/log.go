@@ -16,8 +16,8 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/sirupsen/logrus"
 	logsvc "github.com/tinyci/ci-agents/api/logsvc/processors"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/log"
+	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"google.golang.org/grpc"
 )
