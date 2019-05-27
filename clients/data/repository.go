@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/google/go-github/github"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/grpc/services/data"
-	"github.com/tinyci/ci-agents/grpc/types"
 	"github.com/tinyci/ci-agents/model"
 	"google.golang.org/grpc"
 )

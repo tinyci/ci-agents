@@ -9,10 +9,10 @@ import (
 	"unicode/utf8"
 
 	"github.com/fatih/color"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/services/asset"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/grpc/handler"
-	"github.com/tinyci/ci-agents/grpc/services/asset"
-	"github.com/tinyci/ci-agents/grpc/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 )

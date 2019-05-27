@@ -163,37 +163,10 @@ start-services: check-service-config
 wait:
 	sleep infinity
 
-gen: build-demo-image
-	$(DOCKER_RUN) -u $$(id -u):$$(id -g) $(DOCKER_CONTAINER_DIR) --entrypoint /bin/bash $(DEMO_DOCKER_IMAGE) gen.sh
-
-gen-javascript:
-	mkdir -p $${TARGET_DIR:-${PWD}/gen/javascript}
-	docker run --rm -u $$(id -u):$$(id -g) -v $${TARGET_DIR:-${PWD}/gen/javascript}:/swagger -v ${PWD}:/local swaggerapi/swagger-codegen-cli generate \
-		-i /local/swagger/uisvc/swagger.yml \
-		-l javascript \
-		-o /swagger
-
-swagger-serve:
-	docker run -p 8080:8080 -it -v ${PWD}:/swagger tinyci/redoc-cli serve file:///swagger/uisvc/swagger.yml
-
-swagger-docs:
-	docker run --rm -it -u $(shell id -u):$(shell id -g) -v ${PWD}/swagger:/swagger tinyci/redoc-cli bundle file:///swagger/uisvc/swagger.yml -o /swagger/docs.html
-
-check-s3cmd:
-	@which s3cmd 2>&1 >/dev/null || echo "You must install a working copy of s3cmd configured to upload to the tinyci.org bucket."
-
-grpc-docs: build-debug-image
-	mkdir -p grpc/docs
-	$(DOCKER_RUN) --rm $(DOCKER_CONTAINER_DIR) --entrypoint '' $(DEBUG_DOCKER_IMAGE) bash -c "protoc --doc_out=grpc/docs --doc_opt=html,index.html --proto_path=/go/src $(CONTAINER_DIR)/grpc/services/**/*.proto $(CONTAINER_DIR)/grpc/types/*.proto"
-
-upload-docs: check-s3cmd swagger-docs grpc-docs
-	s3cmd put swagger/docs.html -m text/html s3://tinyci.org/swagger/index.html
-	s3cmd put grpc/docs/index.html -m text/html s3://tinyci.org/grpc/index.html
-
-swagger-validate: require-spec build-demo-image
-	$(DOCKER_RUN) -u $$(id -u):$$(id -g) $(DOCKER_CONTAINER_DIR) --entrypoint /go/bin/swagger $(DEMO_DOCKER_IMAGE) \
-		validate swagger/$${SPEC}/swagger.yml
-
 staticcheck:
 	go get honnef.co/go/tools/...
 	staticcheck ./...
+
+mockgen:
+	GO111MODULE=off go get github.com/golang/mock/...
+	${GOPATH}/bin/mockgen -package github github.com/tinyci/ci-gen/clients/github Client > mocks/github/mock.go

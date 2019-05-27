@@ -14,5 +14,3 @@ runs:
     command: [ "make", "staticcheck" ]
   vendor-clean:
     command: [ "bash", "-c", "make vendor && git diff --stat --exit-code" ]
-  gen-clean:
-    command: [ "bash", "-c", "bash gen.sh && git diff --stat --exit-code" ]

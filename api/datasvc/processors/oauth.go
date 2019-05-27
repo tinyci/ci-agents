@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/tinyci/ci-agents/grpc/services/data"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"google.golang.org/grpc/codes"
 )
 

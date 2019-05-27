@@ -5,9 +5,9 @@ import (
 	"io"
 
 	transport "github.com/erikh/go-transport"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/services/asset"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/grpc/services/asset"
-	"github.com/tinyci/ci-agents/grpc/types"
 	"google.golang.org/grpc"
 )
 

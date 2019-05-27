@@ -3,8 +3,8 @@ package data
 import (
 	"context"
 
+	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/grpc/services/data"
 	"github.com/tinyci/ci-agents/model"
 	"google.golang.org/grpc"
 )

@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
+	"github.com/tinyci/ci-agents/ci-gen/gen/client/uisvc/client/operations"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/gen/client/uisvc/client/operations"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/utils"
 )
