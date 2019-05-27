@@ -7,7 +7,7 @@ import (
 
 	check "github.com/erikh/check"
 	"github.com/tinyci/ci-agents/clients/asset"
-	"github.com/tinyci/ci-agents/grpc/handler"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/testutil/testservers"
 )
 

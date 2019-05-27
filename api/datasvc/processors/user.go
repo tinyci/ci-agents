@@ -6,8 +6,8 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/grpc/services/data"
-	"github.com/tinyci/ci-agents/grpc/types"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/model"
 	topTypes "github.com/tinyci/ci-agents/types"
 	"google.golang.org/grpc/codes"

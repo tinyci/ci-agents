@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/grpc/services/data"
-	"github.com/tinyci/ci-agents/grpc/types"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc/codes"

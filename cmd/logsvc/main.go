@@ -10,8 +10,8 @@ import (
 	"github.com/tinyci/ci-agents/api/logsvc/processors"
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/grpc/handler"
-	"github.com/tinyci/ci-agents/grpc/services/log"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/services/log"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
 )

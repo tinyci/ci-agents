@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tinyci/ci-agents/grpc/services/log"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/services/log"
 )
 
 // Dispatcher dispatches logs based on loglevel.

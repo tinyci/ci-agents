@@ -7,7 +7,7 @@ import (
 	_struct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/sirupsen/logrus"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/grpc/services/log"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/services/log"
 	"google.golang.org/grpc/codes"
 )
 

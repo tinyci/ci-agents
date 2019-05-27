@@ -3,7 +3,7 @@ package data
 import (
 	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/grpc/services/data"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 )
 
 // Client is a datasvc client.

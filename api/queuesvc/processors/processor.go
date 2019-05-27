@@ -10,7 +10,7 @@ import (
 	gh "github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/tinyci/ci-agents/grpc/handler"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
