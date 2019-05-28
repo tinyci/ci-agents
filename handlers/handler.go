@@ -5,6 +5,7 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
+	"io"
 	"regexp"
 	"strings"
 	"time"
@@ -14,6 +15,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/strfmt"
 	"github.com/gorilla/securecookie"
+	"github.com/opentracing-contrib/go-gin/ginhttp"
+	opentracing "github.com/opentracing/opentracing-go"
 	apiSess "github.com/tinyci/ci-agents/api/sessions"
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/clients/log"
@@ -24,6 +27,8 @@ import (
 	"github.com/tinyci/ci-agents/utils"
 	"golang.org/x/net/websocket"
 	"golang.org/x/oauth2"
+
+	jaegercfg "github.com/uber/jaeger-client-go/config"
 
 	gh "github.com/google/go-github/github"
 )
@@ -227,6 +232,11 @@ func Boot(t *transport.HTTP, handler *H) (chan struct{}, *errors.Error) {
 		return nil, err
 	}
 
+	closer, err := handler.createGlobalTracer()
+	if err != nil {
+		return nil, err
+	}
+
 	r, err := handler.CreateRouter()
 	if err != nil {
 		return nil, err
@@ -253,10 +263,40 @@ func Boot(t *transport.HTTP, handler *H) (chan struct{}, *errors.Error) {
 		<-doneChan
 		s.Close()
 		l.Close()
+		closer.Close()
 	}()
 
 	go s.Serve(l)
 	return doneChan, nil
+}
+
+// NewTracingSpan creates a new tracepoint span for opentracing instrumentation.
+func (h *H) NewTracingSpan(ctx *gin.Context, operation string) opentracing.Span {
+	span, ctx2 := opentracing.StartSpanFromContext(ctx.Request.Context(), operation)
+	ctx.Request = ctx.Request.WithContext(ctx2)
+	ctx.Next()
+
+	return span
+}
+
+func (h *H) createGlobalTracer() (io.Closer, *errors.Error) {
+	// FIXME Taken from jaeger/opentracing examples; needs tunables.
+	cfg, err := jaegercfg.FromEnv()
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	cfg.Sampler = &jaegercfg.SamplerConfig{
+		Type:  "const",
+		Param: 1,
+	}
+
+	closer, err := cfg.InitGlobalTracer("uisvc")
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	return closer, nil
 }
 
 // Init initialize the handler and makes it available for requests.
@@ -328,17 +368,27 @@ func (h *H) GetGithub(ctx *gin.Context) (*model.User, *errors.Error) {
 func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error, cap model.Capability, scope string) func(h *H, ctx *gin.Context, processor HandlerFunc) *errors.Error {
 	return func(h *H, ctx *gin.Context, processor HandlerFunc) *errors.Error {
 		var (
-			u   *model.User
-			err *errors.Error
+			u            *model.User
+			err          *errors.Error
+			spanFinished bool
 		)
+
+		span := h.NewTracingSpan(ctx, "auth exchange")
+		defer func() {
+			if !spanFinished {
+				span.Finish()
+			}
+		}()
 
 		token := ctx.Request.Header.Get("Authorization")
 		if token != "" {
+			span.LogKV("authorization", "token")
 			u, err = h.Clients.Data.ValidateToken(token)
 			if err != nil {
 				return err
 			}
 		} else {
+			span.LogKV("authorization", "github")
 			u, err = h.GetGithub(ctx)
 			if err != nil {
 				return err
@@ -346,6 +396,7 @@ func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error
 		}
 
 		if cap != "" {
+			span.LogKV("event", "capability check")
 			res, err := h.Clients.Data.HasCapability(u, cap)
 			if err != nil {
 				return err
@@ -360,12 +411,18 @@ func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error
 			return errors.New("cannot perform operation with current oauth scopes; must upgrade")
 		}
 
+		spanFinished = true
+		span.Finish()
+
 		return gatewayFunc(h, ctx, processor)
 	}
 }
 
-func (h *H) inWebsocket(paramHandler func(*H, *gin.Context) *errors.Error, handler func(h *H, ctx *gin.Context, conn *websocket.Conn) *errors.Error) func(ctx *gin.Context) {
+func (h *H) inWebsocket(key string, paramHandler func(*H, *gin.Context) *errors.Error, handler func(h *H, ctx *gin.Context, conn *websocket.Conn) *errors.Error) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
+		span := h.NewTracingSpan(ctx, key)
+		defer span.Finish()
+
 		outerHandler := func(conn *websocket.Conn) {
 			if err := paramHandler(h, ctx); err != nil {
 				conn.Close()
@@ -376,6 +433,8 @@ func (h *H) inWebsocket(paramHandler func(*H, *gin.Context) *errors.Error, handl
 			}
 		}
 
+		span2 := h.NewTracingSpan(ctx, "websocket communication")
+		defer span2.Finish()
 		websocket.Handler(outerHandler).ServeHTTP(ctx.Writer, ctx.Request)
 	}
 }
@@ -426,12 +485,13 @@ func (h *H) configureRestHandler(r *gin.Engine, key string, route *Route, option
 			optionsRoutes[key] = struct{}{}
 		}
 	}
-	dispatchFunc(key, h.wrapHandler(handler, route.Processor))
+	dispatchFunc(key, h.wrapHandler(key, handler, route.Processor))
 }
 
 // CreateRouter creates a *mux.Router capable of serving the UI server.
 func (h *H) CreateRouter() (*gin.Engine, *errors.Error) {
 	r := gin.New()
+	r.Use(ginhttp.Middleware(opentracing.GlobalTracer()))
 
 	if h.UseSessions {
 		if err := h.configureSessions(r); err != nil {
@@ -444,7 +504,7 @@ func (h *H) CreateRouter() (*gin.Engine, *errors.Error) {
 	for key, methodRoutes := range h.Routes {
 		for _, route := range methodRoutes {
 			if route.WebsocketProcessor != nil {
-				r.GET(key, h.inWebsocket(route.ParamValidator, route.WebsocketProcessor))
+				r.GET(key, h.inWebsocket(key, route.ParamValidator, route.WebsocketProcessor))
 			} else {
 				h.configureRestHandler(r, key, route, optionsRoutes)
 			}
@@ -454,10 +514,12 @@ func (h *H) CreateRouter() (*gin.Engine, *errors.Error) {
 	return r, nil
 }
 
-func (h *H) wrapHandler(handler func(*H, *gin.Context, HandlerFunc) *errors.Error, processor HandlerFunc) func(ctx *gin.Context) {
+func (h *H) wrapHandler(key string, handler func(*H, *gin.Context, HandlerFunc) *errors.Error, processor HandlerFunc) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		err := handler(h, ctx, processor)
-		if err != nil {
+		span := h.NewTracingSpan(ctx, key)
+		defer span.Finish()
+
+		if err := handler(h, ctx, processor); err != nil {
 			if err == ErrRedirect {
 				return
 			}
