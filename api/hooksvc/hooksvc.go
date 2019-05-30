@@ -1,6 +1,7 @@
 package hooksvc
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -85,7 +86,7 @@ func (h *Handler) Init() *errors.Error {
 	}
 
 	h.logClient = log.NewWithData("hooksvc", nil)
-	h.logClient.Info("Initializing logger")
+	h.logClient.Info(context.Background(), "Initializing logger")
 
 	h.dispatch = dispatchFunc{
 		eventPush:        h.pushDispatch,

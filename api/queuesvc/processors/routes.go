@@ -69,7 +69,7 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 		qs.H.Clients.Log.WithFields(log.FieldMap{
 			"repository": qi.Run.Task.Parent.Name,
 			"run_id":     fmt.Sprintf("%d", qi.Run.ID),
-		}).Error(err)
+		}).Error(ctx, err)
 
 		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
@@ -94,13 +94,13 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 	return qi.ToProto(), nil
 }
 
-func doSubmit(h *handler.H, qis []*model.QueueItem) (retErr *errors.Error) {
+func doSubmit(ctx context.Context, h *handler.H, qis []*model.QueueItem) (retErr *errors.Error) {
 	since := time.Now()
 	defer func() {
 		if retErr == nil {
-			h.Clients.Log.Infof("Successful submission took %v", time.Since(since))
+			h.Clients.Log.Infof(ctx, "Successful submission took %v", time.Since(since))
 		} else {
-			h.Clients.Log.Errorf("Submission failed with errors: %v", retErr)
+			h.Clients.Log.Errorf(ctx, "Submission failed with errors: %v", retErr)
 		}
 	}()
 
@@ -125,12 +125,12 @@ func (qs *QueueServer) Submit(ctx context.Context, sub *queue.Submission) (*empt
 		Manual:      sub.Manual,
 	}
 
-	qis, err := Process(qs.H, submission)
+	qis, err := Process(ctx, qs.H, submission)
 	if err != nil {
 		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
-	if err := doSubmit(qs.H, qis); err != nil {
+	if err := doSubmit(ctx, qs.H, qis); err != nil {
 		for _, qi := range qis {
 			qs.H.Clients.Data.PutStatus(qi.Run.ID, false, fmt.Sprintf("Canceled due to error: %v", err))
 		}

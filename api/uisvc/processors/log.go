@@ -17,7 +17,7 @@ func LogAttach(h *handlers.H, ctx *gin.Context, conn *websocket.Conn) *errors.Er
 		return errors.New(err)
 	}
 
-	if err := h.Clients.Asset.Read(id, jsonbuffer.NewWrapper(conn)); err != nil {
+	if err := h.Clients.Asset.Read(ctx.Request.Context(), id, jsonbuffer.NewWrapper(conn)); err != nil {
 		return err
 	}
 

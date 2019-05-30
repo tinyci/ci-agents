@@ -1,6 +1,7 @@
 package processors
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -63,7 +64,7 @@ func (qs *queuesvcSuite) TestBadYAML(c *check.C) {
 
 	qs.getMock().FinishedStatus("erikh", "foobar", "*global*", "be3d26c478991039e951097f2c99f56b55396940", "url", false, gomock.Any()).Return(nil)
 
-	c.Assert(qs.queuesvcClient.Client().Submit(sub), check.NotNil)
+	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.NotNil)
 	runs, err := qs.datasvcClient.Client().ListRuns("", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 0)
@@ -92,7 +93,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	qs.getMock().GetSHA(sub.Parent, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396941", nil)
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
-	c.Assert(qs.queuesvcClient.Client().Submit(msub), check.IsNil)
+	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), msub), check.IsNil)
 
 	qis, err := qs.datasvcClient.Client().ListRuns(sub.Fork, "be3d26c478991039e951097f2c99f56b55396940", 0, 100)
 	c.Assert(err, check.IsNil)
@@ -129,7 +130,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	qs.getMock().GetSHA(sub.Parent, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396941", nil)
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
-	c.Assert(qs.queuesvcClient.Client().Submit(msub), check.IsNil)
+	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), msub), check.IsNil)
 
 	qis, err = qs.datasvcClient.Client().ListRuns(sub.Fork, "be3d26c478991039e951097f2c99f56b55396942", 0, 100)
 	c.Assert(err, check.IsNil)
@@ -155,7 +156,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
-	c.Assert(qs.queuesvcClient.Client().Submit(msub), check.IsNil)
+	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), msub), check.IsNil)
 
 	qis, err = qs.datasvcClient.Client().ListRuns(sub.Fork, "be3d26c478991039e951097f2c99f56b55396942", 0, 100)
 	c.Assert(err, check.IsNil)
@@ -184,7 +185,7 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
 
-	c.Assert(qs.queuesvcClient.Client().Submit(sub), check.IsNil)
+	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
 	runs, err := qs.datasvcClient.Client().ListRuns("", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 10)
@@ -201,7 +202,7 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
 
-	c.Assert(qs.queuesvcClient.Client().Submit(sub), check.IsNil)
+	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
 	runs, err = qs.datasvcClient.Client().ListRuns("", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 20)
@@ -251,7 +252,7 @@ func (qs *queuesvcSuite) TestSubmission(c *check.C) {
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.datasvcClient.Client().EnableRepository("erikh", sub.Parent), check.IsNil)
 
-	c.Assert(qs.queuesvcClient.Client().Submit(sub), check.IsNil)
+	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
 	runs, err := qs.datasvcClient.Client().ListRuns("", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 10)
@@ -322,7 +323,7 @@ func (qs *queuesvcSuite) TestDependencies(c *check.C) {
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.datasvcClient.Client().EnableRepository("erikh", sub.Parent), check.IsNil)
 
-	c.Assert(qs.queuesvcClient.Client().Submit(sub), check.IsNil)
+	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
 	runs, err := qs.datasvcClient.Client().ListRuns("", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 6)

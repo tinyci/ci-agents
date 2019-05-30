@@ -7,8 +7,10 @@ package log
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	transport "github.com/erikh/go-transport"
@@ -19,11 +21,35 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/log"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
+	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc"
 )
 
-// RemoteClient is the swagger-based syslogsvc client.
-var RemoteClient log.LogClient
+// Client is a small wrapper around the GRPC client that includes tracing data.
+type Client struct {
+	client log.LogClient
+	closer io.Closer
+	closed bool
+}
+
+// Close closes the client's tracing functionality
+func (c *Client) Close() error {
+	remoteMutex.Lock()
+	defer remoteMutex.Unlock()
+	if !c.closed {
+		c.closed = true
+		return c.closer.Close()
+	}
+
+	return nil
+}
+
+var (
+	// RemoteClient is the swagger-based syslogsvc client.
+	RemoteClient *Client
+	// remoteMutex is the mutex used to control setting it
+	remoteMutex sync.Mutex
+)
 
 // FieldMap is just a type alias for map[string]string to keep me from
 // breaking my fingers.
@@ -67,18 +93,24 @@ func (f *Fields) ToLogrus() map[string]interface{} {
 	return m
 }
 
-// Set sets an item in the fields.
-func (f *Fields) Set(key, value string) {
-}
-
 // ConfigureRemote configures the remote endpoint with a provided URL.
-func ConfigureRemote(addr string, cert *transport.Cert) error {
-	client, err := transport.GRPCDial(cert, addr)
-	if err != nil {
-		return err
+func ConfigureRemote(addr string, cert *transport.Cert) *errors.Error {
+	remoteMutex.Lock()
+	defer remoteMutex.Unlock()
+
+	closer, options, eErr := utils.SetUpGRPCTracing("log")
+	if eErr != nil {
+		return eErr
 	}
 
-	RemoteClient = log.NewLogClient(client)
+	client, err := transport.GRPCDial(cert, addr, options...)
+	if err != nil {
+		return errors.New(err)
+	}
+
+	logClient := log.NewLogClient(client)
+
+	RemoteClient = &Client{client: logClient, closer: closer}
 	return nil
 }
 
@@ -188,9 +220,9 @@ func (sub *SubLogger) makeMsg(level, msg string, values []interface{}) *log.LogM
 }
 
 // Logf logs a thing with formats!
-func (sub *SubLogger) Logf(level string, msg string, values []interface{}, localLog func(string, ...interface{})) *errors.Error {
+func (sub *SubLogger) Logf(ctx context.Context, level string, msg string, values []interface{}, localLog func(string, ...interface{})) *errors.Error {
 	if RemoteClient != nil {
-		_, err := RemoteClient.Put(context.Background(), sub.makeMsg(level, msg, values), grpc.WaitForReady(true))
+		_, err := RemoteClient.client.Put(ctx, sub.makeMsg(level, msg, values), grpc.WaitForReady(true))
 		return errors.New(err)
 	}
 
@@ -199,9 +231,9 @@ func (sub *SubLogger) Logf(level string, msg string, values []interface{}, local
 }
 
 // Log logs a thing
-func (sub *SubLogger) Log(level string, msg interface{}, localLog func(...interface{})) *errors.Error {
+func (sub *SubLogger) Log(ctx context.Context, level string, msg interface{}, localLog func(...interface{})) *errors.Error {
 	if RemoteClient != nil {
-		_, err := RemoteClient.Put(context.Background(), sub.makeMsg(level, fmt.Sprintf("%v", msg), nil), grpc.WaitForReady(true))
+		_, err := RemoteClient.client.Put(ctx, sub.makeMsg(level, fmt.Sprintf("%v", msg), nil), grpc.WaitForReady(true))
 		return errors.New(err)
 	}
 
@@ -218,37 +250,37 @@ func (sub *SubLogger) Log(level string, msg interface{}, localLog func(...interf
 }
 
 // Info prints an info message
-func (sub *SubLogger) Info(msg interface{}) error {
-	sub.Log(logsvc.LevelInfo, msg, logrus.WithFields(sub.Fields.ToLogrus()).Info)
+func (sub *SubLogger) Info(ctx context.Context, msg interface{}) error {
+	sub.Log(ctx, logsvc.LevelInfo, msg, logrus.WithFields(sub.Fields.ToLogrus()).Info)
 	return nil
 }
 
 // Infof is the format-capable version of Info
-func (sub *SubLogger) Infof(msg string, values ...interface{}) error {
-	sub.Logf(logsvc.LevelInfo, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Infof)
+func (sub *SubLogger) Infof(ctx context.Context, msg string, values ...interface{}) error {
+	sub.Logf(ctx, logsvc.LevelInfo, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Infof)
 	return nil
 }
 
 // Error prints an error message
-func (sub *SubLogger) Error(msg interface{}) error {
-	sub.Log(logsvc.LevelError, msg, logrus.WithFields(sub.Fields.ToLogrus()).Error)
+func (sub *SubLogger) Error(ctx context.Context, msg interface{}) error {
+	sub.Log(ctx, logsvc.LevelError, msg, logrus.WithFields(sub.Fields.ToLogrus()).Error)
 	return nil
 }
 
 // Errorf is the format-capable version of Error
-func (sub *SubLogger) Errorf(msg string, values ...interface{}) error {
-	sub.Logf(logsvc.LevelError, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Errorf)
+func (sub *SubLogger) Errorf(ctx context.Context, msg string, values ...interface{}) error {
+	sub.Logf(ctx, logsvc.LevelError, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Errorf)
 	return nil
 }
 
 // Debug prints a debug message
-func (sub *SubLogger) Debug(msg interface{}) error {
-	sub.Log(logsvc.LevelDebug, msg, logrus.WithFields(sub.Fields.ToLogrus()).Debug)
+func (sub *SubLogger) Debug(ctx context.Context, msg interface{}) error {
+	sub.Log(ctx, logsvc.LevelDebug, msg, logrus.WithFields(sub.Fields.ToLogrus()).Debug)
 	return nil
 }
 
 // Debugf is the format-capable version of Debug
-func (sub *SubLogger) Debugf(msg string, values ...interface{}) error {
-	sub.Logf(logsvc.LevelDebug, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Debugf)
+func (sub *SubLogger) Debugf(ctx context.Context, msg string, values ...interface{}) error {
+	sub.Logf(ctx, logsvc.LevelDebug, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Debugf)
 	return nil
 }

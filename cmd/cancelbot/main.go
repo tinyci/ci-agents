@@ -82,6 +82,7 @@ func run(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	defer client.Close()
 
 	for count := ctx.GlobalInt("limit"); count >= 0; count -= walkIncrement {
 		runs, err := client.ListRuns("", "", int64(count/walkIncrement), walkIncrement)

@@ -61,7 +61,7 @@ func Login(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 		return nil, 500, err
 	}
 
-	tok, username, err := h.HandleOAuth(ctx.Query("code"), scopes)
+	tok, username, err := h.HandleOAuth(ctx, ctx.Query("code"), scopes)
 	if err != nil {
 		switch err {
 		case handlers.ErrRedirect:

@@ -150,3 +150,22 @@ func (cc *ClientConfig) CreateClients(service string) (*Clients, *errors.Error) 
 
 	return clients, nil
 }
+
+// CloseClients closes all clients' metrics endpoints.
+func (c *Clients) CloseClients() {
+	if c.Asset != nil {
+		c.Asset.Close()
+	}
+
+	if log.RemoteClient != nil { // FIXME don't break the fourth wall
+		log.RemoteClient.Close()
+	}
+
+	if c.Data != nil {
+		c.Data.Close()
+	}
+
+	if c.Queue != nil {
+		c.Queue.Close()
+	}
+}

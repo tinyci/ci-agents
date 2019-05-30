@@ -10,8 +10,8 @@ import (
 )
 
 // Submit submits a push or pull request to the queue.
-func (c *Client) Submit(sub *types.Submission) *errors.Error {
-	_, err := c.client.Submit(context.Background(), &queue.Submission{
+func (c *Client) Submit(ctx context.Context, sub *types.Submission) *errors.Error {
+	_, err := c.client.Submit(ctx, &queue.Submission{
 		Headsha:     sub.HeadSHA,
 		Basesha:     sub.BaseSHA,
 		Parent:      sub.Parent,
