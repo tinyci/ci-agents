@@ -2,6 +2,7 @@ package test
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"strings"
 	"time"
@@ -47,7 +48,7 @@ func (us *uisvcSuite) TestLogAttach(c *check.C) {
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
-	c.Assert(us.assetsvcClient.Write(1, bytes.NewBufferString("this is a log")), check.IsNil)
+	c.Assert(us.assetsvcClient.Write(context.Background(), 1, bytes.NewBufferString("this is a log")), check.IsNil)
 	time.Sleep(100 * time.Millisecond)
 
 	pr, pw := io.Pipe()

@@ -46,7 +46,8 @@ func SetUpGRPCTracing(client string) (io.Closer, []grpc.DialOption, *errors.Erro
 		return nil, nil, eErr
 	}
 
-	tracer, closer, err := cfg.New(client)
+	cfg.ServiceName = client
+	tracer, closer, err := cfg.NewTracer()
 	if err != nil {
 		return nil, nil, errors.New(err)
 	}

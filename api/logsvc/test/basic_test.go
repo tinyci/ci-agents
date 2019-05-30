@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func (ls *logsvcSuite) Test01Journal(c *check.C) {
-	log.New().Info("test")
+	log.New().Info(context.Background(), "test")
 	j := ls.journal.Journal[logsvc.LevelInfo]
 	c.Assert(len(j), check.Equals, 1)
 	c.Assert(j[0].Message, check.Equals, "test")
@@ -19,25 +20,26 @@ func (ls *logsvcSuite) Test01Journal(c *check.C) {
 
 func (ls *logsvcSuite) TestLevels(c *check.C) {
 	l := log.New()
+	ctx := context.Background()
 
-	l.Info("test")
-	l.Infof("test %d", 2)
+	l.Info(ctx, "test")
+	l.Infof(ctx, "test %d", 2)
 
 	j := ls.journal.Journal[logsvc.LevelInfo]
 	c.Assert(len(j), check.Equals, 2)
 	c.Assert(j[0].Message, check.Equals, "test")
 	c.Assert(j[1].Message, check.Equals, "test 2")
 
-	l.Error("test")
-	l.Errorf("test %d", 2)
+	l.Error(ctx, "test")
+	l.Errorf(ctx, "test %d", 2)
 
 	j = ls.journal.Journal[logsvc.LevelError]
 	c.Assert(len(j), check.Equals, 2)
 	c.Assert(j[0].Message, check.Equals, "test")
 	c.Assert(j[1].Message, check.Equals, "test 2")
 
-	l.Debug("test")
-	l.Debugf("test %d", 2)
+	l.Debug(ctx, "test")
+	l.Debugf(ctx, "test %d", 2)
 
 	j = ls.journal.Journal[logsvc.LevelDebug]
 	c.Assert(len(j), check.Equals, 2)
@@ -47,15 +49,16 @@ func (ls *logsvcSuite) TestLevels(c *check.C) {
 
 func (ls *logsvcSuite) TestFields(c *check.C) {
 	l := log.New()
+	ctx := context.Background()
 
 	wf := l.WithFields(log.FieldMap{"test": "one", "test2": "two"})
 
-	wf.Info("test")
-	wf.Infof("test %d", 2)
-	wf.Debug("test")
-	wf.Debugf("test %d", 2)
-	wf.Error("test")
-	wf.Errorf("test %d", 2)
+	wf.Info(ctx, "test")
+	wf.Infof(ctx, "test %d", 2)
+	wf.Debug(ctx, "test")
+	wf.Debugf(ctx, "test %d", 2)
+	wf.Error(ctx, "test")
+	wf.Errorf(ctx, "test %d", 2)
 
 	for _, messages := range ls.journal.Journal {
 		c.Assert(len(messages), check.Equals, 2)
@@ -76,15 +79,16 @@ func (ls *logsvcSuite) TestFields(c *check.C) {
 
 func (ls *logsvcSuite) TestService(c *check.C) {
 	l := log.New()
+	ctx := context.Background()
 
 	ws := l.WithService("test")
 
-	ws.Info("test")
-	ws.Infof("test %d", 2)
-	ws.Debug("test")
-	ws.Debugf("test %d", 2)
-	ws.Error("test")
-	ws.Errorf("test %d", 2)
+	ws.Info(ctx, "test")
+	ws.Infof(ctx, "test %d", 2)
+	ws.Debug(ctx, "test")
+	ws.Debugf(ctx, "test %d", 2)
+	ws.Error(ctx, "test")
+	ws.Errorf(ctx, "test %d", 2)
 
 	for _, messages := range ls.journal.Journal {
 		c.Assert(len(messages), check.Equals, 2)
@@ -111,14 +115,16 @@ func (ls *logsvcSuite) TestRequest(c *check.C) {
 		URL:        u,
 	}
 
+	ctx := context.Background()
+
 	wr := l.WithRequest(req)
 
-	wr.Info("test")
-	wr.Infof("test %d", 2)
-	wr.Debug("test")
-	wr.Debugf("test %d", 2)
-	wr.Error("test")
-	wr.Errorf("test %d", 2)
+	wr.Info(ctx, "test")
+	wr.Infof(ctx, "test %d", 2)
+	wr.Debug(ctx, "test")
+	wr.Debugf(ctx, "test %d", 2)
+	wr.Error(ctx, "test")
+	wr.Errorf(ctx, "test %d", 2)
 
 	for _, messages := range ls.journal.Journal {
 		c.Assert(len(messages), check.Equals, 2)
@@ -154,12 +160,12 @@ func (ls *logsvcSuite) TestRequest(c *check.C) {
 
 	wr = l.WithRequest(req)
 
-	wr.Info("test")
-	wr.Infof("test %d", 2)
-	wr.Debug("test")
-	wr.Debugf("test %d", 2)
-	wr.Error("test")
-	wr.Errorf("test %d", 2)
+	wr.Info(ctx, "test")
+	wr.Infof(ctx, "test %d", 2)
+	wr.Debug(ctx, "test")
+	wr.Debugf(ctx, "test %d", 2)
+	wr.Error(ctx, "test")
+	wr.Errorf(ctx, "test %d", 2)
 
 	for _, messages := range ls.journal.Journal {
 		c.Assert(len(messages), check.Equals, 2)
@@ -184,16 +190,17 @@ func (ls *logsvcSuite) TestRequest(c *check.C) {
 
 func (ls *logsvcSuite) TestUser(c *check.C) {
 	l := log.New()
+	ctx := context.Background()
 
 	user := &model.User{ID: 1, Username: "erikh"}
 	wu := l.WithUser(user)
 
-	wu.Info("test")
-	wu.Infof("test %d", 2)
-	wu.Debug("test")
-	wu.Debugf("test %d", 2)
-	wu.Error("test")
-	wu.Errorf("test %d", 2)
+	wu.Info(ctx, "test")
+	wu.Infof(ctx, "test %d", 2)
+	wu.Debug(ctx, "test")
+	wu.Debugf(ctx, "test %d", 2)
+	wu.Error(ctx, "test")
+	wu.Errorf(ctx, "test %d", 2)
 
 	for _, messages := range ls.journal.Journal {
 		c.Assert(len(messages), check.Equals, 2)

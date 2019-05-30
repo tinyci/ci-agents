@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	transport "github.com/erikh/go-transport"
@@ -28,15 +29,27 @@ import (
 type Client struct {
 	client log.LogClient
 	closer io.Closer
+	closed bool
 }
 
 // Close closes the client's tracing functionality
 func (c *Client) Close() error {
-	return c.closer.Close()
+	remoteMutex.Lock()
+	defer remoteMutex.Unlock()
+	if !c.closed {
+		c.closed = true
+		return c.closer.Close()
+	}
+
+	return nil
 }
 
-// RemoteClient is the swagger-based syslogsvc client.
-var RemoteClient *Client
+var (
+	// RemoteClient is the swagger-based syslogsvc client.
+	RemoteClient *Client
+	// remoteMutex is the mutex used to control setting it
+	remoteMutex sync.Mutex
+)
 
 // FieldMap is just a type alias for map[string]string to keep me from
 // breaking my fingers.
@@ -82,6 +95,9 @@ func (f *Fields) ToLogrus() map[string]interface{} {
 
 // ConfigureRemote configures the remote endpoint with a provided URL.
 func ConfigureRemote(addr string, cert *transport.Cert) *errors.Error {
+	remoteMutex.Lock()
+	defer remoteMutex.Unlock()
+
 	closer, options, eErr := utils.SetUpGRPCTracing("log")
 	if eErr != nil {
 		return eErr
