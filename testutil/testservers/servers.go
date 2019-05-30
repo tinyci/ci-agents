@@ -144,7 +144,7 @@ func MakeDataServer() (*handler.H, chan struct{}, *errors.Error) {
 	srv := grpc.NewServer()
 	data.RegisterDataServer(srv, &datasvc.DataServer{H: h})
 
-	doneChan, err := h.Boot(t, srv)
+	doneChan, err := h.Boot(t, srv, make(chan struct{}))
 	return h, doneChan, errors.New(err)
 }
 
@@ -168,7 +168,7 @@ func MakeAssetServer() (*handler.H, chan struct{}, *errors.Error) {
 	srv := grpc.NewServer()
 	asset.RegisterAssetServer(srv, &assetsvc.AssetServer{H: h})
 
-	doneChan, err := h.Boot(t, srv)
+	doneChan, err := h.Boot(t, srv, make(chan struct{}))
 	return h, doneChan, errors.New(err)
 }
 
@@ -198,7 +198,7 @@ func MakeQueueServer() (*handler.H, chan struct{}, *errors.Error) {
 	srv := grpc.NewServer()
 	queue.RegisterQueueServer(srv, &queuesvc.QueueServer{H: h})
 
-	doneChan, err := h.Boot(t, srv)
+	doneChan, err := h.Boot(t, srv, make(chan struct{}))
 	return h, doneChan, errors.New(err)
 }
 
@@ -284,6 +284,6 @@ func MakeLogServer() (*handler.H, chan struct{}, *LogJournal, *errors.Error) {
 	srv := grpc.NewServer()
 	log.RegisterLogServer(srv, logsvc.New(logDispatch))
 
-	doneChan, err := h.Boot(t, srv)
+	doneChan, err := h.Boot(t, srv, make(chan struct{}))
 	return h, doneChan, journal, errors.New(err)
 }

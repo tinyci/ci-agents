@@ -13,7 +13,6 @@ import (
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/urfave/cli"
-	"google.golang.org/grpc"
 )
 
 // Version is the version of this service.
@@ -60,10 +59,15 @@ func serve(ctx *cli.Context) error {
 		return transportErr
 	}
 
-	s := grpc.NewServer()
+	s, closer, err := h.CreateServer()
+	if err != nil {
+		return err
+	}
+
 	queue.RegisterQueueServer(s, &processors.QueueServer{H: h})
 
-	doneChan, err := h.Boot(t, s)
+	finished := make(chan struct{})
+	doneChan, err := h.Boot(t, s, finished)
 	if err != nil {
 		return err
 	}
@@ -72,6 +76,8 @@ func serve(ctx *cli.Context) error {
 	go func() {
 		<-sigChan
 		close(doneChan)
+		<-finished
+		closer.Close()
 		os.Exit(0)
 	}()
 	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
