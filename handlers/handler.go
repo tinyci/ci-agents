@@ -224,8 +224,11 @@ func (h *H) CreateTransport() (*transport.HTTP, *errors.Error) {
 	return t, nil
 }
 
-// Boot boots the service. Closing the channel returned will shutdown the service.
-func Boot(t *transport.HTTP, handler *H) (chan struct{}, *errors.Error) {
+// Boot boots the service. Closing the channel returned will shutdown the
+// service. At shutdown time, this routine will close the finished channel when
+// it is finished shutting everything down, so the program can safely
+// terminate.
+func Boot(t *transport.HTTP, handler *H, finished chan struct{}) (chan struct{}, *errors.Error) {
 	handler.Formats = strfmt.NewFormats()
 
 	if err := handler.Init(); err != nil {
@@ -264,6 +267,7 @@ func Boot(t *transport.HTTP, handler *H) (chan struct{}, *errors.Error) {
 		s.Close()
 		l.Close()
 		closer.Close()
+		close(finished)
 	}()
 
 	go s.Serve(l)
