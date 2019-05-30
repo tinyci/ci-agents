@@ -1,6 +1,7 @@
 module github.com/tinyci/ci-agents
 
 require (
+	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190328043727-2183450503ad // indirect
 	github.com/erikh/check v0.0.1
 	github.com/erikh/go-transport v0.0.2
@@ -30,9 +31,15 @@ require (
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/openshift/osin v1.0.1
+	github.com/opentracing-contrib/go-gin v0.0.0-20190301172248-2e18f8b9c7d4
+	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.0
+	github.com/uber-go/atomic v1.4.0 // indirect
+	github.com/uber/jaeger-client-go v2.16.0+incompatible
+	github.com/uber/jaeger-lib v2.0.0+incompatible // indirect
 	github.com/urfave/cli v1.20.0
+	go.uber.org/atomic v1.4.0 // indirect
 	golang.org/x/net v0.0.0-20190328230028-74de082e2cca
 	golang.org/x/oauth2 v0.0.0-20190319182350-c85d3e98c914
 	golang.org/x/xerrors v0.0.0-20190315151331-d61658bd2e18

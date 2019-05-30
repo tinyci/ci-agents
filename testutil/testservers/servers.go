@@ -68,7 +68,8 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 	}
 
 	config.DefaultGithubClient = client
-	doneChan, err := handlers.Boot(nil, h)
+	finished := make(chan struct{})
+	doneChan, err := handlers.Boot(nil, h, finished)
 	if err != nil {
 		return nil, nil, nil, nil, errors.New(err)
 	}

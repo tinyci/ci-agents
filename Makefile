@@ -36,8 +36,10 @@ DEBUG_DOCKER_RUN=\
 								$(DOCKER_RUN) \
 								-e CREATE_DB=1 \
 								-e DEBUG=1 \
+								-e JAEGER_AGENT_HOST=jaegertracing \
 								$(DEBUG_PORTS) \
 								--link react:react \
+								--link jaegertracing:jaegertracing \
 								--name $(DEBUG_DOCKER_IMAGE) \
 								$(DOCKER_CONTAINER_DIR) \
 								$(DEBUG_DOCKER_IMAGE)
@@ -48,9 +50,11 @@ DEMO_DOCKER_RUN=\
 								-v ${PWD}/.db:/var/lib/postgresql \
 								-v ${PWD}/.logs:/var/tinyci/logs \
 								-e START_SERVICES="${START_SERVICES}" \
+								-e JAEGER_AGENT_HOST=jaegertracing \
 								-e DEBUG=1 \
 								$(DEBUG_PORTS) \
 								--link react:react \
+								--link jaegertracing:jaegertracing \
 								$(DOCKER_CONTAINER_DIR) \
 								--name $(DEMO_DOCKER_IMAGE) \
 								$(DEMO_DOCKER_IMAGE)
@@ -63,7 +67,7 @@ test: build-image
 do-test:
 	go test -timeout 30m -p 1 -race -v ./... -check.v # -p 1 is needed because of gorilla/sessions init routines
 
-test-debug: build-debug-image
+test-debug: build-debug-image jaeger
 	$(DEBUG_DOCKER_RUN) bash
 
 test-debug-attach:
@@ -90,7 +94,7 @@ distclean:
 dist: build-build-image distclean build
 	tar -C build -cvzf tinyci-$(VERSION).tar.gz tinyci-$(VERSION)
 
-demo: build-demo-image
+demo: build-demo-image jaeger
 	$(DEMO_DOCKER_RUN) make start-services
 
 clean-demo: build-demo-image
@@ -150,7 +154,7 @@ start-services: check-service-config
 	pkill assetsvc || :
 	pkill queuesvc || :
 	pkill datasvc || :
-	go install -v ./cmd/... ./gen/...
+	go install -v ./cmd/... ./ci-gen/...
 	@if [ "x${START_SERVICES}" != "x" ]; then make start-selective-services; exit 0; fi
 	logsvc &
 	assetsvc &
@@ -170,3 +174,9 @@ staticcheck:
 mockgen:
 	GO111MODULE=off go get github.com/golang/mock/...
 	${GOPATH}/bin/mockgen -package github github.com/tinyci/ci-gen/clients/github Client > mocks/github/mock.go
+
+jaeger:
+	docker run --name jaegertracing -idt -p 16686:16686 jaegertracing/all-in-one:latest --log-level debug || :
+
+stop-jaeger:
+	docker rm -f jaegertracing
