@@ -1,6 +1,7 @@
 package processors
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"sort"
@@ -416,23 +417,23 @@ func resolveParentInfo(h *handler.H, sub *types.Submission) (*types.Submission, 
 }
 
 // Process handles the overall processing of the submission. All other calls in this package originate here.
-func Process(h *handler.H, sub *types.Submission) (retQI []*model.QueueItem, retErr *errors.Error) {
+func Process(ctx context.Context, h *handler.H, sub *types.Submission) (retQI []*model.QueueItem, retErr *errors.Error) {
 	var is *InternalSubmission
 	since := time.Now()
 
 	defer func() {
-		h.Clients.Log.Infof("Processing Submission took %v", time.Since(since))
+		h.Clients.Log.Infof(ctx, "Processing Submission took %v", time.Since(since))
 
 		if retErr != nil && is != nil && is.ParentRepo.Owner != nil {
 			client := h.OAuth.GithubClient(is.ParentRepo.Owner.Token)
 			owner, repo, err := is.ParentRepo.OwnerRepo()
 			if err != nil {
-				h.Clients.Log.Error(err.Wrapf("%s/%s", owner, repo))
+				h.Clients.Log.Error(ctx, err.Wrapf("%s/%s", owner, repo))
 				return
 			}
 
 			if err := client.FinishedStatus(owner, repo, "*global*", is.Ref.SHA, h.URL, false, fmt.Sprintf("failed to start job: %v", retErr)); err != nil {
-				h.Clients.Log.Error(err)
+				h.Clients.Log.Error(ctx, err)
 			}
 		}
 	}()

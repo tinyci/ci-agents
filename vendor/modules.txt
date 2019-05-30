@@ -6,7 +6,7 @@ github.com/PuerkitoBio/urlesc
 github.com/asaskevich/govalidator
 # github.com/erikh/check v0.0.1
 github.com/erikh/check
-# github.com/erikh/go-transport v0.0.2
+# github.com/erikh/go-transport v0.0.3
 github.com/erikh/go-transport
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
@@ -147,8 +147,8 @@ github.com/urfave/cli
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/net v0.0.0-20190328230028-74de082e2cca
 golang.org/x/net/websocket
-golang.org/x/net/trace
 golang.org/x/net/context
+golang.org/x/net/trace
 golang.org/x/net/internal/timeseries
 golang.org/x/net/http2
 golang.org/x/net/http2/hpack

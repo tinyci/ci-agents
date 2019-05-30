@@ -24,7 +24,7 @@ func Submit(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 		return nil, 500, err
 	}
 
-	err = h.Clients.Queue.Submit(&types.Submission{
+	err = h.Clients.Queue.Submit(ctx.Request.Context(), &types.Submission{
 		Fork:        repo,
 		HeadSHA:     sha,
 		SubmittedBy: user.Username,

@@ -8,26 +8,38 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/asset"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/errors"
+	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc"
 )
 
 // Client is a handle into the asset client.
 type Client struct {
-	ac asset.AssetClient
+	ac     asset.AssetClient
+	closer io.Closer
 }
 
 // NewClient creates a new *Client for use.
 func NewClient(cert *transport.Cert, addr string) (*Client, *errors.Error) {
-	t, err := transport.GRPCDial(cert, addr)
+	closer, options, eErr := utils.SetUpGRPCTracing("asset")
+	if eErr != nil {
+		return nil, eErr
+	}
+
+	t, err := transport.GRPCDial(cert, addr, options...)
 	if err != nil {
 		return nil, errors.New(err)
 	}
-	return &Client{ac: asset.NewAssetClient(t)}, nil
+	return &Client{closer: closer, ac: asset.NewAssetClient(t)}, nil
+}
+
+// Close closes the client's tracing functionality
+func (c *Client) Close() error {
+	return c.closer.Close()
 }
 
 // Write writes a log at id with the supplied reader providing the content.
-func (c *Client) Write(id int64, f io.Reader) *errors.Error {
-	s, err := c.ac.PutLog(context.Background(), grpc.WaitForReady(true))
+func (c *Client) Write(ctx context.Context, id int64, f io.Reader) *errors.Error {
+	s, err := c.ac.PutLog(ctx, grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)
 	}
@@ -64,8 +76,8 @@ func (c *Client) Write(id int64, f io.Reader) *errors.Error {
 	}
 }
 
-func (c *Client) Read(id int64, w io.Writer) *errors.Error {
-	as, err := c.ac.GetLog(context.Background(), &types.IntID{ID: id}, grpc.WaitForReady(false))
+func (c *Client) Read(ctx context.Context, id int64, w io.Writer) *errors.Error {
+	as, err := c.ac.GetLog(ctx, &types.IntID{ID: id}, grpc.WaitForReady(false))
 	if err != nil {
 		return errors.New(err)
 	}

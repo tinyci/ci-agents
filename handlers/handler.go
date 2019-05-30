@@ -140,7 +140,7 @@ func (h *H) GetClient(ctx *gin.Context) (github.Client, *errors.Error) {
 }
 
 // HandleOAuth handles oauth codes, and transforming them into tokens.
-func (h *H) HandleOAuth(code string, scopes []string) (*oauth2.Token, string, *errors.Error) {
+func (h *H) HandleOAuth(ctx *gin.Context, code string, scopes []string) (*oauth2.Token, string, *errors.Error) {
 	conf := h.OAuth.Config(scopes)
 
 	tok, err := conf.Exchange(context.Background(), code)
@@ -149,7 +149,7 @@ func (h *H) HandleOAuth(code string, scopes []string) (*oauth2.Token, string, *e
 		case *oauth2.RetrieveError:
 			return nil, "", errors.New(err)
 		default:
-			h.Clients.Log.Error(err)
+			h.Clients.Log.Error(ctx.Request.Context(), err)
 			return nil, "", ErrRedirect
 		}
 	}
@@ -264,6 +264,7 @@ func Boot(t *transport.HTTP, handler *H, finished chan struct{}) (chan struct{},
 		<-doneChan
 		s.Close()
 		l.Close()
+		handler.Clients.CloseClients()
 		closer.Close()
 		close(finished)
 	}()
@@ -536,7 +537,7 @@ func (h *H) LogError(err error, ctx *gin.Context, code int) {
 
 	content, jsonErr := json.Marshal(ctx.Params)
 	if jsonErr != nil {
-		logger.Error(errors.New(jsonErr).Wrap("encoding params for log message"))
+		logger.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
 	}
 
 	var doLog bool
@@ -551,6 +552,6 @@ func (h *H) LogError(err error, ctx *gin.Context, code int) {
 	}
 
 	if doLog {
-		logger.WithFields(log.FieldMap{"params": string(content)}).Error(err)
+		logger.WithFields(log.FieldMap{"params": string(content)}).Error(ctx.Request.Context(), err)
 	}
 }

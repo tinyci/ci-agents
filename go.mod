@@ -4,7 +4,7 @@ require (
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190328043727-2183450503ad // indirect
 	github.com/erikh/check v0.0.1
-	github.com/erikh/go-transport v0.0.2
+	github.com/erikh/go-transport v0.0.3
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/fatih/color v1.7.0
 	github.com/gin-contrib/sessions v0.0.0-20190226023029-1532893d996f

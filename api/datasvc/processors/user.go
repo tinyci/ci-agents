@@ -54,11 +54,11 @@ func (ds *DataServer) PutUser(ctx context.Context, u *types.User) (*types.User, 
 
 	um, err := ds.H.Model.CreateUser(u.Username, ot)
 	if err != nil {
-		ds.H.Clients.Log.Errorf("Could not create user %q: %v", u.Username, err)
+		ds.H.Clients.Log.Errorf(ctx, "Could not create user %q: %v", u.Username, err)
 		return &types.User{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
-	ds.H.Clients.Log.Infof("Created user %q", u.Username)
+	ds.H.Clients.Log.Infof(ctx, "Created user %q", u.Username)
 
 	return um.ToProto(), nil
 }
