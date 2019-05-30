@@ -28,8 +28,6 @@ import (
 	"golang.org/x/net/websocket"
 	"golang.org/x/oauth2"
 
-	jaegercfg "github.com/uber/jaeger-client-go/config"
-
 	gh "github.com/google/go-github/github"
 )
 
@@ -284,23 +282,7 @@ func (h *H) NewTracingSpan(ctx *gin.Context, operation string) opentracing.Span 
 }
 
 func (h *H) createGlobalTracer() (io.Closer, *errors.Error) {
-	// FIXME Taken from jaeger/opentracing examples; needs tunables.
-	cfg, err := jaegercfg.FromEnv()
-	if err != nil {
-		return nil, errors.New(err)
-	}
-
-	cfg.Sampler = &jaegercfg.SamplerConfig{
-		Type:  "const",
-		Param: 1,
-	}
-
-	closer, err := cfg.InitGlobalTracer("uisvc")
-	if err != nil {
-		return nil, errors.New(err)
-	}
-
-	return closer, nil
+	return utils.CreateTracer("uisvc")
 }
 
 // Init initialize the handler and makes it available for requests.
