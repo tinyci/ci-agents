@@ -94,6 +94,9 @@ distclean:
 dist: build-build-image distclean build
 	tar -C build -cvzf tinyci-$(VERSION).tar.gz tinyci-$(VERSION)
 
+release: distclean dist
+	VERSION="$(VERSION)" box -t "tinyci/release:$(VERSION)" box-release.rb
+
 demo: build-demo-image jaeger
 	$(DEMO_DOCKER_RUN) make start-services
 
