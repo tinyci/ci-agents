@@ -78,9 +78,9 @@ func (ac *AuthConfig) Validate(parseCrypt bool) *errors.Error {
 
 func validateAESKey(key []byte) *errors.Error {
 	switch len(key) {
-	case 8, 16, 32:
+	case 16, 24, 32:
 	default:
-		return errors.New("AES keys must be a multiple of 8, 16, or 32 bytes")
+		return errors.New("AES keys must be 16, 24, or 32 bytes long. Please see the docs")
 	}
 
 	return nil

@@ -89,8 +89,8 @@ func DecryptToken(key, tokenBytes []byte) (*OAuthToken, *errors.Error) {
 	return &tok, nil
 }
 
-// DecodeKey takes a hexidecimal key and turns it into a byte array where the
-// bytes represent the by-two hexidecimal numerical values present in the
+// DecodeKey takes a hexadecimal key and turns it into a byte array where the
+// bytes represent the by-two hexadecimal numerical values present in the
 // original key.
 func DecodeKey(key string) []byte {
 	bytKey := []byte{}
@@ -106,7 +106,7 @@ func DecodeKey(key string) []byte {
 	return bytKey
 }
 
-// EncodeKey takes a byte stream and yields a hexidecimal set of values
+// EncodeKey takes a byte stream and yields a hexadecimal set of values
 // associated with it. See `xxd(1)`.
 func EncodeKey(key []byte) string {
 	var res string

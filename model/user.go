@@ -34,7 +34,7 @@ var (
 
 	// TokenCryptKey is the standard token crypt key.
 	// NOTE: the default is only used by tests; it is overwritten on service boot; see config/auth.go.
-	TokenCryptKey = []byte{1, 2, 3, 4, 5, 6, 7, 8}
+	TokenCryptKey = []byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
 )
 
 // UserError is the encapsulation of many *errors.Errors that need to be presented to
