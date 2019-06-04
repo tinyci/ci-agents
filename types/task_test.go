@@ -13,7 +13,7 @@ type typesSuite struct{}
 
 var _ = check.Suite(&typesSuite{})
 
-func TestTask(t *T) {
+func TestTypes(t *T) {
 	check.TestingT(t)
 }
 
