@@ -7,7 +7,7 @@ import (
 	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
-	"github.com/tinyci/ci-agents/utils"
+	"github.com/tinyci/ci-agents/types"
 )
 
 // SessionErrorsKey is the key used to retrieve the errors from the sessions table.
@@ -63,14 +63,9 @@ func (cc *CertConfig) Validate() *errors.Error {
 // Validate ensures the auth configuration is sane.
 func (ac *AuthConfig) Validate(parseCrypt bool) *errors.Error {
 	if parseCrypt {
-		var err *errors.Error
-		ac.sessionCryptKey, err = utils.ParseCryptKey(ac.SessionCryptKey)
-		if err != nil {
-			return err.Wrap("parsing session_crypt_key")
-		}
-
-		if err := ac.ParseTokenKey(); err != nil {
-			return err.Wrap("parsing token_crypt_key")
+		ac.sessionCryptKey = types.DecodeKey(ac.SessionCryptKey)
+		if err := validateAESKey(ac.sessionCryptKey); err != nil {
+			return err
 		}
 	}
 
@@ -81,11 +76,20 @@ func (ac *AuthConfig) Validate(parseCrypt bool) *errors.Error {
 	return nil
 }
 
+func validateAESKey(key []byte) *errors.Error {
+	switch len(key) {
+	case 16, 24, 32:
+	default:
+		return errors.New("AES keys must be 16, 24, or 32 bytes long. Please see the docs")
+	}
+
+	return nil
+}
+
 // ParseTokenKey reads the key from the config, validates it, and assigns it to the appropriate variables
 func (ac *AuthConfig) ParseTokenKey() *errors.Error {
-	var err *errors.Error
-	ac.tokenCryptKey, err = utils.ParseCryptKey(ac.TokenCryptKey)
-	if err != nil {
+	ac.tokenCryptKey = types.DecodeKey(ac.TokenCryptKey)
+	if err := validateAESKey(ac.tokenCryptKey); err != nil {
 		return err
 	}
 
