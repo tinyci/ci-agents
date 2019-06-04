@@ -6,7 +6,6 @@ import (
 	"time"
 
 	gh "github.com/google/go-github/github"
-	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/gorm"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/errors"
@@ -80,7 +79,7 @@ type User struct {
 // SetToken sets the token's byte stream, and encrypts it.
 func (u *User) SetToken() *errors.Error {
 	var err *errors.Error
-	u.TokenJSON, err = encryptToken(TokenCryptKey, u.Token)
+	u.TokenJSON, err = topTypes.EncryptToken(TokenCryptKey, u.Token)
 	return err
 }
 
@@ -91,32 +90,8 @@ func (u *User) FetchToken() *errors.Error {
 	}
 
 	var err *errors.Error
-	u.Token, err = decryptToken(TokenCryptKey, u.TokenJSON)
+	u.Token, err = topTypes.DecryptToken(TokenCryptKey, u.TokenJSON)
 	return err
-}
-
-func encryptToken(key []byte, tok *topTypes.OAuthToken) ([]byte, *errors.Error) {
-	str, err := securecookie.EncodeMulti("token", tok, securecookie.CodecsFromPairs(key)...)
-	if err != nil {
-		return nil, errors.New(err)
-	}
-
-	return []byte(str), nil
-}
-
-func decryptToken(key, tokenBytes []byte) (*topTypes.OAuthToken, *errors.Error) {
-	tok := topTypes.OAuthToken{}
-
-	if len(tokenBytes) == 0 {
-		return &tok, nil
-	}
-
-	err := securecookie.DecodeMulti("token", string(tokenBytes), &tok, securecookie.CodecsFromPairs(key)...)
-	if err != nil {
-		return nil, errors.New(err)
-	}
-
-	return &tok, nil
 }
 
 // NewUserFromProto converts a proto user to a real user.
