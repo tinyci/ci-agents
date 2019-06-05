@@ -26,31 +26,34 @@ func EncryptToken(key []byte, tok *OAuthToken) ([]byte, *errors.Error) {
 	// that won't resolve the case where CI jobs need the token.
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, errors.New(err).Wrap("while setting up encrypter")
 	}
 
-	iv := make([]byte, block.BlockSize())
-	c, err := rand.Reader.Read(iv)
+	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, errors.New(err).Wrap("while setting up encryption cipher suite")
 	}
 
-	if c < block.BlockSize() {
+	nonce := make([]byte, gcm.NonceSize())
+	c, err := rand.Reader.Read(nonce)
+	if err != nil {
+		return nil, errors.New(err).Wrap("reading entropy")
+	}
+
+	if c < gcm.NonceSize() {
 		return nil, errors.New("could not read enough entropy to encrypt token")
 	}
 
-	cfb := cipher.NewCFBEncrypter(block, iv)
 	buf := bytes.NewBuffer(nil)
 
 	if err := json.NewEncoder(buf).Encode(tok); err != nil {
 		return nil, errors.New(err)
 	}
 
-	outbuf := make([]byte, len(buf.Bytes()))
-	cfb.XORKeyStream(outbuf, buf.Bytes())
+	outbuf := gcm.Seal(nil, nonce, buf.Bytes(), nil)
 
 	// the price of laziness
-	return []byte(base64.StdEncoding.EncodeToString(append(iv, outbuf...))), nil
+	return []byte(base64.StdEncoding.EncodeToString(append(nonce, outbuf...))), nil
 }
 
 // DecryptToken decrypts a token message that was encrypted by EncryptToken.
@@ -70,16 +73,22 @@ func DecryptToken(key, tokenBytes []byte) (*OAuthToken, *errors.Error) {
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, errors.New(err).Wrap("while setting up decrypter")
 	}
 
-	if len(decoded) < block.BlockSize()+1 {
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, errors.New(err).Wrap("while setting up decryption cipher suite")
+	}
+
+	if len(decoded) < gcm.NonceSize()+1 {
 		return nil, errors.New("invalid token bytes")
 	}
 
-	cfb := cipher.NewCFBDecrypter(block, decoded[:block.BlockSize()])
-	tb := make([]byte, len(decoded)-block.BlockSize())
-	cfb.XORKeyStream(tb, decoded[block.BlockSize():])
+	tb, err := gcm.Open(nil, decoded[:gcm.NonceSize()], decoded[gcm.NonceSize():], nil)
+	if err != nil {
+		return nil, errors.New(err).Wrap("decrypting token")
+	}
 
 	tok := OAuthToken{}
 	if err := json.Unmarshal(tb, &tok); err != nil {
