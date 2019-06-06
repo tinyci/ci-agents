@@ -21,18 +21,20 @@ type H struct {
 
 // CreateServer creates the grpc server
 func (h *H) CreateServer() (*grpc.Server, io.Closer, *errors.Error) {
-	closer, err := utils.CreateTracer(h.Name)
-	if err != nil {
-		return nil, nil, err
+	if h.EnableTracing {
+		closer, err := utils.CreateTracer(h.Name)
+		if err != nil {
+			return nil, nil, err
+		}
+		s := grpc.NewServer(
+			grpc.UnaryInterceptor(
+				otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer())),
+			grpc.StreamInterceptor(
+				otgrpc.OpenTracingStreamServerInterceptor(opentracing.GlobalTracer())))
+		return s, closer, nil
 	}
 
-	s := grpc.NewServer(
-		grpc.UnaryInterceptor(
-			otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer())),
-		grpc.StreamInterceptor(
-			otgrpc.OpenTracingStreamServerInterceptor(opentracing.GlobalTracer())))
-
-	return s, closer, nil
+	return grpc.NewServer(), nil, nil
 }
 
 // Boot boots the service. It returns a done channel for closing and any errors.
