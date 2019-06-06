@@ -1,0 +1,51 @@
+{{- $top := . }}
+package {{ .APIPackage }} 
+
+import (
+	"os"
+	"strings"
+
+	transport "github.com/erikh/go-transport"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
+	"github.com/tinyci/ci-agents/config"
+	"github.com/tinyci/ci-agents/handlers"
+	"github.com/tinyci/ci-agents/handlers/utils"
+	"github.com/gorilla/websocket"
+  strfmt "github.com/go-openapi/strfmt"
+
+  {{ range .DefaultImports }}{{ printf "%q" . }}
+  {{ end }}
+  {{ range $key, $value := .Imports }}{{ $key }} {{ printf "%q" $value }}
+  {{ end }}
+)
+
+// SetRoutes sets the routes in the handler so gin can execute them.
+func (hc HandlerConfig) SetRoutes(h *handlers.H) {
+  h.Routes = handlers.Routes{}
+
+  {{ range $op := .Operations -}}
+  addRoute(
+    h,
+    {{ printf "handlers.TransformSwaggerRoute(%q)" $op.Path}},
+    {{ printf "%q" $op.Method }},
+    &handlers.Route{
+      ParamValidator: {{ $top.Package }}.{{ pascalize $op.Name }}ValidateURLParams,
+      Handler: {{ $top.Package }}.{{ pascalize $op.Name }},
+      Method: {{ printf "%q" $op.Method }},
+      UseCORS: true,
+      {{ if $op.Authorized }}UseAuth: true,{{ end }}
+      {{ if index $op.Extensions "x-capability" }}Capability: {{ printf "%q" (index $op.Extensions "x-capability") }},{{ end }}
+      {{ if index $op.Extensions "x-token-scope" }}TokenScope: {{ printf "%q" (index $op.Extensions "x-token-scope") }},{{ end }}
+    },
+  )
+  {{ end -}}
+}
+
+func addRoute(h *handlers.H, path, method string, r *handlers.Route) {
+  if h.Routes[path] == nil {
+    h.Routes[path] = map[string]*handlers.Route{}
+  }
+
+  h.Routes[path][strings.ToLower(method)] = r
+}

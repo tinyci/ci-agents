@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option go_package = "github.com/tinyci/ci-agents/ci-gen/grpc/services/asset";
+
+import "github.com/golang/protobuf/ptypes/empty/empty.proto";
+import "github.com/tinyci/ci-agents/ci-gen/grpc/types/id.proto";
+
+// Asset is the underlying layer for the assetsvc, which manages CI logs and
+// (soon) other file transfers.
+service Asset {
+  rpc PutLog (stream LogSend) returns (google.protobuf.Empty); // PutLog sends a log
+  rpc GetLog (types.IntID)    returns (stream LogChunk);       // GetLog retrieves a log.
+}
+
+// Sending type
+message LogSend {
+  int64 ID    = 1; // ID of *Run*
+  bytes Chunk = 2; // Log binary chunk; typically between 64 and 256 bytes per payload.
+}
+
+
+// Receive type
+message LogChunk {
+  bytes Chunk = 1; // Log binary chunk; typically between 64 and 256 bytes per payload.
+}
