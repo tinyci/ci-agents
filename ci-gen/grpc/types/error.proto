@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package types;
+
+option go_package = "github.com/tinyci/ci-agents/ci-gen/grpc/types";
+
+// Errors that occur within the program's calls after a request. Bound to the
+// user, not the connection.
+message Error {
+  repeated string errors = 1; // list of errors that occurred
+           bool   log    = 2; // whether or not the error is intended to be logged; used internally by some functions.
+}

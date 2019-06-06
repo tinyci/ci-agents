@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package types;
+
+option go_package = "github.com/tinyci/ci-agents/ci-gen/grpc/types";
+
+import "github.com/tinyci/ci-agents/ci-gen/grpc/types/repository.proto";
+
+// Ref is the encapsulation of a git ref and communicates repository as well as version information.
+message Ref {
+	int64             id          = 1; // Internal ID of ref
+	types.Repository  repository  = 2; // Repository the ref belongs to (typically, the fork)
+	string            refName     = 3; // RefName is the name of the ref (branch, tag) if determined.
+	string            sha         = 4; // SHA is the SHA of the latest commit in the ref.
+}

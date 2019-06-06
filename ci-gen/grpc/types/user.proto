@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package types;
+
+option go_package = "github.com/tinyci/ci-agents/ci-gen/grpc/types";
+
+import "github.com/golang/protobuf/ptypes/timestamp/timestamp.proto";
+
+// User is ... a user record
+message User {
+            int64                     id                = 1; // ID of user
+            string                    username          = 2; // Username -- retrieved from github
+            google.protobuf.Timestamp lastScannedRepos  = 3; // This flag is used to described when someone last scanned repositories for adding to CI.
+  repeated  UserError                 errors            = 4; // Errors for the user. See types.Errors
+            // JSON corresponding to the oauth2 response from github when first signing
+            // up; this contains an access and refresh token. Encrypted with the token
+            // key.
+            bytes                     tokenJSON         = 5;
+}
+
+// UserError is the pre-converted UserError record. It is later converted to a types.Error.
+message UserError {
+	int64  id     = 1;
+	int64  userID = 2;
+	string error  = 3;
+}
+
+// List of UserError
+message UserErrors {
+  repeated UserError errors = 1; // the list!
+}
+
+// List of Users
+message UserList {
+  repeated User users = 1; // the list!
+}

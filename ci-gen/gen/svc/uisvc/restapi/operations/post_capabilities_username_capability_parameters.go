@@ -1,0 +1,28 @@
+package operations
+
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/tinyci/ci-agents/errors"
+	"github.com/tinyci/ci-agents/handlers"
+)
+
+// PostCapabilitiesUsernameCapabilityValidateURLParams validates the parameters in the
+// URL according to the swagger specification.
+func PostCapabilitiesUsernameCapabilityValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
+	capability := ctx.Param("capability")
+
+	if len(capability) == 0 {
+		return errors.New("'/capabilities/{username}/{capability}': parameter 'capability' is empty")
+	}
+
+	ctx.Set("capability", capability)
+	username := ctx.Param("username")
+
+	if len(username) == 0 {
+		return errors.New("'/capabilities/{username}/{capability}': parameter 'username' is empty")
+	}
+
+	ctx.Set("username", username)
+
+	return nil
+}

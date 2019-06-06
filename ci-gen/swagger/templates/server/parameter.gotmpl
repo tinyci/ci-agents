@@ -1,0 +1,85 @@
+{{- $op := . }}
+package {{ .Package }}
+
+import (
+  "github.com/tinyci/ci-agents/handlers"
+  "github.com/gin-gonic/gin"
+  "github.com/tinyci/ci-agents/errors"
+	strfmt "github.com/go-openapi/strfmt"
+)
+
+// {{ pascalize $op.Name }}ValidateURLParams validates the parameters in the
+// URL according to the swagger specification.
+func {{ pascalize $op.Name }}ValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
+  {{- range $obj := .Params }}
+  {{- if eq $obj.Location "query" }}
+  {{ varname $obj.Name }} := {{ printf "ctx.Query(%q)" $obj.Name }}
+  {{ else if eq $obj.Location "path" -}}
+  {{ varname $obj.Name }} := {{ printf "ctx.Param(%q)" $obj.Name }}
+  {{ else if eq $obj.Location "body" -}}
+  {{ varname $obj.Name }}, err := ioutil.ReadAll(ctx.Request.Body)
+  if err != nil {
+    return errors.New(err)
+  }
+  {{ else if eq $obj.Location "formData" -}}
+
+  {{ varname $obj.Name }}, ok := {{ printf "ctx.GetPostForm(%q)" $obj.Name }}
+  if !ok && {{ printf "%v" $obj.Required }} {
+    return errors.New("'{{ $op.Path }}': parameter '{{ $obj.Name }}' is empty")
+  }
+  {{ end -}}
+
+  {{- if $obj.MinLength }}
+  if len({{ varname $obj.Name }}) < {{ $obj.MinLength }} {
+    return errors.New("'{{ $op.Path }}': parameter '{{ $obj.Name }}' has invalid length (< {{ $obj.MinLength }}")
+  }
+  {{ end -}}
+  {{- if $obj.MaxLength }}
+  if len({{ varname $obj.Name }}) > {{ $obj.MaxLength }} {
+    return errors.New("'{{ $op.Path }}': parameter '{{ $obj.Name }}' has invalid length (> {{ $obj.MaxLength }}")
+  }
+  {{ end -}}
+  {{- if and ($obj.Required) (or (not $obj.AllowEmptyValue) (not $obj.HasDefault))}}
+  if len({{ varname $obj.Name }}) == 0 {
+    return errors.New("'{{ $op.Path }}': parameter '{{ $obj.Name }}' is empty")
+  }
+  {{ end -}}
+
+  {{- if $obj.HasDefault }}
+
+  if len({{ varname $obj.Name }}) == 0 {
+    {{ varname $obj.Name }} = {{ printf "%q" (printf "%v" $obj.Default) }}
+  }
+  {{ end -}}
+
+  {{ if or (eq $obj.Location "body") (eq $obj.Location "formData") }}
+  {{- if or (eq $obj.SwaggerType "object") (eq $obj.SwaggerType "") }}
+  res := map[string]interface{}{}
+  if err := json.Unmarshal({{ varname $obj.Name }}, &res); err != nil {
+    return errors.New(err).Wrap("'{{ $op.Path }}': parameter '{{ $obj.Name }}' did not parse")
+  }
+  ctx.Set({{ printf "%q" $obj.Name }}, {{ varname $obj.Name }})
+  {{- else if eq $obj.SwaggerType "array" }}
+  res := []map[string]interface{}{}
+  if err := json.Unmarshal({{ varname $obj.Name }}, &res); err != nil {
+    return errors.New(err).Wrap("'{{ $op.Path }}': parameter '{{ $obj.Name }}' did not parse")
+  }
+  ctx.Set({{ printf "%q" $obj.Name }}, {{ varname $obj.Name }})
+  {{- else if not (eq $obj.SwaggerType "string") }}
+  ctx.Set({{ printf "%q" $obj.Name }}, {{ varname $obj.Name }})
+  {{ else if (eq $obj.SwaggerFormat "") }}
+  ctx.Set({{ printf "%q" $obj.Name }}, string({{ varname $obj.Name }}))
+  {{ else -}}
+  if res, err := h.Formats.Parse({{ printf "%q" $obj.SwaggerFormat }}, string({{ varname $obj.Name }})); err != nil {
+    return errors.New(err).Wrap("'{{ $op.Path }}': parameter '{{ $obj.Name }}' did not parse")
+  } else {
+		ctx.Set({{ printf "%q" $obj.Name }}, res)
+	}
+  {{ end -}}
+  {{ else }}
+  ctx.Set({{ printf "%q" $obj.Name }}, {{ varname $obj.Name }})
+  {{ end -}}
+  {{ end }}
+
+  return nil
+}
