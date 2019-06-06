@@ -1,5 +1,9 @@
 (C) 2018, 2019 Erik Hollensbe, Josiah Kiehl, Haoqi "Eric" Zhu, Razvan "Cristian" Staretu.
 
+The following license text applies to all but the following directories (Which have their own license):
+
+- `ci-gen`
+
 This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 If a copy of the MPL was not distributed with this file, You can obtain
 one at https://mozilla.org/MPL/2.0/.
