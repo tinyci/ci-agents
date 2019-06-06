@@ -78,7 +78,7 @@ func run(ctx *cli.Context) error {
 		}
 	}
 
-	client, err := data.New(ctx.GlobalString("datasvc"), cert)
+	client, err := data.New(ctx.GlobalString("datasvc"), cert, false)
 	if err != nil {
 		return err
 	}

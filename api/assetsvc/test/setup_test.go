@@ -29,7 +29,7 @@ func (as *assetsvcSuite) SetUpTest(c *check.C) {
 	as.assetsvcHandler, as.assetsvcDoneChan, err = testservers.MakeAssetServer()
 	c.Assert(err, check.IsNil)
 
-	as.assetClient, err = asset.NewClient(nil, "localhost:6002")
+	as.assetClient, err = asset.NewClient("localhost:6002", nil, false)
 	c.Assert(err, check.IsNil)
 }
 

@@ -52,7 +52,8 @@ func serve(ctx *cli.Context) error {
 
 	h.Config = restapi.MakeHandlerConfig(h.ServiceConfig)
 
-	doneChan, err := handlers.Boot(nil, h)
+	finished := make(chan struct{})
+	doneChan, err := handlers.Boot(nil, h, finished)
 	if err != nil {
 		return err
 	}
@@ -61,6 +62,7 @@ func serve(ctx *cli.Context) error {
 	go func() {
 		<-sigChan
 		close(doneChan)
+		<-finished
 		os.Exit(0)
 	}()
 	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)

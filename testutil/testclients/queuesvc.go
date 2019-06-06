@@ -21,7 +21,7 @@ type QueueClient struct {
 
 // NewQueueClient returns a new queuesvc client with window dressings for tests.
 func NewQueueClient(dc *DataClient) (*QueueClient, error) {
-	ops, err := queue.New("localhost:6001", nil)
+	ops, err := queue.New("localhost:6001", nil, false)
 	return &QueueClient{client: ops, dataClient: dc}, err
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/utils"
+	"google.golang.org/grpc"
 )
 
 // Client is a datasvc client.
@@ -16,10 +17,18 @@ type Client struct {
 }
 
 // New creates a new *Client.
-func New(addr string, cert *transport.Cert) (*Client, *errors.Error) {
-	closer, options, eErr := utils.SetUpGRPCTracing("data")
-	if eErr != nil {
-		return nil, eErr
+func New(addr string, cert *transport.Cert, trace bool) (*Client, *errors.Error) {
+	var (
+		closer  io.Closer
+		options []grpc.DialOption
+		eErr    *errors.Error
+	)
+
+	if trace {
+		closer, options, eErr = utils.SetUpGRPCTracing("data")
+		if eErr != nil {
+			return nil, eErr
+		}
 	}
 
 	c, err := transport.GRPCDial(cert, addr, options...)
@@ -32,5 +41,9 @@ func New(addr string, cert *transport.Cert) (*Client, *errors.Error) {
 
 // Close closes the client's tracing functionality
 func (c *Client) Close() error {
-	return c.closer.Close()
+	if c.closer != nil {
+		return c.closer.Close()
+	}
+
+	return nil
 }

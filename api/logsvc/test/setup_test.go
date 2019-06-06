@@ -27,7 +27,7 @@ func (ls *logsvcSuite) SetUpTest(c *check.C) {
 	ls.logsvcHandler, ls.logsvcDoneChan, ls.journal, err = testservers.MakeLogServer()
 	c.Assert(err, check.IsNil)
 
-	log.ConfigureRemote("localhost:6005", nil)
+	log.ConfigureRemote("localhost:6005", nil, false)
 }
 
 func (ls *logsvcSuite) TearDownTest(c *check.C) {
