@@ -198,7 +198,7 @@ func (h *H) GithubClient(token *types.OAuthToken) github.Client {
 // CreateClients creates the clients to be used based on configuration values.
 func (h *H) CreateClients() *errors.Error {
 	var err *errors.Error
-	h.Clients, err = h.ClientConfig.CreateClients(h.Name)
+	h.Clients, err = h.ClientConfig.CreateClients(h.UserConfig, h.Name)
 
 	return err
 }
@@ -233,9 +233,16 @@ func Boot(t *transport.HTTP, handler *H, finished chan struct{}) (chan struct{},
 		return nil, err
 	}
 
-	closer, err := handler.createGlobalTracer()
-	if err != nil {
-		return nil, err
+	var (
+		closer io.Closer
+		err    *errors.Error
+	)
+
+	if handler.EnableTracing {
+		closer, err = handler.createGlobalTracer()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	r, err := handler.CreateRouter()
@@ -265,7 +272,9 @@ func Boot(t *transport.HTTP, handler *H, finished chan struct{}) (chan struct{},
 		s.Close()
 		l.Close()
 		handler.Clients.CloseClients()
-		closer.Close()
+		if handler.EnableTracing {
+			closer.Close()
+		}
 		close(finished)
 	}()
 
@@ -357,25 +366,33 @@ func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error
 		var (
 			u            *model.User
 			err          *errors.Error
+			span         opentracing.Span
 			spanFinished bool
 		)
 
-		span := h.NewTracingSpan(ctx, "auth exchange")
-		defer func() {
-			if !spanFinished {
-				span.Finish()
-			}
-		}()
+		if h.EnableTracing {
+			span = h.NewTracingSpan(ctx, "auth exchange")
+			defer func() {
+				if !spanFinished {
+					span.Finish()
+				}
+			}()
+		}
 
 		token := ctx.Request.Header.Get("Authorization")
 		if token != "" {
-			span.LogKV("authorization", "token")
+			if h.EnableTracing {
+				span.LogKV("authorization", "token")
+			}
 			u, err = h.Clients.Data.ValidateToken(token)
 			if err != nil {
 				return err
 			}
 		} else {
-			span.LogKV("authorization", "github")
+			if h.EnableTracing {
+				span.LogKV("authorization", "github")
+			}
+
 			u, err = h.GetGithub(ctx)
 			if err != nil {
 				return err
@@ -383,7 +400,10 @@ func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error
 		}
 
 		if cap != "" {
-			span.LogKV("event", "capability check")
+			if h.EnableTracing {
+				span.LogKV("event", "capability check")
+			}
+
 			res, err := h.Clients.Data.HasCapability(u, cap)
 			if err != nil {
 				return err
@@ -398,8 +418,10 @@ func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error
 			return errors.New("cannot perform operation with current oauth scopes; must upgrade")
 		}
 
-		spanFinished = true
-		span.Finish()
+		if h.EnableTracing {
+			spanFinished = true
+			span.Finish()
+		}
 
 		return gatewayFunc(h, ctx, processor)
 	}
@@ -407,8 +429,10 @@ func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error
 
 func (h *H) inWebsocket(key string, paramHandler func(*H, *gin.Context) *errors.Error, handler func(h *H, ctx *gin.Context, conn *websocket.Conn) *errors.Error) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		span := h.NewTracingSpan(ctx, key)
-		defer span.Finish()
+		if h.EnableTracing {
+			span := h.NewTracingSpan(ctx, key)
+			defer span.Finish()
+		}
 
 		outerHandler := func(conn *websocket.Conn) {
 			if err := paramHandler(h, ctx); err != nil {
@@ -420,8 +444,10 @@ func (h *H) inWebsocket(key string, paramHandler func(*H, *gin.Context) *errors.
 			}
 		}
 
-		span2 := h.NewTracingSpan(ctx, "websocket communication")
-		defer span2.Finish()
+		if h.EnableTracing {
+			span2 := h.NewTracingSpan(ctx, "websocket communication")
+			defer span2.Finish()
+		}
 		websocket.Handler(outerHandler).ServeHTTP(ctx.Writer, ctx.Request)
 	}
 }
@@ -503,8 +529,10 @@ func (h *H) CreateRouter() (*gin.Engine, *errors.Error) {
 
 func (h *H) wrapHandler(key string, handler func(*H, *gin.Context, HandlerFunc) *errors.Error, processor HandlerFunc) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		span := h.NewTracingSpan(ctx, key)
-		defer span.Finish()
+		if h.EnableTracing {
+			span := h.NewTracingSpan(ctx, key)
+			defer span.Finish()
+		}
 
 		if err := handler(h, ctx, processor); err != nil {
 			if err == ErrRedirect {

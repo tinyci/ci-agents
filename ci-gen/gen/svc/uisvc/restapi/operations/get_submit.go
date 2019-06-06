@@ -28,7 +28,7 @@ func GetSubmit(h *handlers.H, ctx *gin.Context, processingHandler handlers.Handl
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(errors.New(jsonErr).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{
@@ -41,12 +41,12 @@ func GetSubmit(h *handlers.H, ctx *gin.Context, processingHandler handlers.Handl
 			logger = logger.WithUser(user)
 		}
 
-		logger.Debug("incoming request")
+		logger.Debug(ctx.Request.Context(), "incoming request")
 
 		defer func() {
 			logger.WithFields(log.FieldMap{
 				"duration": time.Since(start).String(),
-			}).Debug("request completed")
+			}).Debug(ctx.Request.Context(), "request completed")
 		}()
 	}
 

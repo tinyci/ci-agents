@@ -19,7 +19,7 @@ type DataClient struct {
 
 // NewDataClient returns a new datasvc client with window dressings for tests.
 func NewDataClient() (*DataClient, *errors.Error) {
-	ops, err := data.New("localhost:6000", nil)
+	ops, err := data.New("localhost:6000", nil, false)
 	return &DataClient{client: ops}, err
 }
 

@@ -34,6 +34,7 @@ type UserConfig struct {
 	RequestLogging bool        `yaml:"log_requests"`
 	Port           uint        `yaml:"port"`
 	URL            string      `yaml:"url"`
+	EnableTracing  bool        `yaml:"enable_tracing"`
 }
 
 // Service is the internal configuration for a service
@@ -103,7 +104,7 @@ func (cc *ClientConfig) Validate() *errors.Error {
 }
 
 // CreateClients creates all the clients that are populated in the clients struct
-func (cc *ClientConfig) CreateClients(service string) (*Clients, *errors.Error) {
+func (cc *ClientConfig) CreateClients(uc UserConfig, service string) (*Clients, *errors.Error) {
 	if err := cc.Validate(); err != nil {
 		return nil, err
 	}
@@ -116,13 +117,13 @@ func (cc *ClientConfig) CreateClients(service string) (*Clients, *errors.Error) 
 	clients := &Clients{}
 
 	if cc.Log != "" {
-		log.ConfigureRemote(cc.Log, clientCert)
+		log.ConfigureRemote(cc.Log, clientCert, uc.EnableTracing)
 	}
 
 	clients.Log = log.New().WithService(service)
 
 	if cc.Data != "" {
-		dc, err := data.New(cc.Data, clientCert)
+		dc, err := data.New(cc.Data, clientCert, uc.EnableTracing)
 		if err != nil {
 			return nil, err
 		}
@@ -131,7 +132,7 @@ func (cc *ClientConfig) CreateClients(service string) (*Clients, *errors.Error) 
 	}
 
 	if cc.Queue != "" {
-		qc, err := queue.New(cc.Queue, clientCert)
+		qc, err := queue.New(cc.Queue, clientCert, uc.EnableTracing)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +141,7 @@ func (cc *ClientConfig) CreateClients(service string) (*Clients, *errors.Error) 
 	}
 
 	if cc.Asset != "" {
-		lc, err := asset.NewClient(clientCert, cc.Asset)
+		lc, err := asset.NewClient(cc.Asset, clientCert, uc.EnableTracing)
 		if err != nil {
 			return nil, err
 		}
@@ -151,7 +152,7 @@ func (cc *ClientConfig) CreateClients(service string) (*Clients, *errors.Error) 
 	return clients, nil
 }
 
-// CloseClients closes all clients' metrics endpoints.
+// CloseClients closes all clients.
 func (c *Clients) CloseClients() {
 	if c.Asset != nil {
 		c.Asset.Close()

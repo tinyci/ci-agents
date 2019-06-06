@@ -71,18 +71,18 @@ func (h *Handler) Init() *errors.Error {
 		return err
 	}
 
-	h.queueClient, err = queue.New(h.Config.QueueEndpoint, cert)
+	h.queueClient, err = queue.New(h.Config.QueueEndpoint, cert, false)
 	if err != nil {
 		return err
 	}
 
-	h.dataClient, err = data.New(h.Config.DataEndpoint, cert)
+	h.dataClient, err = data.New(h.Config.DataEndpoint, cert, false)
 	if err != nil {
 		return err
 	}
 
 	if h.Config.LogEndpoint != "" {
-		log.ConfigureRemote(h.Config.LogEndpoint, cert)
+		log.ConfigureRemote(h.Config.LogEndpoint, cert, false)
 	}
 
 	h.logClient = log.NewWithData("hooksvc", nil)

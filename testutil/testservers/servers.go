@@ -62,7 +62,7 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 		},
 	}
 
-	d, err := d.New("localhost:6000", nil)
+	d, err := d.New("localhost:6000", nil, false)
 	if err != nil {
 		return nil, nil, nil, nil, errors.New(err)
 	}

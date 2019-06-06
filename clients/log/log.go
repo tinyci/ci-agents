@@ -36,7 +36,8 @@ type Client struct {
 func (c *Client) Close() error {
 	remoteMutex.Lock()
 	defer remoteMutex.Unlock()
-	if !c.closed {
+
+	if !c.closed && c.closer != nil {
 		c.closed = true
 		return c.closer.Close()
 	}
@@ -94,13 +95,21 @@ func (f *Fields) ToLogrus() map[string]interface{} {
 }
 
 // ConfigureRemote configures the remote endpoint with a provided URL.
-func ConfigureRemote(addr string, cert *transport.Cert) *errors.Error {
+func ConfigureRemote(addr string, cert *transport.Cert, trace bool) *errors.Error {
 	remoteMutex.Lock()
 	defer remoteMutex.Unlock()
 
-	closer, options, eErr := utils.SetUpGRPCTracing("log")
-	if eErr != nil {
-		return eErr
+	var (
+		closer  io.Closer
+		options []grpc.DialOption
+		eErr    *errors.Error
+	)
+
+	if trace {
+		closer, options, eErr = utils.SetUpGRPCTracing("log")
+		if eErr != nil {
+			return eErr
+		}
 	}
 
 	client, err := transport.GRPCDial(cert, addr, options...)

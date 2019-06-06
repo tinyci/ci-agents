@@ -19,10 +19,18 @@ type Client struct {
 }
 
 // NewClient creates a new *Client for use.
-func NewClient(cert *transport.Cert, addr string) (*Client, *errors.Error) {
-	closer, options, eErr := utils.SetUpGRPCTracing("asset")
-	if eErr != nil {
-		return nil, eErr
+func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, *errors.Error) {
+	var (
+		closer  io.Closer
+		options []grpc.DialOption
+		eErr    *errors.Error
+	)
+
+	if trace {
+		closer, options, eErr = utils.SetUpGRPCTracing("asset")
+		if eErr != nil {
+			return nil, eErr
+		}
 	}
 
 	t, err := transport.GRPCDial(cert, addr, options...)
@@ -34,7 +42,11 @@ func NewClient(cert *transport.Cert, addr string) (*Client, *errors.Error) {
 
 // Close closes the client's tracing functionality
 func (c *Client) Close() error {
-	return c.closer.Close()
+	if c.closer != nil {
+		return c.closer.Close()
+	}
+
+	return nil
 }
 
 // Write writes a log at id with the supplied reader providing the content.
