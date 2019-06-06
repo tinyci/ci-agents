@@ -79,7 +79,9 @@ func serve(ctx *cli.Context) error {
 		<-sigChan
 		close(doneChan)
 		<-finished
-		closer.Close()
+		if closer != nil {
+			closer.Close()
+		}
 		os.Exit(0)
 	}()
 	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
