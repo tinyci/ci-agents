@@ -1,4 +1,5 @@
-mountpoint: "/go/src/github.com/tinyci/ci-agents/ci-gen"
+mountpoint: "/go/src/github.com/tinyci/ci-agents"
+workdir: "/go/src/github.com/tinyci/ci-agents/ci-gen"
 default_image: tinyci/ci-gen:05.27.2019
 runs:
   gen-clean:

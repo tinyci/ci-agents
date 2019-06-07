@@ -1,13 +1,21 @@
 VERSION=$(shell cat VERSION)
 CONTAINER_DIR=/go/src/github.com/tinyci/ci-agents
+
+STD_BOXFILE=box-builds/box.rb
+BUILD_BOXFILE=box-builds/box-build.rb
+RELEASE_BOXFILE=box-builds/box-release.rb
+
 DOCKER_RUN=docker run \
 					 --rm -it
 DOCKER_CONTAINER_DIR=-v ${PWD}:$(CONTAINER_DIR) \
 								-w $(CONTAINER_DIR)
+
 DEMO_DOCKER_IMAGE=tinyci-agents
 DEBUG_DOCKER_IMAGE=tinyci-agents-debug
 TEST_DOCKER_IMAGE=tinyci-agents-test
 BUILD_DOCKER_IMAGE=tinyci-build
+
+
 
 DEBUG_PORTS= -p 3000:3000 \
 								-p 6000:6000 \
@@ -95,7 +103,7 @@ dist: build-build-image distclean build
 	tar -C build -cvzf tinyci-$(VERSION).tar.gz tinyci-$(VERSION)
 
 release: distclean dist
-	VERSION="$(VERSION)" box -t "tinyci/release:$(VERSION)" box-release.rb
+	VERSION="$(VERSION)" box -t "tinyci/release:$(VERSION)" $(RELEASE_BOXFILE)
 
 demo: build-demo-image
 	$(DEMO_DOCKER_RUN) make start-services
@@ -104,22 +112,22 @@ clean-demo: build-demo-image
 	$(DOCKER_RUN) --entrypoint /bin/bash -v ${PWD}/.ca:/var/ca -v ${PWD}/.logs:/var/tinyci/logs -v ${PWD}/.db:/var/lib/postgresql $(DEMO_DOCKER_IMAGE) -c "rm -rf /var/lib/postgresql/9.6; rm -rf /var/tinyci/logs/*; rm -rf /var/ca/*"
 
 build-build-image: get-box
-	box -t $(BUILD_DOCKER_IMAGE) box-build.rb
+	box -t $(BUILD_DOCKER_IMAGE) $(BUILD_BOXFILE)
 
 build-demo-image: get-box
-	box -t $(DEMO_DOCKER_IMAGE) box.rb
+	box -t $(DEMO_DOCKER_IMAGE) $(STD_BOXFILE)
 
 build-debug-image: get-box
-	DEBUG=1 box -t $(DEBUG_DOCKER_IMAGE) box.rb
+	DEBUG=1 box -t $(DEBUG_DOCKER_IMAGE) $(STD_BOXFILE)
 
 update-demo-image: get-box
-	DEBUG=1 box -n -t $(DEBUG_DOCKER_IMAGE) box.rb
+	DEBUG=1 box -n -t $(DEBUG_DOCKER_IMAGE) $(STD_BOXFILE)
 
 update-image: get-box
-	TESTING=1 box -t $(TEST_DOCKER_IMAGE) -n box.rb
+	TESTING=1 box -t $(TEST_DOCKER_IMAGE) -n $(STD_BOXFILE)
 
 build-image: get-box
-	TESTING=1 box -t $(TEST_DOCKER_IMAGE) box.rb
+	TESTING=1 box -t $(TEST_DOCKER_IMAGE) $(STD_BOXFILE)
 
 get-box:
 	@if [ ! -f "$(shell which box)" ]; \
