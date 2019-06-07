@@ -1,8 +1,8 @@
 ---
 env:
   - CI=1
-mountpoint: "/go/src/github.com/tinyci/ci-gen"
-workdir: "/go/src/github.com/tinyci/ci-gen/gen/javascript"
+mountpoint: "/go/src/github.com/tinyci/ci-agents"
+workdir: "/go/src/github.com/tinyci/ci-agents/ci-gen/gen/javascript"
 default_image: node:8
 runs:
   dist:
