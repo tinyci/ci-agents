@@ -37,9 +37,16 @@ func (dc *DataClient) MakeUser(username string) (*model.User, *errors.Error) {
 }
 
 // MakeRepo saves a repo with name, owner, and private state.
-func (dc *DataClient) MakeRepo(fullRepo, owner string, private bool) *errors.Error {
+func (dc *DataClient) MakeRepo(fullRepo, owner string, private bool, forkOf string) *errors.Error {
 	repos := []interface{}{
 		map[string]interface{}{"full_name": fullRepo, "private": private},
+	}
+
+	if forkOf != "" {
+		repos[0].(map[string]interface{})["fork"] = true
+		repos[0].(map[string]interface{})["parent"] = map[string]interface{}{
+			"full_name": forkOf, "private": private,
+		}
 	}
 
 	ghRepos := []*github.Repository{}
@@ -61,7 +68,7 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, *errors.Error) {
 
 	parentRepoOwner, parentRepoName := testutil.RandString(8), testutil.RandString(8)
 	repoName := path.Join(parentRepoOwner, parentRepoName)
-	if err := dc.MakeRepo(repoName, username, false); err != nil {
+	if err := dc.MakeRepo(repoName, username, false, ""); err != nil {
 		return nil, err
 	}
 
@@ -72,7 +79,7 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, *errors.Error) {
 
 	forkRepoOwner, forkRepoName := testutil.RandString(8), testutil.RandString(8)
 	forkName := path.Join(forkRepoOwner, forkRepoName)
-	if err := dc.MakeRepo(forkName, username, false); err != nil {
+	if err := dc.MakeRepo(forkName, username, false, repoName); err != nil {
 		return nil, err
 	}
 

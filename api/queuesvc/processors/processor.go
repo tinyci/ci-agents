@@ -11,6 +11,7 @@ import (
 	gh "github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/clients/github"
+	"github.com/tinyci/ci-agents/clients/log"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
@@ -27,6 +28,21 @@ type InternalSubmission struct {
 	ParentRepo *model.Repository
 	ParentRef  *model.Ref
 	Ref        *model.Ref
+}
+
+func getLogger(sub *types.Submission, h *handler.H) *log.SubLogger {
+	if sub != nil {
+		return h.Clients.Log.WithFields(log.FieldMap{
+			"parent":       sub.Parent,
+			"fork":         sub.Fork,
+			"head":         sub.HeadSHA,
+			"base":         sub.BaseSHA,
+			"manual":       fmt.Sprintf("%v", sub.Manual),
+			"submitted_by": sub.SubmittedBy,
+			"all":          fmt.Sprintf("%v", sub.All),
+		})
+	}
+	return h.Clients.Log
 }
 
 func makeQueueItemsFromTask(h *handler.H, client github.Client, is *InternalSubmission, dir string, task *model.Task) ([]*model.QueueItem, *errors.Error) {
@@ -70,18 +86,18 @@ func makeQueueItemsFromTask(h *handler.H, client github.Client, is *InternalSubm
 // GenerateQueueItems is the final stage in the process that generates the
 // queue items that will be passed on to runners. It is assumed these queue
 // items must still be posted to the data svc.
-func GenerateQueueItems(h *handler.H, client github.Client, is *InternalSubmission) ([]*model.QueueItem, *errors.Error) {
+func GenerateQueueItems(ctx context.Context, h *handler.H, client github.Client, is *InternalSubmission) ([]*model.QueueItem, *errors.Error) {
 	qis := []*model.QueueItem{}
 
 	if err := h.Clients.Data.CancelRefByName(is.Ref.Repository.ID, is.Ref.RefName); err != nil {
-		// FIXME we should log this, but not stop on it.
-		fmt.Printf("Couldn't cancel ref %q repo %d; will continue anyway: %v\n", is.Ref.RefName, is.ParentRepo.ID, err)
+		getLogger(is.Sub, h).Errorf(ctx, "Couldn't cancel ref %q repo %d; will continue anyway: %v\n", is.Ref.RefName, is.ParentRepo.ID, err)
 	}
 
 	if err := client.ClearStates(is.Sub.Parent, is.Sub.HeadSHA); err != nil {
-		// FIXME we should log this, but not stop on it.
-		fmt.Printf("Couldn't clear states for repo %q ref %q: %v", is.Sub.Parent, is.Sub.HeadSHA, err)
+		getLogger(is.Sub, h).Errorf(ctx, "Couldn't clear states for repo %q ref %q: %v", is.Sub.Parent, is.Sub.HeadSHA, err)
 	}
+
+	taskDirTime := time.Now()
 
 	taskdirs := []string{}
 
@@ -91,6 +107,7 @@ func GenerateQueueItems(h *handler.H, client github.Client, is *InternalSubmissi
 
 	tasks := map[string]*model.Task{}
 
+	getLogger(is.Sub, h).Info(ctx, "Computing task dirs")
 	for i := 0; i < len(taskdirs); i++ {
 		dir := taskdirs[i]
 
@@ -131,6 +148,11 @@ func GenerateQueueItems(h *handler.H, client github.Client, is *InternalSubmissi
 		}
 	}
 
+	getLogger(is.Sub, h).Infof(ctx, "Computing task dirs took %v", time.Since(taskDirTime))
+
+	queueCreateTime := time.Now()
+
+	getLogger(is.Sub, h).Info(ctx, "Generating Queue Items")
 	for dir, task := range tasks {
 		if err := task.Validate(); err != nil {
 			// an error here merely means the task is invalid (probably because it
@@ -151,6 +173,7 @@ func GenerateQueueItems(h *handler.H, client github.Client, is *InternalSubmissi
 
 		qis = append(qis, tmpQIs...)
 	}
+	getLogger(is.Sub, h).Infof(ctx, "Computing queue items took %v", time.Since(queueCreateTime))
 
 	return qis, nil
 }
@@ -364,7 +387,7 @@ func GetRepoConfig(client github.Client, sub *types.Submission) (*types.RepoConf
 	return types.NewRepoConfig(content)
 }
 
-func resolveParentInfo(h *handler.H, sub *types.Submission) (*types.Submission, *errors.Error) {
+func resolveParentInfo(ctx context.Context, h *handler.H, sub *types.Submission) (*types.Submission, *errors.Error) {
 	// to do this properly, we take the submitted by argument in the case of a
 	// manual submission. In the uisvc, this is taken from session data -- never
 	// from foreign input so unless a foreign agent can submit directly to the
@@ -385,20 +408,32 @@ func resolveParentInfo(h *handler.H, sub *types.Submission) (*types.Submission, 
 		return nil, err
 	}
 
+	// this is ok; if modelRepo is nil then it's disabled.
+	modelRepo, err := h.Clients.Data.GetRepository(sub.Fork)
+	enabled := err == nil && !modelRepo.Disabled
+
 	// FIXME this fork management logic should really be in the model
-	if repo.GetFork() {
+	if !enabled && repo.GetFork() {
 		sub.Parent = repo.GetParent().GetFullName()
+		getLogger(sub, h).Info(ctx, "Selected parent of fork")
 	} else {
 		sub.Parent = sub.Fork
+		getLogger(sub, h).Info(ctx, "Selected fork; is directly enabled")
 	}
 
 	if _, _, err := utils.OwnerRepo(sub.Parent); err != nil {
 		return nil, err
 	}
 
-	ciRepo, err := h.Clients.Data.GetRepository(sub.Parent)
-	if err != nil {
-		return nil, err
+	var ciRepo *model.Repository
+	if sub.Parent == sub.Fork {
+		ciRepo = modelRepo
+	} else {
+		var err *errors.Error
+		ciRepo, err = h.Clients.Data.GetRepository(sub.Parent)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if ciRepo.Disabled {
@@ -422,18 +457,23 @@ func Process(ctx context.Context, h *handler.H, sub *types.Submission) (retQI []
 	since := time.Now()
 
 	defer func() {
-		h.Clients.Log.Infof(ctx, "Processing Submission took %v", time.Since(since))
+		getLogger(sub, h).Infof(ctx, "Processing Submission took %v", time.Since(since))
+
+		if retErr != nil {
+			getLogger(sub, h).Errorf(ctx, "Submission error: %v", retErr)
+		}
 
 		if retErr != nil && is != nil && is.ParentRepo.Owner != nil {
+			getLogger(sub, h).Errorf(ctx, "Error processing submission; sending status to repo commit")
 			client := h.OAuth.GithubClient(is.ParentRepo.Owner.Token)
 			owner, repo, err := is.ParentRepo.OwnerRepo()
 			if err != nil {
-				h.Clients.Log.Error(ctx, err.Wrapf("%s/%s", owner, repo))
+				getLogger(sub, h).Error(ctx, err.Wrapf("%s/%s", owner, repo))
 				return
 			}
 
 			if err := client.FinishedStatus(owner, repo, "*global*", is.Ref.SHA, h.URL, false, fmt.Sprintf("failed to start job: %v", retErr)); err != nil {
-				h.Clients.Log.Error(ctx, err)
+				getLogger(sub, h).Error(ctx, err)
 			}
 		}
 	}()
@@ -444,7 +484,7 @@ func Process(ctx context.Context, h *handler.H, sub *types.Submission) (retQI []
 
 	if sub.Manual {
 		var err *errors.Error
-		if sub, err = resolveParentInfo(h, sub); err != nil {
+		if sub, err = resolveParentInfo(ctx, h, sub); err != nil {
 			return nil, err
 		}
 	}
@@ -484,5 +524,5 @@ func Process(ctx context.Context, h *handler.H, sub *types.Submission) (retQI []
 		ParentRef:  parentRef,
 	}
 
-	return GenerateQueueItems(h, client, is)
+	return GenerateQueueItems(ctx, h, client, is)
 }

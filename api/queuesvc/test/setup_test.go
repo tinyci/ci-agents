@@ -42,8 +42,12 @@ func (qs *queuesvcSuite) SetUpTest(c *check.C) {
 	qs.dataHandler, qs.dataDoneChan, err = testservers.MakeDataServer()
 	c.Assert(err, check.IsNil)
 
-	qs.logHandler, qs.logDoneChan, _, err = testservers.MakeLogServer()
+	var lj *testservers.LogJournal
+
+	qs.logHandler, qs.logDoneChan, lj, err = testservers.MakeLogServer()
 	c.Assert(err, check.IsNil)
+
+	go lj.Tail()
 
 	qs.queueHandler, qs.queueDoneChan, err = testservers.MakeQueueServer()
 	c.Assert(err, check.IsNil)

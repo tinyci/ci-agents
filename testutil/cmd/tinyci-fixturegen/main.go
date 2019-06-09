@@ -126,7 +126,7 @@ func (c *cmd) mkParents(users []*model.User) (model.RepositoryList, *errors.Erro
 	for i := rand.Intn(int(c.ctx.GlobalUint("repositories"))) + 1; i >= 0; i-- {
 		ou := users[rand.Intn(len(users))]
 		name := strings.Join([]string{c.getString(), c.getString()}, "/")
-		if err := c.dc.MakeRepo(name, ou.Username, c.ctx.GlobalBool("private")); err != nil {
+		if err := c.dc.MakeRepo(name, ou.Username, c.ctx.GlobalBool("private"), ""); err != nil {
 			return nil, err
 		}
 
