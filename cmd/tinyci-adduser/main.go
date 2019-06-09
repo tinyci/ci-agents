@@ -3,27 +3,27 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	transport "github.com/erikh/go-transport"
-	"github.com/sirupsen/logrus"
 	"github.com/tinyci/ci-agents/clients/data"
+	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/errors"
+	"github.com/tinyci/ci-agents/model"
+	"github.com/tinyci/ci-agents/types"
 	"github.com/urfave/cli"
 )
 
 // Version is the version of this service.
 const Version = "1.0.0"
 
-const walkIncrement = 100
-
 // TinyCIVersion is the version of tinyci supporting this service.
 var TinyCIVersion = "" // to be changed by build processes
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "cancelbot"
-	app.Description = "cancelbot is a cron-based observer for canceling dangling jobs"
+	app.Name = "tinyci-adduser"
+	app.Description = "tinyci-adduser creates a user from a pre-generated token and generates token auth for it"
+	app.ArgsUsage = "[github token]"
 	app.Action = run
 	app.Version = fmt.Sprintf("%s (tinyCI version %s)", Version, TinyCIVersion)
 
@@ -31,16 +31,6 @@ func main() {
 		cli.BoolFlag{
 			Name:  "dry-run, n",
 			Usage: "Just print what runs would be canceled, but don't do anything",
-		},
-		cli.DurationFlag{
-			Name:  "timeout, t",
-			Usage: "After this time, cancel the run",
-			Value: 3 * time.Hour,
-		},
-		cli.IntFlag{
-			Name:  "limit, l",
-			Usage: "Limit to last N runs: set to 0 to not limit",
-			Value: 1000,
 		},
 		cli.StringFlag{
 			Name:  "datasvc, d",
@@ -67,6 +57,10 @@ func main() {
 }
 
 func run(ctx *cli.Context) error {
+	if len(ctx.Args()) != 1 {
+		return errors.New("See --help for more information on how to use this tool")
+	}
+
 	var cert *transport.Cert
 
 	if !(ctx.GlobalString("cacert") == "" && ctx.GlobalString("cert") == "" && ctx.GlobalString("key") == "") {
@@ -84,25 +78,37 @@ func run(ctx *cli.Context) error {
 	}
 	defer client.Close()
 
-	for count := ctx.GlobalInt("limit"); count >= 0; count -= walkIncrement {
-		runs, err := client.ListRuns("", "", int64(count/walkIncrement), walkIncrement)
-		if err != nil {
-			return err
-		}
+	token := ctx.Args()[0]
 
-		for _, run := range runs {
-			if run.Status == nil && time.Since(run.CreatedAt) > ctx.GlobalDuration("timeout") {
-				if ctx.GlobalBool("dry-run") {
-					logrus.Infof("Would cancel run %d, repository %v, ref %v, name %v -- %v old", run.ID, run.Task.Parent.Name, run.Task.Ref.RefName, run.Name, time.Since(run.CreatedAt))
-				} else {
-					if err := client.SetCancel(run.ID); err != nil {
-						return err
-					}
-					logrus.Infof("Canceled run %d, repository %v, ref %v, name %v -- %v old", run.ID, run.Task.Parent.Name, run.Task.Ref.RefName, run.Name, time.Since(run.CreatedAt))
-				}
-			}
-		}
+	github := github.NewClientFromAccessToken(token)
+
+	login, err := github.MyLogin()
+	if err != nil {
+		return err
 	}
+
+	fmt.Printf("+++ Creating user %s\n", login)
+
+	u := &model.User{
+		Username: login,
+		Token: &types.OAuthToken{
+			Token:    token,
+			Username: login,
+			Scopes:   []string{},
+		},
+	}
+
+	if _, err := client.PutUser(u); err != nil {
+		return err
+	}
+
+	tinyCIToken, err := client.GetToken(login)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("+++ Generated tinyCI token is:")
+	fmt.Println(tinyCIToken)
 
 	return nil
 }
