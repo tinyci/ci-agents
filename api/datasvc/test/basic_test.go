@@ -138,7 +138,7 @@ func (ds *datasvcSuite) TestRepositories(c *check.C) {
 		owner := testutil.RandString(8) + "_" + strconv.Itoa(i)
 		repo := testutil.RandString(8)
 		fullRepo := path.Join(owner, repo)
-		c.Assert(ds.client.MakeRepo(fullRepo, username, i%2 == 0), check.IsNil)
+		c.Assert(ds.client.MakeRepo(fullRepo, username, i%2 == 0, ""), check.IsNil)
 		repos = append(repos, fullRepo)
 	}
 
@@ -195,7 +195,7 @@ func (ds *datasvcSuite) TestSubscriptions(c *check.C) {
 		owner := testutil.RandString(8) + "_" + strconv.Itoa(i)
 		repo := testutil.RandString(8)
 		fullRepo := path.Join(owner, repo)
-		c.Assert(ds.client.MakeRepo(fullRepo, username, false), check.IsNil)
+		c.Assert(ds.client.MakeRepo(fullRepo, username, false, ""), check.IsNil)
 		repos = append(repos, fullRepo)
 	}
 
@@ -218,7 +218,7 @@ func (ds *datasvcSuite) TestSubscriptions(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(len(subs), check.Equals, 1)
 
-	c.Assert(ds.client.MakeRepo("erikh/private", username, true), check.IsNil)
+	c.Assert(ds.client.MakeRepo("erikh/private", username, true, ""), check.IsNil)
 	c.Assert(
 		ds.client.Client().AddSubscription(username2, "erikh/private"),
 		check.NotNil,
@@ -307,7 +307,7 @@ func (ds *datasvcSuite) TestRef(c *check.C) {
 
 	ownerName, repoName := testutil.RandString(8), testutil.RandString(8)
 
-	c.Assert(ds.client.MakeRepo(path.Join(ownerName, repoName), username, false), check.IsNil)
+	c.Assert(ds.client.MakeRepo(path.Join(ownerName, repoName), username, false, ""), check.IsNil)
 
 	repo, err := ds.client.Client().GetRepository(path.Join(ownerName, repoName))
 	c.Assert(err, check.IsNil)
