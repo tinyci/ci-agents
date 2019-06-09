@@ -88,7 +88,7 @@ func (qs *queuesvcSuite) TestManualSubmissionOfAddedFork(c *check.C) {
 	}
 
 	c.Assert(qs.queuesvcClient.SetMockSubmissionOnFork(qs.getMock(), sub, "erikh/foobar", "be3d26c478991039e951097f2c99f56b55396940"), check.IsNil)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	c.Assert(qs.queuesvcClient.Client().Submit(ctx, sub), check.IsNil)
 	defer cancel()
 
@@ -106,7 +106,7 @@ func (qs *queuesvcSuite) TestManualSubmissionOfAddedFork(c *check.C) {
 	}
 
 	c.Assert(qs.queuesvcClient.SetMockSubmissionOnFork(qs.getMock(), sub, "erikh/foobar", "be3d26c478991039e951097f2c99f56b55396940"), check.IsNil)
-	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	c.Assert(qs.queuesvcClient.Client().Submit(ctx, sub), check.NotNil)
 	defer cancel()
 }
