@@ -22,8 +22,8 @@ var TinyCIVersion = "" // to be changed by build processes
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "datasvc"
-	app.Description = "datasvc is the conduit for tinyCI to talk to a data store.\n"
+	app.Name = "cancelbot"
+	app.Description = "cancelbot is a cron-based observer for canceling dangling jobs"
 	app.Action = run
 	app.Version = fmt.Sprintf("%s (tinyCI version %s)", Version, TinyCIVersion)
 
