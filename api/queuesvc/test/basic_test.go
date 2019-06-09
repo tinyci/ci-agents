@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path"
 	"strings"
+	"time"
 
 	check "github.com/erikh/check"
 	"github.com/golang/mock/gomock"
@@ -36,8 +37,8 @@ func (qs *queuesvcSuite) TestBadYAML(c *check.C) {
 		PullRequest: 10,
 	}
 
-	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false), check.IsNil)
-	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar2", "erikh", false), check.IsNil)
+	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false, ""), check.IsNil)
+	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar2", "erikh", false, "erikh/foobar"), check.IsNil)
 
 	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
 
@@ -70,6 +71,46 @@ func (qs *queuesvcSuite) TestBadYAML(c *check.C) {
 	c.Assert(len(runs), check.Equals, 0)
 }
 
+func (qs *queuesvcSuite) TestManualSubmissionOfAddedFork(c *check.C) {
+	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
+
+	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo("erikh/foobar2", "erikh/foobar"), check.IsNil)
+	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false, ""), check.IsNil)
+	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar2", "erikh", false, "erikh/foobar"), check.IsNil)
+	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar3", "erikh", false, "erikh/foobar"), check.IsNil)
+
+	sub := &types.Submission{
+		Fork:        "erikh/foobar2",
+		HeadSHA:     "heads/master",
+		All:         true,
+		Manual:      true,
+		SubmittedBy: "erikh",
+	}
+
+	c.Assert(qs.queuesvcClient.SetMockSubmissionOnFork(qs.getMock(), sub, "erikh/foobar", "be3d26c478991039e951097f2c99f56b55396940"), check.IsNil)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	c.Assert(qs.queuesvcClient.Client().Submit(ctx, sub), check.IsNil)
+	defer cancel()
+
+	runs, err := qs.datasvcClient.Client().ListRuns("erikh/foobar2", "", 0, 100)
+	c.Assert(err, check.IsNil)
+	c.Assert(len(runs), check.Equals, 15)
+
+	// not added
+	sub = &types.Submission{
+		Fork:        "erikh/foobar3",
+		HeadSHA:     "heads/master",
+		All:         true,
+		Manual:      true,
+		SubmittedBy: "erikh",
+	}
+
+	c.Assert(qs.queuesvcClient.SetMockSubmissionOnFork(qs.getMock(), sub, "erikh/foobar", "be3d26c478991039e951097f2c99f56b55396940"), check.IsNil)
+	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
+	c.Assert(qs.queuesvcClient.Client().Submit(ctx, sub), check.NotNil)
+	defer cancel()
+}
+
 func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
 
@@ -88,7 +129,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 		Manual:      true,
 	}
 
-	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent), check.IsNil)
+	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
 	qs.getMock().GetSHA(sub.Fork, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396940", nil)
 	qs.getMock().GetSHA(sub.Parent, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396941", nil)
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
@@ -181,7 +222,7 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 		PullRequest: 10,
 	}
 
-	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent), check.IsNil)
+	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
 
@@ -198,7 +239,7 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 		PullRequest: 10,
 	}
 
-	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent), check.IsNil)
+	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
 
@@ -220,8 +261,8 @@ func (qs *queuesvcSuite) TestSubmission(c *check.C) {
 		PullRequest: 10,
 	}
 
-	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false), check.IsNil)
-	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar2", "erikh", false), check.IsNil)
+	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false, ""), check.IsNil)
+	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar2", "erikh", false, "erikh/foobar"), check.IsNil)
 
 	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
 
@@ -285,8 +326,8 @@ func (qs *queuesvcSuite) TestDependencies(c *check.C) {
 		PullRequest: 10,
 	}
 
-	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false), check.IsNil)
-	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar2", "erikh", false), check.IsNil)
+	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false, ""), check.IsNil)
+	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar2", "erikh", false, "erikh/foobar"), check.IsNil)
 
 	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
 
@@ -350,7 +391,7 @@ func (qs *queuesvcSuite) TestBasic(c *check.C) {
 
 	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
 
-	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false), check.IsNil)
+	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false, ""), check.IsNil)
 	c.Assert(qs.datasvcClient.Client().EnableRepository("erikh", "erikh/foobar"), check.IsNil)
 
 	gomock.InOrder(
@@ -441,6 +482,7 @@ func (qs *queuesvcSuite) TestBasic(c *check.C) {
 
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
 	qis, err := processors.GenerateQueueItems(
+		context.Background(),
 		qs.queueHandler,
 		config.DefaultGithubClient,
 		&processors.InternalSubmission{

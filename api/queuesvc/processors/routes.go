@@ -125,11 +125,21 @@ func (qs *QueueServer) Submit(ctx context.Context, sub *queue.Submission) (*empt
 		Manual:      sub.Manual,
 	}
 
+	submissionLogger := qs.H.Clients.Log.WithFields(
+		log.FieldMap{
+			"parent": sub.Parent,
+			"fork":   sub.Fork,
+			"head":   sub.Headsha,
+			"base":   sub.Basesha,
+		})
+
 	qis, err := Process(ctx, qs.H, submission)
 	if err != nil {
+		submissionLogger.Errorf(ctx, "Post-processing error: %v", err)
 		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
+	submissionLogger.Infof(ctx, "Putting %d queue items from submissions", len(qis))
 	if err := doSubmit(ctx, qs.H, qis); err != nil {
 		for _, qi := range qis {
 			qs.H.Clients.Data.PutStatus(qi.Run.ID, false, fmt.Sprintf("Canceled due to error: %v", err))

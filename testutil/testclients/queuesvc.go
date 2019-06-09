@@ -32,7 +32,7 @@ func (qc *QueueClient) Client() *queue.Client {
 
 // SetUpSubmissionRepo takes a name of a repo; and configures the submission
 // repo and a user belonging to it. Returns the name of the owner and any error.
-func (qc *QueueClient) SetUpSubmissionRepo(name string) *errors.Error {
+func (qc *QueueClient) SetUpSubmissionRepo(name string, forkOf string) *errors.Error {
 	parentUser, _, err := utils.OwnerRepo(name)
 	if err != nil {
 		return err
@@ -42,12 +42,54 @@ func (qc *QueueClient) SetUpSubmissionRepo(name string) *errors.Error {
 		return err
 	}
 
-	if err := qc.dataClient.MakeRepo(name, parentUser, false); err != nil {
+	if err := qc.dataClient.MakeRepo(name, parentUser, false, forkOf); err != nil {
 		return err
 	}
 
 	if err := qc.dataClient.Client().EnableRepository(parentUser, name); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// SetMockSubmissionOnFork sets mock submissions for fork-only repositories. Used in a few tests.
+func (qc *QueueClient) SetMockSubmissionOnFork(mock *github.MockClientMockRecorder, sub *types.Submission, parent, resolvedSHA string) error {
+	repoConfigBytes, err := ioutil.ReadFile("../../testdata/standard_repoconfig.yml")
+	if err != nil {
+		return err
+	}
+
+	taskBytes, err := ioutil.ReadFile("../../testdata/standard_task.yml")
+	if err != nil {
+		return err
+	}
+
+	mock.GetRepository(sub.Fork).Return(&gh.Repository{FullName: gh.String(sub.Fork), Fork: gh.Bool(true), Parent: &gh.Repository{FullName: gh.String(parent)}}, nil)
+	mock.GetSHA(sub.Fork, "heads/master").Return(resolvedSHA, nil)
+	mock.GetSHA(sub.Fork, "heads/master").Return(resolvedSHA, nil)
+	mock.ClearStates(sub.Fork, resolvedSHA).Return(nil)
+	mock.GetRepository(sub.Fork).Return(&gh.Repository{FullName: gh.String(sub.Fork), Fork: gh.Bool(true), Parent: &gh.Repository{FullName: gh.String(parent)}}, nil)
+	mock.GetRefs(sub.Fork, resolvedSHA).Return([]string{"heads/master"}, nil)
+	mock.GetRefs(sub.Fork, resolvedSHA).Return([]string{"heads/master"}, nil)
+	mock.GetDiffFiles(sub.Fork, resolvedSHA, resolvedSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar"}, nil)
+	mock.GetFileList(sub.Fork, resolvedSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar", "bar/task.yml", "bar/quux"}, nil)
+	mock.GetRepository(sub.Fork).Return(&gh.Repository{FullName: gh.String(sub.Fork), Fork: gh.Bool(true), Parent: &gh.Repository{FullName: gh.String(parent)}}, nil)
+	mock.GetRepository(sub.Fork).Return(&gh.Repository{FullName: gh.String(sub.Fork), Fork: gh.Bool(true), Parent: &gh.Repository{FullName: gh.String(parent)}}, nil)
+	mock.GetRepository(sub.Fork).Return(&gh.Repository{FullName: gh.String(sub.Fork), Fork: gh.Bool(true), Parent: &gh.Repository{FullName: gh.String(parent)}}, nil)
+	mock.GetRepository(sub.Fork).Return(&gh.Repository{FullName: gh.String(sub.Fork), Fork: gh.Bool(true), Parent: &gh.Repository{FullName: gh.String(parent)}}, nil)
+	mock.GetFile(sub.Fork, "refs/heads/master", "tinyci.yml").Return(repoConfigBytes, nil)
+
+	mock.GetFile(sub.Fork, resolvedSHA, "bar/task.yml").Return(taskBytes, nil)
+	mock.GetFile(sub.Fork, resolvedSHA, "foo/task.yml").Return(taskBytes, nil)
+	mock.GetFile(sub.Fork, resolvedSHA, "task.yml").Return(taskBytes, nil)
+
+	parts := strings.SplitN(sub.Fork, "/", 2)
+
+	for _, name := range []string{"*root*", "foo", "bar"} {
+		for x := 1; x <= 5; x++ {
+			mock.PendingStatus(parts[0], parts[1], fmt.Sprintf("%s:%d", name, x), resolvedSHA, "url")
+		}
 	}
 
 	return nil
@@ -63,6 +105,10 @@ func (qc *QueueClient) SetMockSubmissionSuccess(mock *github.MockClientMockRecor
 	taskBytes, err := ioutil.ReadFile("../../testdata/standard_task.yml")
 	if err != nil {
 		return err
+	}
+
+	if sub.Parent == "" {
+		sub.Parent = sub.Fork
 	}
 
 	mock.GetRepository(sub.Fork).Return(&gh.Repository{FullName: gh.String(sub.Fork), Fork: gh.Bool(true), Parent: &gh.Repository{FullName: gh.String(sub.Parent)}}, nil)
