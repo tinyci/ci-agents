@@ -293,10 +293,10 @@ func (us *uisvcSuite) TestVisibility(c *check.C) {
 	_, err = us.datasvcClient.MakeUser("erikh-the-third")
 	c.Assert(err, check.IsNil)
 
-	c.Assert(us.datasvcClient.MakeRepo("not-erikh/private-test", "not-erikh", true), check.IsNil)
-	c.Assert(us.datasvcClient.MakeRepo("erikh/private-test", "erikh", true), check.IsNil)
-	c.Assert(us.datasvcClient.MakeRepo("erikh/public", "erikh", false), check.IsNil)
-	c.Assert(us.datasvcClient.MakeRepo("erikh-the-third/public", "erikh-the-third", false), check.IsNil)
+	c.Assert(us.datasvcClient.MakeRepo("not-erikh/private-test", "not-erikh", true, ""), check.IsNil)
+	c.Assert(us.datasvcClient.MakeRepo("erikh/private-test", "erikh", true, ""), check.IsNil)
+	c.Assert(us.datasvcClient.MakeRepo("erikh/public", "erikh", false, ""), check.IsNil)
+	c.Assert(us.datasvcClient.MakeRepo("erikh-the-third/public", "erikh-the-third", false, ""), check.IsNil)
 
 	repos, err := tc.Visible("")
 	c.Assert(err, check.IsNil)
