@@ -29,10 +29,12 @@ gen: build-image
 	$(DOCKER_RUN) -u $$(id -u):$$(id -g) $(DOCKER_CONTAINER_DIR) $(DOCKER_IMAGE) bash gen.sh
 
 gen-javascript:
+	rm -rf $${TARGET_DIR:-${PWD}/gen/javascript}
 	mkdir -p $${TARGET_DIR:-${PWD}/gen/javascript}
-	docker run --rm -u $$(id -u):$$(id -g) -v $${TARGET_DIR:-${PWD}/gen/javascript}:/swagger -v ${PWD}:/local swaggerapi/swagger-codegen-cli generate \
+	docker pull openapitools/openapi-generator-cli:latest
+	docker run --rm -u $$(id -u):$$(id -g) -v $${TARGET_DIR:-${PWD}/gen/javascript}:/swagger -v ${PWD}:/local openapitools/openapi-generator-cli generate \
 		-i /local/swagger/uisvc/swagger.yml \
-		-l javascript \
+		-g typescript-fetch \
 		-o /swagger
 
 swagger-serve:
