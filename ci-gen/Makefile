@@ -34,7 +34,7 @@ gen-javascript:
 	docker pull openapitools/openapi-generator-cli:latest
 	docker run --rm -u $$(id -u):$$(id -g) -v $${TARGET_DIR:-${PWD}/gen/javascript}:/swagger -v ${PWD}:/local openapitools/openapi-generator-cli generate \
 		-i /local/swagger/uisvc/swagger.yml \
-		-g typescript-fetch \
+		-g javascript \
 		-o /swagger
 
 swagger-serve:
