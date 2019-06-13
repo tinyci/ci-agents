@@ -300,6 +300,8 @@ func (qs *queuesvcSuite) TestSubmission(c *check.C) {
 
 	tasks, err := qs.datasvcClient.Client().ListTasks("", "", 0, 100)
 	c.Assert(err, check.IsNil)
+	c.Assert(tasks[0].Runs, check.Not(check.Equals), int64(0))
+	c.Assert(tasks[1].Runs, check.Not(check.Equals), int64(0))
 
 	dirs := map[string]struct{}{}
 
@@ -372,6 +374,8 @@ func (qs *queuesvcSuite) TestDependencies(c *check.C) {
 	tasks, err := qs.datasvcClient.Client().ListTasks("", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(tasks), check.Equals, 2)
+	c.Assert(tasks[0].Runs, check.Not(check.Equals), int64(0))
+	c.Assert(tasks[1].Runs, check.Not(check.Equals), int64(0))
 }
 
 func (qs *queuesvcSuite) TestBasic(c *check.C) {
