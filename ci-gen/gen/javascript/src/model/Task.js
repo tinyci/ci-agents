@@ -86,6 +86,9 @@ class Task {
             if (data.hasOwnProperty('id')) {
                 obj['id'] = ApiClient.convertToType(data['id'], 'Number');
             }
+            if (data.hasOwnProperty('runs')) {
+                obj['runs'] = ApiClient.convertToType(data['runs'], 'Number');
+            }
         }
         return obj;
     }
@@ -152,6 +155,11 @@ Task.prototype['status'] = undefined;
  * @member {Number} id
  */
 Task.prototype['id'] = undefined;
+
+/**
+ * @member {Number} runs
+ */
+Task.prototype['runs'] = undefined;
 
 
 

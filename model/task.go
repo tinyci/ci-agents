@@ -38,6 +38,8 @@ type Task struct {
 	Status     *bool      `json:"status,omitempty"`
 
 	TaskSettings *types.TaskSettings `json:"settings"`
+
+	Runs int64 `json:"runs" gorm:"-"`
 }
 
 // NewTaskFromProto converts the proto representation to the task type.
@@ -64,6 +66,7 @@ func NewTaskFromProto(gt *gtypes.Task) (*Task, *errors.Error) {
 		CreatedAt:     *MakeTime(gt.CreatedAt, false),
 		Status:        MakeStatus(gt.Status, gt.StatusSet),
 		TaskSettings:  types.NewTaskSettingsFromProto(gt.Settings),
+		Runs:          gt.Runs,
 	}, nil
 }
 
@@ -89,6 +92,7 @@ func (t *Task) ToProto() *gtypes.Task {
 		Status:        status,
 		StatusSet:     set,
 		Settings:      t.TaskSettings.ToProto(),
+		Runs:          t.Runs,
 	}
 }
 
@@ -124,7 +128,7 @@ func (t *Task) AfterFind(tx *gorm.DB) error {
 		return errors.New(err).Wrapf("reading task id %d", t.ID)
 	}
 
-	return nil
+	return tx.Model(&Run{}).Where("task_id = ?", t.ID).Count(&t.Runs).Error
 }
 
 // BeforeCreate just calls BeforeSave.

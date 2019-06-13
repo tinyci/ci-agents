@@ -2293,6 +2293,9 @@ func init() {
                 }
               }
             },
+            "runs": {
+              "type": "integer"
+            },
             "settings": {
               "type": "object",
               "properties": {
@@ -2533,6 +2536,9 @@ func init() {
                   }
                 }
               },
+              "runs": {
+                "type": "integer"
+              },
               "settings": {
                 "type": "object",
                 "properties": {
@@ -2718,6 +2724,9 @@ func init() {
                 "type": "string"
               }
             }
+          },
+          "runs": {
+            "type": "integer"
           },
           "settings": {
             "type": "object",

@@ -16,5 +16,6 @@ Name | Type | Description | Notes
 **createdAt** | **Date** |  | [optional] 
 **status** | **Boolean** |  | [optional] 
 **id** | **Number** |  | [optional] 
+**runs** | **Number** |  | [optional] 
 
 

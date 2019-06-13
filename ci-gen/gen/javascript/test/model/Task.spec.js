@@ -126,6 +126,12 @@
       //expect(instance).to.be();
     });
 
+    it('should have the property runs (base name: "runs")', function() {
+      // uncomment below and update the code to test the property runs
+      //var instane = new Uisvc.Task();
+      //expect(instance).to.be();
+    });
+
   });
 
 }));
