@@ -247,6 +247,9 @@ type RunTask struct {
 	// ref
 	Ref *RunTaskRef `json:"ref,omitempty"`
 
+	// runs
+	Runs int64 `json:"runs,omitempty"`
+
 	// settings
 	Settings *RunTaskSettings `json:"settings,omitempty"`
 

@@ -28,6 +28,7 @@ message Task {
   bool                      statusSet     = 11; // Is the status valid?
   TaskSettings              settings      = 12; // TaskSettings associated with the task (parsed task.yml)
   string                    path          = 13; // dirname of the task.yml
+  int64                     runs          = 14; // count of runs for this task
 }
 
 // TaskSettings is the parsed representation to struct of task.yml files.
