@@ -122,3 +122,23 @@ func (ds *DataServer) RemoveCapability(ctx context.Context, cr *data.CapabilityR
 
 	return &empty.Empty{}, nil
 }
+
+// GetCapabilities retrieves the capabilities for a user.
+func (ds *DataServer) GetCapabilities(ctx context.Context, u *types.User) (*data.Capabilities, error) {
+	mu, err := model.NewUserFromProto(u)
+	if err != nil {
+		return &data.Capabilities{}, err.ToGRPC(codes.FailedPrecondition)
+	}
+
+	caps, err := ds.H.Model.GetCapabilities(mu, ds.H.Auth.FixedCapabilities)
+	if err != nil {
+		return &data.Capabilities{}, err.ToGRPC(codes.FailedPrecondition)
+	}
+
+	strCaps := []string{}
+	for _, cap := range caps {
+		strCaps = append(strCaps, string(cap))
+	}
+
+	return &data.Capabilities{Capabilities: strCaps}, nil
+}

@@ -27,7 +27,6 @@ func (ms *modelSuite) TestCapabilityModification(c *check.C) {
 	fixedCaps := map[string][]string{
 		"erikh2": strCaps,
 	}
-
 	u, err := ms.model.CreateUser("erikh", &types.OAuthToken{Token: "dummy"})
 	c.Assert(err, check.IsNil)
 
@@ -39,6 +38,19 @@ func (ms *modelSuite) TestCapabilityModification(c *check.C) {
 		res, err = ms.model.HasCapability(u, cap, fixedCaps)
 		c.Assert(err, check.IsNil)
 		c.Assert(res, check.Equals, true)
+
+		getCaps, err := ms.model.GetCapabilities(u, fixedCaps)
+		c.Assert(err, check.IsNil)
+		listCaps := []string{}
+
+		for _, cap := range getCaps {
+			listCaps = append(listCaps, string(cap))
+		}
+
+		sort.Strings(listCaps)
+
+		c.Assert([]string{string(cap)}, check.DeepEquals, listCaps)
+
 		c.Assert(ms.model.RemoveCapabilityFromUser(u, cap), check.IsNil)
 		res, err = ms.model.HasCapability(u, cap, fixedCaps)
 		c.Assert(err, check.IsNil)
@@ -53,6 +65,20 @@ func (ms *modelSuite) TestCapabilityModification(c *check.C) {
 		c.Assert(err, check.IsNil)
 		c.Assert(res, check.Equals, true)
 	}
+
+	getCaps, err := ms.model.GetCapabilities(u2, fixedCaps)
+	c.Assert(err, check.IsNil)
+
+	listCaps := []string{}
+
+	for _, cap := range getCaps {
+		listCaps = append(listCaps, string(cap))
+	}
+
+	sort.Strings(fixedCaps["erikh2"])
+	sort.Strings(listCaps)
+
+	c.Assert(listCaps, check.DeepEquals, fixedCaps["erikh2"])
 }
 
 func (ms *modelSuite) TestUserValidate(c *check.C) {

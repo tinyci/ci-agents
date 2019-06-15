@@ -468,7 +468,12 @@ func addCapability(ctx *cli.Context) error {
 		return err
 	}
 
-	return client.AddCapability(ctx.Args()[0], model.Capability(ctx.Args()[1]))
+	err = client.AddCapability(ctx.Args()[0], model.Capability(ctx.Args()[1]))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func removeCapability(ctx *cli.Context) error {
@@ -481,5 +486,10 @@ func removeCapability(ctx *cli.Context) error {
 		return err
 	}
 
-	return client.RemoveCapability(ctx.Args()[0], model.Capability(ctx.Args()[1]))
+	err = client.RemoveCapability(ctx.Args()[0], model.Capability(ctx.Args()[1]))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

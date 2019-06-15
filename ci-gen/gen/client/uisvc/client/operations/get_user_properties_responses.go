@@ -55,13 +55,19 @@ An object containing user properties
 
 */
 type GetUserPropertiesOK struct {
+	Payload interface{}
 }
 
 func (o *GetUserPropertiesOK) Error() string {
-	return fmt.Sprintf("[GET /user/properties][%d] getUserPropertiesOK ", 200) // #nosec
+	return fmt.Sprintf("[GET /user/properties][%d] getUserPropertiesOK  %+v", 200, o.Payload) // #nosec
 }
 
 func (o *GetUserPropertiesOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	// response payload
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+		return err
+	}
 
 	return nil
 }

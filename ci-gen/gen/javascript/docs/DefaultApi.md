@@ -1532,7 +1532,7 @@ This endpoint does not need any parameter.
 
 ## userPropertiesGet
 
-> userPropertiesGet()
+> {String: Object} userPropertiesGet()
 
 Get information about the current user
 
@@ -1559,7 +1559,7 @@ apiInstance.userPropertiesGet((error, data, response) => {
   if (error) {
     console.error(error);
   } else {
-    console.log('API called successfully.');
+    console.log('API called successfully. Returned data: ' + data);
   }
 });
 ```
@@ -1570,7 +1570,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-null (empty response body)
+**{String: Object}**
 
 ### Authorization
 

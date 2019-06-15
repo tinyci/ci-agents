@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"sort"
 	"strings"
 	"time"
 
@@ -26,6 +27,16 @@ func (us *uisvcSuite) TestCapabilities(c *check.C) {
 	c.Assert(utc.AddCapability("erikh2", "modify:user"), check.NotNil)
 	c.Assert(tc.AddCapability("erikh2", "modify:user"), check.IsNil)
 	c.Assert(utc.AddCapability("erikh2", "modify:ci"), check.IsNil)
+
+	props, err := utc.GetUserProperties()
+	c.Assert(err, check.IsNil)
+	caps := []string{}
+	for _, cap := range props["capabilities"].([]interface{}) {
+		caps = append(caps, cap.(string))
+	}
+
+	sort.Strings(caps)
+	c.Assert(caps, check.DeepEquals, []string{"modify:ci", "modify:user"})
 
 	c.Assert(utc.RemoveCapability("erikh2", "modify:user"), check.IsNil)
 	c.Assert(utc.RemoveCapability("erikh2", "modify:ci"), check.NotNil)
