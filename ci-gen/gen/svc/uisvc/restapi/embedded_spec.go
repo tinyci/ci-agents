@@ -1043,7 +1043,11 @@ func init() {
         "summary": "Get information about the current user",
         "responses": {
           "200": {
-            "description": "An object containing user properties\n"
+            "description": "An object containing user properties\n",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
           },
           "500": {
             "description": "An error occurred. Body has error result.",
@@ -2094,7 +2098,11 @@ func init() {
         "summary": "Get information about the current user",
         "responses": {
           "200": {
-            "description": "An object containing user properties\n"
+            "description": "An object containing user properties\n",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
           },
           "500": {
             "description": "An error occurred. Body has error result.",

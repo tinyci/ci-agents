@@ -61,6 +61,21 @@ func (c *Client) ListUsers() ([]*model.User, *errors.Error) {
 	return u, nil
 }
 
+// GetCapabilities yields the capabilities that belong to the user.
+func (c *Client) GetCapabilities(u *model.User) ([]model.Capability, *errors.Error) {
+	caps, err := c.client.GetCapabilities(context.Background(), u.ToProto())
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	realCaps := []model.Capability{}
+	for _, cap := range caps.Capabilities {
+		realCaps = append(realCaps, model.Capability(cap))
+	}
+
+	return realCaps, nil
+}
+
 // HasCapability returns true if the user has the specified capability.
 func (c *Client) HasCapability(u *model.User, cap model.Capability) (bool, *errors.Error) {
 	res, err := c.client.HasCapability(context.Background(), &data.CapabilityRequest{Id: u.ID, Capability: string(cap)}, grpc.WaitForReady(true))

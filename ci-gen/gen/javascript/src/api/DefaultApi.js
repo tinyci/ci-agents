@@ -1214,7 +1214,7 @@ export default class DefaultApi {
      * Callback function to receive the result of the userPropertiesGet operation.
      * @callback module:api/DefaultApi~userPropertiesGetCallback
      * @param {String} error Error message, if any.
-     * @param data This operation does not return a value.
+     * @param {Object.<String, {String: Object}>} data The data returned by the service call.
      * @param {String} response The complete HTTP response.
      */
 
@@ -1222,6 +1222,7 @@ export default class DefaultApi {
      * Get information about the current user
      * Get information about the current user, such as the username. 
      * @param {module:api/DefaultApi~userPropertiesGetCallback} callback The callback function, accepting three arguments: error, data, response
+     * data is of type: {@link Object.<String, {String: Object}>}
      */
     userPropertiesGet(callback) {
       let postBody = null;
@@ -1238,7 +1239,7 @@ export default class DefaultApi {
       let authNames = ['session', 'token'];
       let contentTypes = [];
       let accepts = ['*/*'];
-      let returnType = null;
+      let returnType = {'String': Object};
       return this.apiClient.callApi(
         '/user/properties', 'GET',
         pathParams, queryParams, headerParams, formParams, postBody,

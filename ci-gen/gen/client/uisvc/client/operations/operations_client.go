@@ -1496,7 +1496,7 @@ func (c *Client) GetToken(ctx context.Context) (string, *errors.Error) {
 }
 
 // GetUserProperties get information about the current user
-func (c *Client) GetUserProperties(ctx context.Context) *errors.Error {
+func (c *Client) GetUserProperties(ctx context.Context) (interface{}, *errors.Error) {
 	route := "/user/properties"
 
 	tmp := *c.url
@@ -1519,31 +1519,37 @@ func (c *Client) GetUserProperties(ctx context.Context) *errors.Error {
 
 	req, err := http.NewRequest("GET", u.String(), bytes.NewBuffer(body))
 	if err != nil {
-		return errors.New(err)
+		return nil, errors.New(err)
 	}
 
 	req.Header.Add("Authorization", c.token)
 
 	resp, err := c.client.Do(req.WithContext(ctx))
 	if err != nil {
-		return errors.New(err)
+		return nil, errors.New(err)
 	}
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
-			return errors.New(err)
+			return nil, errors.New(err)
 		}
 		if origErr == nil {
 			panic("Cannot return 500 without error")
 		}
 
-		return origErr
+		return nil, origErr
 	}
 
 	defer resp.Body.Close()
 
-	return nil
+	var result interface{}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, errors.New(err)
+	}
+
+	return result, nil
 
 }
 

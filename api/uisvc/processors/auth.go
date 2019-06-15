@@ -106,7 +106,13 @@ func GetUserProperties(h *handlers.H, ctx *gin.Context) (interface{}, int, *erro
 		return nil, 500, err
 	}
 
-	ret := map[string]string{}
+	caps, err := h.Clients.Data.GetCapabilities(user)
+	if err != nil {
+		return nil, 500, err
+	}
+
+	ret := map[string]interface{}{}
 	ret["username"] = user.Username
+	ret["capabilities"] = caps
 	return ret, 200, nil
 }

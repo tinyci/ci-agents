@@ -204,6 +204,16 @@ func (c *Client) RemoveCapability(username string, capability model.Capability) 
 	return c.client.DeleteCapabilitiesUsernameCapability(context.Background(), string(capability), username)
 }
 
+// GetUserProperties returns some properties about the requesting account; like username and capabilities.
+func (c *Client) GetUserProperties() (map[string]interface{}, *errors.Error) {
+	res, err := c.client.GetUserProperties(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(map[string]interface{}), nil
+}
+
 // VisibleRepos retrieves the visible repositories to the user, a search may also be provided to limit scope.
 func (c *Client) VisibleRepos(search string) ([]*model.Repository, *errors.Error) {
 	repos, err := c.client.GetRepositoriesVisible(context.Background(), search)

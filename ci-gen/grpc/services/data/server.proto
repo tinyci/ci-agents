@@ -125,12 +125,18 @@ service Data {
   // Validate the auth token -- returns the user if successful
   rpc ValidateToken(types.StringID) returns (types.User)            {}; 
 
+  // Retrieves the capabilities for a user
+  rpc GetCapabilities(types.User)         returns (Capabilities)          {};
   // Returns true if the user has the capability
   rpc HasCapability(CapabilityRequest)    returns (types.Bool)            {};
   // Adds the capability for the user
   rpc AddCapability(CapabilityRequest)    returns (google.protobuf.Empty) {};
   // Removes the capability from the user
   rpc RemoveCapability(CapabilityRequest) returns (google.protobuf.Empty) {};
+}
+
+message Capabilities {
+  repeated string capabilities = 1; // list of capabilities
 }
 
 message CapabilityRequest {

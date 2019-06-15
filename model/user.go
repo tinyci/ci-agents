@@ -296,6 +296,37 @@ func (m *Model) RemoveCapabilityFromUser(u *User, cap Capability) *errors.Error 
 	return m.WrapError(m.Exec("delete from user_capabilities where user_id = ? and name = ?", u.ID, cap), "removing capability from user")
 }
 
+// GetCapabilities returns the capabilities the supplied user account has.
+func (m *Model) GetCapabilities(u *User, fixedCaps map[string][]string) ([]Capability, *errors.Error) {
+	caps := map[string]struct{}{}
+
+	if fc, ok := fixedCaps[u.Username]; ok {
+		for _, cap := range fc {
+			caps[cap] = struct{}{}
+		}
+	}
+
+	dbCaps := []struct {
+		Name string `gorm:"name"`
+	}{}
+	err := m.WrapError(m.Raw("select name from user_capabilities where user_id = ?", u.ID).Scan(&dbCaps), "retrieving capabilities for user")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, cap := range dbCaps {
+		caps[cap.Name] = struct{}{}
+	}
+
+	realCaps := []Capability{}
+
+	for cap := range caps {
+		realCaps = append(realCaps, Capability(cap))
+	}
+
+	return realCaps, nil
+}
+
 // HasCapability returns true if the user is capable of performing the operation.
 func (m *Model) HasCapability(u *User, cap Capability, fixedCaps map[string][]string) (bool, *errors.Error) {
 	// if we have fixed caps, we consult that table only; these are overrides for
