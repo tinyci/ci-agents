@@ -21,14 +21,12 @@ func ListRepositoriesSubscribed(h *handlers.H, ctx *gin.Context) (interface{}, i
 	return repos, 200, err
 }
 
-// ListRepositoriesMy lists the repositories the user can modify.
-func ListRepositoriesMy(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+// ScanRepositories scans for owned and managed repositories for Add-to-CI operations.
+func ScanRepositories(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
 	}
-
-	search, _ := ctx.GetQuery("search")
 
 	if param, ok := h.ServiceConfig["last_scanned_wait"]; ok {
 		dur, err := time.ParseDuration(param.(string))
@@ -37,9 +35,7 @@ func ListRepositoriesMy(h *handlers.H, ctx *gin.Context) (interface{}, int, *err
 		}
 
 		if user.LastScannedRepos != nil && time.Since(time.Time(*user.LastScannedRepos)) < dur {
-
-			repos, err := h.Clients.Data.OwnedRepositories(user.Username, search)
-			return repos, 200, err
+			return nil, 200, nil
 		}
 	}
 
@@ -57,7 +53,17 @@ func ListRepositoriesMy(h *handlers.H, ctx *gin.Context) (interface{}, int, *err
 		return nil, 500, err
 	}
 
-	repos, err := h.Clients.Data.OwnedRepositories(user.Username, search)
+	return nil, 200, nil
+}
+
+// ListRepositoriesMy lists the repositories the user can modify.
+func ListRepositoriesMy(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+	user, err := h.GetUser(ctx)
+	if err != nil {
+		return nil, 500, err
+	}
+
+	repos, err := h.Clients.Data.OwnedRepositories(user.Username, ctx.GetString("search"))
 	if err != nil {
 		return nil, 500, err
 	}
@@ -72,9 +78,7 @@ func ListRepositoriesVisible(h *handlers.H, ctx *gin.Context) (interface{}, int,
 		return nil, 500, err
 	}
 
-	search, _ := ctx.GetQuery("search")
-
-	repos, err := h.Clients.Data.AllRepositories(user.Username, search)
+	repos, err := h.Clients.Data.AllRepositories(user.Username, ctx.GetString("search"))
 	return repos, 200, err
 }
 
