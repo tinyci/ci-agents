@@ -285,6 +285,20 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '../models.yml#/definitions/Error'
+  /repositories/scan:
+    get:
+      security:
+        - token: []
+        - session: []
+      summary: Scan repositories from the remote resource
+      description: Reads the repositories list from the API resource, e.g., Github.
+      responses:
+        200:
+          description: OK
+        500:
+          description: Internal Server Error
+          schema:
+            $ref: '../models.yml#/definitions/Error'
   /repositories/subscribed:
     get:
       security:

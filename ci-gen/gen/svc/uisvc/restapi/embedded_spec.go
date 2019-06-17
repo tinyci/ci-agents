@@ -419,6 +419,31 @@ func init() {
         }
       }
     },
+    "/repositories/scan": {
+      "get": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Reads the repositories list from the API resource, e.g., Github.",
+        "summary": "Scan repositories from the remote resource",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "../models.yml#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/repositories/sub/add/{owner}/{repo}": {
       "get": {
         "security": [
@@ -1469,6 +1494,31 @@ func init() {
             "description": "Internal Server Error",
             "schema": {
               "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/repositories/scan": {
+      "get": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Reads the repositories list from the API resource, e.g., Github.",
+        "summary": "Scan repositories from the remote resource",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/error"
             }
           }
         }
