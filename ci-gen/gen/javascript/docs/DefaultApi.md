@@ -16,6 +16,7 @@ Method | HTTP request | Description
 [**repositoriesCiAddOwnerRepoGet**](DefaultApi.md#repositoriesCiAddOwnerRepoGet) | **GET** /repositories/ci/add/{owner}/{repo} | Add a specific repository to CI.
 [**repositoriesCiDelOwnerRepoGet**](DefaultApi.md#repositoriesCiDelOwnerRepoGet) | **GET** /repositories/ci/del/{owner}/{repo} | Removes a specific repository from CI.
 [**repositoriesMyGet**](DefaultApi.md#repositoriesMyGet) | **GET** /repositories/my | Fetch all the writable repositories for the user.
+[**repositoriesScanGet**](DefaultApi.md#repositoriesScanGet) | **GET** /repositories/scan | Scan repositories from the remote resource
 [**repositoriesSubAddOwnerRepoGet**](DefaultApi.md#repositoriesSubAddOwnerRepoGet) | **GET** /repositories/sub/add/{owner}/{repo} | Subscribe to a repository running CI
 [**repositoriesSubDelOwnerRepoGet**](DefaultApi.md#repositoriesSubDelOwnerRepoGet) | **GET** /repositories/sub/del/{owner}/{repo} | Unsubscribe from a repository
 [**repositoriesSubscribedGet**](DefaultApi.md#repositoriesSubscribedGet) | **GET** /repositories/subscribed | List all subscribed repositories
@@ -649,6 +650,58 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**[Repository]**](Repository.md)
+
+### Authorization
+
+[session](../README.md#session), [token](../README.md#token)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: */*
+
+
+## repositoriesScanGet
+
+> repositoriesScanGet()
+
+Scan repositories from the remote resource
+
+Reads the repositories list from the API resource, e.g., Github.
+
+### Example
+
+```javascript
+import Uisvc from 'uisvc';
+let defaultClient = Uisvc.ApiClient.instance;
+// Configure API key authorization: session
+let session = defaultClient.authentications['session'];
+session.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//session.apiKeyPrefix = 'Token';
+// Configure API key authorization: token
+let token = defaultClient.authentications['token'];
+token.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//token.apiKeyPrefix = 'Token';
+
+let apiInstance = new Uisvc.DefaultApi();
+apiInstance.repositoriesScanGet((error, data, response) => {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+});
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+null (empty response body)
 
 ### Authorization
 

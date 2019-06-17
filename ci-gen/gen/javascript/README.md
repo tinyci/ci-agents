@@ -143,6 +143,7 @@ Class | Method | HTTP request | Description
 *Uisvc.DefaultApi* | [**repositoriesCiAddOwnerRepoGet**](docs/DefaultApi.md#repositoriesCiAddOwnerRepoGet) | **GET** /repositories/ci/add/{owner}/{repo} | Add a specific repository to CI.
 *Uisvc.DefaultApi* | [**repositoriesCiDelOwnerRepoGet**](docs/DefaultApi.md#repositoriesCiDelOwnerRepoGet) | **GET** /repositories/ci/del/{owner}/{repo} | Removes a specific repository from CI.
 *Uisvc.DefaultApi* | [**repositoriesMyGet**](docs/DefaultApi.md#repositoriesMyGet) | **GET** /repositories/my | Fetch all the writable repositories for the user.
+*Uisvc.DefaultApi* | [**repositoriesScanGet**](docs/DefaultApi.md#repositoriesScanGet) | **GET** /repositories/scan | Scan repositories from the remote resource
 *Uisvc.DefaultApi* | [**repositoriesSubAddOwnerRepoGet**](docs/DefaultApi.md#repositoriesSubAddOwnerRepoGet) | **GET** /repositories/sub/add/{owner}/{repo} | Subscribe to a repository running CI
 *Uisvc.DefaultApi* | [**repositoriesSubDelOwnerRepoGet**](docs/DefaultApi.md#repositoriesSubDelOwnerRepoGet) | **GET** /repositories/sub/del/{owner}/{repo} | Unsubscribe from a repository
 *Uisvc.DefaultApi* | [**repositoriesSubscribedGet**](docs/DefaultApi.md#repositoriesSubscribedGet) | **GET** /repositories/subscribed | List all subscribed repositories

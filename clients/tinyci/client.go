@@ -55,6 +55,10 @@ func (c *Client) LogAttach(id int64, w io.WriteCloser) *errors.Error {
 
 // LoadRepositories loads your repos from github and returns the objects tinyci recorded.
 func (c *Client) LoadRepositories(search string) ([]*model.Repository, *errors.Error) {
+	if err := c.client.GetRepositoriesScan(context.Background()); err != nil {
+		return nil, err
+	}
+
 	repos, err := c.client.GetRepositoriesMy(context.Background(), search)
 	if err != nil {
 		return nil, err

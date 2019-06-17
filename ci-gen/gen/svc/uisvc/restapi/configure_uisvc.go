@@ -74,6 +74,7 @@ func (hc HandlerConfig) Configure(router handlers.Routes) *errors.Error {
 
 	router.SetProcessor("/cancel/{run_id}", "post", processors.CancelRun)
 
+	router.SetProcessor("/repositories/scan", "get", processors.ScanRepositories)
 	router.SetProcessor("/repositories/subscribed", "get", processors.ListRepositoriesSubscribed)
 	router.SetProcessor("/repositories/my", "get", processors.ListRepositoriesMy)
 	router.SetProcessor("/repositories/visible", "get", processors.ListRepositoriesVisible)

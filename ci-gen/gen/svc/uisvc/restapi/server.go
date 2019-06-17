@@ -148,6 +148,18 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
 	)
 	addRoute(
 		h,
+		handlers.TransformSwaggerRoute("/repositories/scan"),
+		"GET",
+		&handlers.Route{
+			ParamValidator: operations.GetRepositoriesScanValidateURLParams,
+			Handler:        operations.GetRepositoriesScan,
+			Method:         "GET",
+			UseCORS:        true,
+			UseAuth:        true,
+		},
+	)
+	addRoute(
+		h,
 		handlers.TransformSwaggerRoute("/repositories/sub/add/{owner}/{repo}"),
 		"GET",
 		&handlers.Route{

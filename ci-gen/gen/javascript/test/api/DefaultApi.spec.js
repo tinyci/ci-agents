@@ -168,6 +168,16 @@
         done();
       });
     });
+    describe('repositoriesScanGet', function() {
+      it('should call repositoriesScanGet successfully', function(done) {
+        //uncomment below and update the code to test repositoriesScanGet
+        //instance.repositoriesScanGet(function(error) {
+        //  if (error) throw error;
+        //expect().to.be();
+        //});
+        done();
+      });
+    });
     describe('repositoriesSubAddOwnerRepoGet', function() {
       it('should call repositoriesSubAddOwnerRepoGet successfully', function(done) {
         //uncomment below and update the code to test repositoriesSubAddOwnerRepoGet
