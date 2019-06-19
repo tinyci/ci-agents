@@ -2,7 +2,6 @@ VERSION=$(shell cat VERSION)
 CONTAINER_DIR=/go/src/github.com/tinyci/ci-agents
 
 STD_BOXFILE=box-builds/box.rb
-BUILD_BOXFILE=box-builds/box-build.rb
 RELEASE_BOXFILE=box-builds/box-release.rb
 
 DOCKER_RUN=docker run \
@@ -15,8 +14,6 @@ DEBUG_DOCKER_IMAGE=tinyci-agents-debug
 TEST_DOCKER_IMAGE=tinyci-agents-test
 BUILD_DOCKER_IMAGE=tinyci-build
 
-
-
 DEBUG_PORTS= -p 3000:3000 \
 								-p 6000:6000 \
 								-p 6001:6001 \
@@ -26,10 +23,13 @@ DEBUG_PORTS= -p 3000:3000 \
 
 BUILD_DOCKER_RUN=\
 								$(DOCKER_RUN) \
-								-v ${PWD}/build/:/build \
+								-e GOBIN=/tmp/bin/tinyci-$(VERSION) \
+								-e GOCACHE=/tmp/cache \
+								-u $$(id -u):$$(id -g) \
+								-v ${PWD}/build/:/tmp/bin \
 								-w $(CONTAINER_DIR) \
-								-e GOBIN=/build/tinyci-$(VERSION) \
-								$(BUILD_DOCKER_IMAGE)
+								-v ${PWD}:$(CONTAINER_DIR) \
+								golang:latest
 
 TEST_DOCKER_RUN=\
 								$(DOCKER_RUN) -it \
@@ -88,18 +88,20 @@ demo-sql-shell:
 	docker exec -it $(DEMO_DOCKER_IMAGE) psql tinyci
 
 do-build:
-	go get github.com/erikh/migrator
-	go install -v -ldflags "-X main.TinyCIVersion=$(VERSION)" ./...
+	GOPATH=$$(mktemp -d /tmp/gopath.XXXXX) go install -v github.com/erikh/migrator
+	go install -v -ldflags "-X main.TinyCIVersion=$(VERSION)" ./cmd/... ./ci-gen/gen/svc/...
 	cp .config/services.yaml.example $${GOBIN:-${GOPATH}/bin}
 	cp -Rfp migrations $${GOBIN:-${GOPATH}/bin}
 
-build: build-build-image
+build: distclean
+	mkdir -p build
+	docker pull golang:latest
 	$(BUILD_DOCKER_RUN) make do-build
 
 distclean:
-	$(BUILD_DOCKER_RUN) bash -c 'rm -rf /build/*'
+	rm -rf build tinyci-$(VERSION).tar.gz
 
-dist: build-build-image distclean build
+dist: build
 	tar -C build -cvzf tinyci-$(VERSION).tar.gz tinyci-$(VERSION)
 
 release: distclean dist
@@ -110,9 +112,6 @@ demo: build-demo-image
 
 clean-demo: build-demo-image
 	$(DOCKER_RUN) --entrypoint /bin/bash -v ${PWD}/.ca:/var/ca -v ${PWD}/.logs:/var/tinyci/logs -v ${PWD}/.db:/var/lib/postgresql $(DEMO_DOCKER_IMAGE) -c "rm -rf /var/lib/postgresql/9.6; rm -rf /var/tinyci/logs/*; rm -rf /var/ca/*"
-
-build-build-image: get-box
-	box -t $(BUILD_DOCKER_IMAGE) $(BUILD_BOXFILE)
 
 build-demo-image: get-box
 	box -t $(DEMO_DOCKER_IMAGE) $(STD_BOXFILE)
