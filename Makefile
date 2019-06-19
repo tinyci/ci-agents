@@ -6,7 +6,7 @@ BUILD_BOXFILE=box-builds/box-build.rb
 RELEASE_BOXFILE=box-builds/box-release.rb
 
 DOCKER_RUN=docker run \
-					 --rm -it
+					 --rm
 DOCKER_CONTAINER_DIR=-v ${PWD}:$(CONTAINER_DIR) \
 								-w $(CONTAINER_DIR)
 
@@ -32,7 +32,7 @@ BUILD_DOCKER_RUN=\
 								$(BUILD_DOCKER_IMAGE)
 
 TEST_DOCKER_RUN=\
-								$(DOCKER_RUN) \
+								$(DOCKER_RUN) -it \
 								-e CREATE_DB=1 \
 								-e GIN_MODE=test \
 								-e TESTING=1 \
@@ -41,7 +41,7 @@ TEST_DOCKER_RUN=\
 								$(TEST_DOCKER_IMAGE)
 
 DEBUG_DOCKER_RUN=\
-								$(DOCKER_RUN) \
+								$(DOCKER_RUN) -it \
 								-e CREATE_DB=1 \
 								-e DEBUG=1 \
 								-e JAEGER_AGENT_HOST=jaegertracing \
@@ -53,7 +53,7 @@ DEBUG_DOCKER_RUN=\
 								$(DEBUG_DOCKER_IMAGE)
 
 DEMO_DOCKER_RUN=\
-								$(DOCKER_RUN) \
+								$(DOCKER_RUN) -it \
 								-v ${PWD}/.ca:/var/ca \
 								-v ${PWD}/.db:/var/lib/postgresql \
 								-v ${PWD}/.logs:/var/tinyci/logs \
