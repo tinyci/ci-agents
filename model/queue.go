@@ -98,19 +98,6 @@ func (qi *QueueItem) Validate() *errors.Error {
 	return nil
 }
 
-// ValidateRunning ensures the state is running.
-func (qi *QueueItem) ValidateRunning() *errors.Error {
-	if qi.RunningOn == nil || *qi.RunningOn == "" {
-		return errors.New("missing run target hostname")
-	}
-
-	if !qi.Running {
-		return errors.New("was not flagged running, yet should be")
-	}
-
-	return nil
-}
-
 // QueueTotalCount returns the number of items in the queue
 func (m *Model) QueueTotalCount() (int64, *errors.Error) {
 	var ret int64

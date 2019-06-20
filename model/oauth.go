@@ -8,6 +8,10 @@ import (
 	"github.com/tinyci/ci-agents/errors"
 )
 
+// OAuthExpiration is a constant for the oauth state expiration time. It really
+// should be in the configuration.
+var OAuthExpiration = 10 * time.Minute
+
 // OAuth schema is for checking state return values from github.
 type OAuth struct {
 	State     string    `gorm:"primary key" json:"state"`
@@ -48,7 +52,7 @@ func (o *OAuth) GetScopes() map[string]struct{} {
 func (m *Model) OAuthRegisterState(state string, scopes []string) *errors.Error {
 	oa := &OAuth{
 		State:     state,
-		ExpiresOn: time.Now().Add(10 * time.Minute),
+		ExpiresOn: time.Now().Add(OAuthExpiration),
 	}
 
 	oa.SetScopes(scopes)

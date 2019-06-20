@@ -10,92 +10,111 @@ import (
 )
 
 func (ms *modelSuite) TestQueueValidate(c *check.C) {
-	parent, err := ms.CreateRepository()
-	c.Assert(err, check.IsNil)
+	for iter := 0; iter < 100; iter++ {
+		parent, err := ms.CreateRepository()
+		c.Assert(err, check.IsNil)
 
-	fork, err := ms.CreateRepository()
-	c.Assert(err, check.IsNil)
+		fork, err := ms.CreateRepository()
+		c.Assert(err, check.IsNil)
 
-	ref := &Ref{
-		Repository: fork,
-		RefName:    "refs/heads/master",
-		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-	}
-
-	c.Assert(ms.model.Save(ref).Error, check.IsNil)
-
-	ts := &types.TaskSettings{
-		Mountpoint: "/tmp",
-		Runs: map[string]*types.RunSettings{
-			"foobar": {
-				Image:   "foo",
-				Command: []string{"run", "me"},
-			},
-		},
-	}
-
-	task := &Task{
-		TaskSettings: ts,
-		Parent:       parent,
-		Ref:          ref,
-		BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-	}
-
-	c.Assert(ms.model.Save(task).Error, check.IsNil)
-	run := &Run{
-		Name:        "foobar",
-		RunSettings: ts.Runs["foobar"],
-		Task:        task,
-	}
-
-	c.Assert(ms.model.Save(run).Error, check.IsNil)
-
-	failures := []struct {
-		queueName string
-		run       *Run
-	}{
-		{"", run},
-		{"default", nil},
-	}
-
-	for i, failure := range failures {
-		qi := &QueueItem{
-			Run:       failure.run,
-			QueueName: failure.queueName,
+		ref := &Ref{
+			Repository: fork,
+			RefName:    "refs/heads/master",
+			SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 		}
-		c.Assert(ms.model.Create(qi).Error, check.NotNil, check.Commentf("iteration %d", i))
-		c.Assert(ms.model.Save(qi).Error, check.NotNil, check.Commentf("iteration %d", i))
-	}
 
-	qi := &QueueItem{
-		QueueName: "default",
-		Run:       run,
-	}
+		c.Assert(ms.model.Save(ref).Error, check.IsNil)
 
-	c.Assert(ms.model.Save(qi).Error, check.IsNil)
+		ts := &types.TaskSettings{
+			Mountpoint: "/tmp",
+			Runs: map[string]*types.RunSettings{
+				"foobar": {
+					Image:   "foo",
+					Command: []string{"run", "me"},
+				},
+			},
+		}
 
-	qi2 := &QueueItem{}
-	c.Assert(ms.model.Where("id = ?", qi.ID).First(qi2).Error, check.IsNil)
-	c.Assert(qi.ID, check.Not(check.Equals), 0)
-	c.Assert(qi.ID, check.Equals, qi2.ID)
-	c.Assert(qi2.QueueName, check.Equals, "default")
-	c.Assert(qi2.Run, check.NotNil)
+		task := &Task{
+			TaskSettings: ts,
+			Parent:       parent,
+			Ref:          ref,
+			BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		}
 
-	for i := 0; i < 10; i++ {
-		qi.ID = 0
-		qi.Run, err = ms.CreateRun()
-		c.Assert(err, check.IsNil)
+		c.Assert(ms.model.Save(task).Error, check.IsNil)
+		run := &Run{
+			Name:        "foobar",
+			RunSettings: ts.Runs["foobar"],
+			Task:        task,
+		}
+
+		c.Assert(ms.model.Save(run).Error, check.IsNil)
+
+		failures := []struct {
+			queueName string
+			run       *Run
+		}{
+			{"", run},
+			{"default", nil},
+		}
+
+		for i, failure := range failures {
+			qi := &QueueItem{
+				Run:       failure.run,
+				QueueName: failure.queueName,
+			}
+			c.Assert(ms.model.Create(qi).Error, check.NotNil, check.Commentf("iteration %d", i))
+			c.Assert(ms.model.Save(qi).Error, check.NotNil, check.Commentf("iteration %d", i))
+		}
+
+		qi := &QueueItem{
+			QueueName: "default",
+			Run:       run,
+		}
+
 		c.Assert(ms.model.Save(qi).Error, check.IsNil)
 
-		qi.ID = 0
-		qi.Run, err = ms.CreateRun()
-		c.Assert(err, check.IsNil)
-		c.Assert(ms.model.Save(qi).Error, check.IsNil)
-	}
+		qi2 := &QueueItem{}
+		c.Assert(ms.model.Where("id = ?", qi.ID).First(qi2).Error, check.IsNil)
+		c.Assert(qi.ID, check.Not(check.Equals), 0)
+		c.Assert(qi.ID, check.Equals, qi2.ID)
+		c.Assert(qi2.QueueName, check.Equals, "default")
+		c.Assert(qi2.Run, check.NotNil)
 
-	i, err := ms.model.QueueTotalCount()
-	c.Assert(err, check.IsNil)
-	c.Assert(i, check.Equals, int64(21))
+		qis := []*QueueItem{}
+
+		for i := 0; i < 10; i++ {
+			qi.ID = 0
+			qi.Run, err = ms.CreateRun()
+			c.Assert(err, check.IsNil)
+			c.Assert(ms.model.Save(qi).Error, check.IsNil)
+
+			qi.ID = 0
+			qi.Run, err = ms.CreateRun()
+			c.Assert(err, check.IsNil)
+			c.Assert(ms.model.Save(qi).Error, check.IsNil)
+
+			qis = append(qis, qi)
+		}
+
+		i, err := ms.model.QueueTotalCount()
+		c.Assert(err, check.IsNil)
+		c.Assert(i, check.Equals, int64(21*(iter+1))) // relative to test iteration
+
+		for _, qi := range qis {
+			ro := "test"
+			qi.RunningOn = &ro
+			qi2, err := NewQueueItemFromProto(qi.ToProto())
+			c.Assert(err, check.IsNil)
+			c.Assert(qi2.Run.ID, check.Equals, qi.Run.ID)
+			c.Assert(qi2.ID, check.Equals, qi.ID)
+			c.Assert(qi2.QueueName, check.Equals, qi.QueueName)
+			c.Assert(qi2.Running, check.Equals, qi.Running)
+			c.Assert(*qi2.RunningOn, check.Equals, "test")
+			c.Assert(qi2.StartedAt, check.Equals, qi.StartedAt)
+		}
+	}
 }
 
 func (ms *modelSuite) TestQueueManipulation(c *check.C) {
@@ -132,22 +151,34 @@ func (ms *modelSuite) TestQueueManipulation(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(count, check.Equals, int64(1000))
 
+	_, err = ms.model.QueueList(-1, 100)
+	c.Assert(err, check.NotNil)
+
+	for i := 0; i < 10; i++ {
+		list, err := ms.model.QueueList(int64(i), 100)
+		c.Assert(err, check.IsNil)
+		c.Assert(len(list), check.Equals, 100)
+		for _, qi := range list {
+			c.Assert(qi.ID, check.Not(check.Equals), 0)
+			c.Assert(qi.Running, check.Equals, false)
+			c.Assert(qi.RunningOn, check.IsNil)
+
+			count, err := ms.model.QueueTotalCountForRepository(qi.Run.Task.Parent)
+			c.Assert(err, check.IsNil)
+			c.Assert(count, check.Equals, int64(1)) // repo names are uniq'd
+
+			_, err = ms.model.QueueListForRepository(qi.Run.Task.Parent, -1, 100)
+			c.Assert(err, check.NotNil)
+
+			tmp, err := ms.model.QueueListForRepository(qi.Run.Task.Parent, 0, 100)
+			c.Assert(err, check.IsNil)
+			c.Assert(tmp[0], check.DeepEquals, qi) // repo names are uniq'd
+		}
+	}
+
 	list, err := ms.model.QueueList(0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(list), check.Equals, 100)
-	for _, qi := range list {
-		c.Assert(qi.ID, check.Not(check.Equals), 0)
-		c.Assert(qi.Running, check.Equals, false)
-		c.Assert(qi.RunningOn, check.IsNil)
-	}
-
-	count, err = ms.model.QueueTotalCountForRepository(list[0].Run.Task.Parent)
-	c.Assert(err, check.IsNil)
-	c.Assert(count, check.Equals, int64(1)) // repo names are uniq'd
-
-	tmp, err := ms.model.QueueListForRepository(list[0].Run.Task.Parent, 0, 100)
-	c.Assert(err, check.IsNil)
-	c.Assert(tmp[0], check.DeepEquals, list[0]) // repo names are uniq'd
 
 	list2, err := ms.model.QueueList(1, 100)
 	c.Assert(err, check.IsNil)
@@ -163,7 +194,7 @@ func (ms *modelSuite) TestQueueManipulation(c *check.C) {
 	start := time.Now()
 
 	for i := lastRunID - 999; i < lastRunID; i++ {
-		qi, err := ms.model.NextQueueItem("hostname", "default")
+		qi, err := ms.model.NextQueueItem("hostname", "") // testing empty string handling
 		c.Assert(err, check.IsNil)
 		c.Assert(qi.ID, check.Equals, firstID, check.Commentf("%d", lastRunID-i))
 		c.Assert(qi.Run.ID, check.Equals, int64(i)) // ensures same order
@@ -240,11 +271,9 @@ func (ms *modelSuite) TestQueueConcurrent(c *check.C) {
 	errChan := make(chan error, goRoutines)
 
 	var firstID int64
-	oldModel := ms.model
-	db := ms.model.Begin()
-	ms.model = &Model{DB: db}
 
 	fillstart := time.Now()
+	qis := []*QueueItem{}
 	for i := int64(1); i <= count; i++ {
 		run, err := ms.CreateRun()
 		c.Assert(err, check.IsNil)
@@ -254,17 +283,18 @@ func (ms *modelSuite) TestQueueConcurrent(c *check.C) {
 			QueueName: "default",
 		}
 
-		c.Assert(ms.model.Save(qi).Error, check.IsNil)
+		qis = append(qis, qi)
 
 		if firstID == 0 {
 			firstID = run.ID
 		}
 	}
+
+	_, err := ms.model.QueuePipelineAdd(qis)
+	c.Assert(err, check.IsNil)
+
 	fmt.Println("Filling queue took", time.Since(fillstart))
 
-	c.Assert(ms.model.Commit().Error, check.IsNil)
-
-	ms.model = oldModel
 	start := time.Now()
 
 	for i := 0; i < goRoutines; i++ {

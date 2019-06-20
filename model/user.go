@@ -122,6 +122,30 @@ func NewUserFromProto(u *types.User) (*User, *errors.Error) {
 	}, nil
 }
 
+// MakeUsers converts a proto userlist to a model one.
+func MakeUsers(users []*types.User) ([]*User, *errors.Error) {
+	ret := []*User{}
+	for _, user := range users {
+		u, err := NewUserFromProto(user)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, u)
+	}
+
+	return ret, nil
+}
+
+// MakeUserList returns the inverse of MakeUsers.
+func MakeUserList(users []*User) []*types.User {
+	ret := []*types.User{}
+	for _, user := range users {
+		ret = append(ret, user.ToProto())
+	}
+
+	return ret
+}
+
 // ToProto converts the user struct to a protobuf capable one
 func (u *User) ToProto() *types.User {
 	errors := []*types.UserError{}

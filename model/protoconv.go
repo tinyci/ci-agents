@@ -4,16 +4,22 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/errors"
 )
 
 // MakeTimestamp takes a time.Time and makes a protobuf timestamp out of it.
-func MakeTimestamp(time *time.Time) *timestamp.Timestamp {
+func MakeTimestamp(t *time.Time) *timestamp.Timestamp {
 	stamp := &timestamp.Timestamp{}
-	if time != nil {
-		stamp.Seconds = time.Unix()
-		stamp.Nanos = int32(time.UnixNano())
+
+	if t != nil {
+		stamp.Seconds = t.Unix()
+		nanos := t.UnixNano() - t.Unix()*int64(time.Second)
+
+		if nanos < 0 || nanos > int64(time.Second) {
+			// cannot make a nanosecond fraction longer than a second or less than zero
+			stamp.Nanos = 0
+		} else {
+			stamp.Nanos = int32(nanos)
+		}
 	}
 
 	return stamp
@@ -34,30 +40,6 @@ func MakeTime(ts *timestamp.Timestamp, nullable bool) *time.Time {
 
 	t := time.Unix(0, 0)
 	return &t
-}
-
-// MakeUsers converts a proto userlist to a model one.
-func MakeUsers(users []*types.User) ([]*User, *errors.Error) {
-	ret := []*User{}
-	for _, user := range users {
-		u, err := NewUserFromProto(user)
-		if err != nil {
-			return nil, err
-		}
-		ret = append(ret, u)
-	}
-
-	return ret, nil
-}
-
-// MakeUserList returns the inverse of MakeUsers.
-func MakeUserList(users []*User) []*types.User {
-	ret := []*types.User{}
-	for _, user := range users {
-		ret = append(ret, user.ToProto())
-	}
-
-	return ret
 }
 
 // MakeStatus returns nil if set is false and the bool is false, indicating

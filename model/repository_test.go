@@ -126,6 +126,10 @@ func (ms *modelSuite) TestRepositoryOwners(c *check.C) {
 	list, err = ms.model.GetPrivateReposForUser(r2.Owner, r2.Name)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(list), check.Equals, 0)
+
+	list, err = ms.model.GetVisibleReposForUser(r2.Owner, r2.Name)
+	c.Assert(err, check.IsNil)
+	c.Assert(len(list), check.Equals, 1)
 }
 
 func (ms *modelSuite) TestAddEnableRepository(c *check.C) {
