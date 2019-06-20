@@ -14,7 +14,7 @@ func (m *Model) GetRunsForTask(id, page, perPage int64) ([]*Run, *errors.Error) 
 		return nil, err
 	}
 
-	if err := m.Model(&Run{}).Limit(perPage).Offset(page*perPage).Where("task_id = ?", id).Find(&runs).Error; err != nil {
+	if err := m.Model(&Run{}).Order("id DESC").Limit(perPage).Offset(page*perPage).Where("task_id = ?", id).Find(&runs).Error; err != nil {
 		return nil, errors.New(err)
 	}
 
