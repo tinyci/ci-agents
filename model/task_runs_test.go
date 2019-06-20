@@ -92,9 +92,14 @@ func (ms *modelSuite) TestRunsForTask(c *check.C) {
 		newRuns, err := ms.model.GetRunsForTask(task, 0, 100)
 		c.Assert(err, check.IsNil)
 		c.Assert(len(newRuns), check.Equals, int(x))
+		var lastRunID int64
 		for _, run := range newRuns {
 			c.Assert(runs[run.Name], check.NotNil)
 			c.Assert(run.Task.ID, check.Equals, task)
+			if lastRunID > 0 {
+				c.Assert(run.ID < lastRunID, check.Equals, true)
+				lastRunID = run.ID
+			}
 		}
 	}
 	fmt.Printf("duration: %v\n", time.Since(now))
