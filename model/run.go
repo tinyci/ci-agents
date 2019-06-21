@@ -3,7 +3,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -219,9 +218,9 @@ func (m *Model) getRunBits(runID int64, gh github.Client) (*runBits, *errors.Err
 		return nil, errors.New(err)
 	}
 
-	parts := strings.SplitN(run.Task.Parent.Name, "/", 2)
-	if len(parts) != 2 {
-		return nil, errors.Errorf("invalid repository for run %d: %v", run.ID, run.Task.Ref.Repository.Name)
+	owner, repo, err := run.Task.Parent.OwnerRepo()
+	if err != nil {
+		return nil, err.Wrapf("invalid repository for run %d: %v", run.ID, run.Task.Ref.Repository.Name)
 	}
 
 	if gh == nil {
@@ -234,7 +233,7 @@ func (m *Model) getRunBits(runID int64, gh github.Client) (*runBits, *errors.Err
 	return &runBits{
 		run:    run,
 		github: gh,
-		parts:  parts,
+		parts:  []string{owner, repo},
 	}, nil
 }
 

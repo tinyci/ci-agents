@@ -1,9 +1,10 @@
 package testutil
 
 import (
-	"crypto/rand"
 	"fmt"
-	"math/big"
+	"math/rand"
+	"strings"
+	"time"
 
 	check "github.com/erikh/check"
 	"github.com/jinzhu/gorm"
@@ -19,6 +20,10 @@ var (
 	// DummyToken is a fake oauth2 token.
 	DummyToken = &types.OAuthToken{Token: "123456"}
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 // WipeDB wipes all tables with `truncate table`.
 func WipeDB(c *check.C) {
@@ -43,14 +48,26 @@ func WipeDB(c *check.C) {
 	}
 }
 
+var hexChars = strings.Split("0123456789abcdef", "")
+
+// RandHexString creates random hexadecimal strings
+func RandHexString(l int) string {
+	ret := ""
+
+	for i := 0; i < l; i++ {
+		ret += hexChars[rand.Intn(len(hexChars))]
+	}
+
+	return ret
+}
+
 // RandString returns a random string
 func RandString(len int) string {
 	ret := ""
-	charlen := 'z' - 'a'
+	charlen := int('z' - 'a')
 
 	for i := 0; i < len; i++ {
-		rnd, _ := rand.Int(rand.Reader, big.NewInt(int64(charlen)))
-		ret += fmt.Sprintf("%c", 'a'+rune(rnd.Int64()))
+		ret += fmt.Sprintf("%c", 'a'+rune(rand.Intn(charlen)))
 	}
 
 	return ret

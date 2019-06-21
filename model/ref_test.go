@@ -26,7 +26,9 @@ func (ms *modelSuite) TestRefValidate(c *check.C) {
 			SHA:        failure.sha,
 		}
 
-		c.Assert(ms.model.Create(r).Error, check.NotNil, check.Commentf("iteration %d", i))
+		c.Assert(r.Validate(), check.NotNil)
+
+		c.Assert(ms.model.PutRef(r), check.NotNil, check.Commentf("iteration %d", i))
 		c.Assert(ms.model.Save(r).Error, check.NotNil, check.Commentf("iteration %d", i))
 	}
 
@@ -36,7 +38,9 @@ func (ms *modelSuite) TestRefValidate(c *check.C) {
 		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
-	c.Assert(ms.model.Create(ref).Error, check.IsNil)
+	c.Assert(ref.Validate(), check.IsNil)
+
+	c.Assert(ms.model.PutRef(ref), check.IsNil)
 	c.Assert(ms.model.Save(ref).Error, check.IsNil)
 
 	ref2 := &Ref{}
@@ -46,7 +50,10 @@ func (ms *modelSuite) TestRefValidate(c *check.C) {
 	c.Assert(ref2.RefName, check.Equals, ref.RefName)
 	c.Assert(ref2.SHA, check.Equals, ref.SHA)
 
+	_, err = ms.model.GetRefByNameAndSHA(ref2.Repository.Name, "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	c.Assert(err, check.NotNil)
 	ref2, err = ms.model.GetRefByNameAndSHA(ref2.Repository.Name, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 	c.Assert(err, check.IsNil)
 	c.Assert(ref2.ID, check.Equals, ref.ID)
+	c.Assert(ref2.Validate(), check.IsNil)
 }
