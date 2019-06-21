@@ -651,6 +651,28 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '../models.yml#/definitions/Error'
+  /tasks/cancel/{id}:
+    post:
+      security:
+        - token: []
+        - session: []
+      summary: Cancel by Task ID
+      x-capability: cancel
+      parameters:
+        - in: path
+          name: id 
+          description: The ID of the task to retrieve
+          type: integer
+          required: true
+      description: >
+        Cancel the runs for a task by ID
+      responses:
+        200:
+          description: OK
+        500:
+          description: Internal Server Error
+          schema:
+            $ref: '../models.yml#/definitions/Error'
   /runs:
     get:
       security:
@@ -739,7 +761,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '../models.yml#/definitions/Error'
-  "/cancel/{run_id}":
+  /cancel/{run_id}:
     post:
       security:
         - token: []

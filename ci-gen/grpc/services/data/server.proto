@@ -54,6 +54,8 @@ service Data {
   rpc PutRef(types.Ref)           returns (types.Ref)             {};
   // CancelRefByName cancels by branch or tag name.
   rpc CancelRefByName(RepoRef)    returns (google.protobuf.Empty) {}; 
+  // CancelTask cancels the branch by task ID.
+  rpc CancelTask(types.IntID)     returns (google.protobuf.Empty) {};
 
   // Enables repository for testing in CI
   rpc EnableRepository(RepoUserSelection)       returns (google.protobuf.Empty) {};

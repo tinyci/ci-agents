@@ -258,6 +258,16 @@
         done();
       });
     });
+    describe('tasksCancelIdPost', function() {
+      it('should call tasksCancelIdPost successfully', function(done) {
+        //uncomment below and update the code to test tasksCancelIdPost
+        //instance.tasksCancelIdPost(function(error) {
+        //  if (error) throw error;
+        //expect().to.be();
+        //});
+        done();
+      });
+    });
     describe('tasksCountGet', function() {
       it('should call tasksCountGet successfully', function(done) {
         //uncomment below and update the code to test tasksCountGet

@@ -835,6 +835,41 @@ func init() {
         }
       }
     },
+    "/tasks/cancel/{id}": {
+      "post": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Cancel the runs for a task by ID\n",
+        "summary": "Cancel by Task ID",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "The ID of the task to retrieve",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "../models.yml#/definitions/Error"
+            }
+          }
+        },
+        "x-capability": "cancel"
+      }
+    },
     "/tasks/count": {
       "get": {
         "security": [
@@ -1913,6 +1948,41 @@ func init() {
             }
           }
         }
+      }
+    },
+    "/tasks/cancel/{id}": {
+      "post": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Cancel the runs for a task by ID\n",
+        "summary": "Cancel by Task ID",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "The ID of the task to retrieve",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        },
+        "x-capability": "cancel"
       }
     },
     "/tasks/count": {

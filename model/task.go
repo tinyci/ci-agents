@@ -177,6 +177,16 @@ func (m *Model) CancelTasksForPR(repository string, prID int64, baseURL string) 
 	return nil
 }
 
+// CancelTaskByID cancels a task by ID
+func (m *Model) CancelTaskByID(id int64, baseURL string, gh github.Client) *errors.Error {
+	var task Task
+	if err := m.WrapError(m.Where("id = ?", id).First(&task), "locating task for cancellation"); err != nil {
+		return err
+	}
+
+	return m.CancelTask(&task, baseURL, gh)
+}
+
 // CancelTask finds the queue items and runs for the task, removes them,
 // cancels the associated runs for the task, and finally, saves the task itself. It will
 // fail to do all of this if the task is already finished.
