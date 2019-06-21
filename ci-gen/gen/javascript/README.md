@@ -152,6 +152,7 @@ Class | Method | HTTP request | Description
 *Uisvc.DefaultApi* | [**runsCountGet**](docs/DefaultApi.md#runsCountGet) | **GET** /runs/count | Count the runs
 *Uisvc.DefaultApi* | [**runsGet**](docs/DefaultApi.md#runsGet) | **GET** /runs | Obtain the run list for the user
 *Uisvc.DefaultApi* | [**submitGet**](docs/DefaultApi.md#submitGet) | **GET** /submit | Perform a manual submission to tinyCI
+*Uisvc.DefaultApi* | [**tasksCancelIdPost**](docs/DefaultApi.md#tasksCancelIdPost) | **POST** /tasks/cancel/{id} | Cancel by Task ID
 *Uisvc.DefaultApi* | [**tasksCountGet**](docs/DefaultApi.md#tasksCountGet) | **GET** /tasks/count | Count the Tasks
 *Uisvc.DefaultApi* | [**tasksGet**](docs/DefaultApi.md#tasksGet) | **GET** /tasks | Obtain the task list optionally filtering by repository and sha.
 *Uisvc.DefaultApi* | [**tasksRunsIdCountGet**](docs/DefaultApi.md#tasksRunsIdCountGet) | **GET** /tasks/runs/{id}/count | Count the runs corresponding to the task ID.

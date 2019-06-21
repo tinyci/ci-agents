@@ -949,6 +949,48 @@ export default class DefaultApi {
     }
 
     /**
+     * Callback function to receive the result of the tasksCancelIdPost operation.
+     * @callback module:api/DefaultApi~tasksCancelIdPostCallback
+     * @param {String} error Error message, if any.
+     * @param data This operation does not return a value.
+     * @param {String} response The complete HTTP response.
+     */
+
+    /**
+     * Cancel by Task ID
+     * Cancel the runs for a task by ID 
+     * @param {Number} id The ID of the task to retrieve
+     * @param {module:api/DefaultApi~tasksCancelIdPostCallback} callback The callback function, accepting three arguments: error, data, response
+     */
+    tasksCancelIdPost(id, callback) {
+      let postBody = null;
+      // verify the required parameter 'id' is set
+      if (id === undefined || id === null) {
+        throw new Error("Missing the required parameter 'id' when calling tasksCancelIdPost");
+      }
+
+      let pathParams = {
+        'id': id
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = ['session', 'token'];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = null;
+      return this.apiClient.callApi(
+        '/tasks/cancel/{id}', 'POST',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null, callback
+      );
+    }
+
+    /**
      * Callback function to receive the result of the tasksCountGet operation.
      * @callback module:api/DefaultApi~tasksCountGetCallback
      * @param {String} error Error message, if any.

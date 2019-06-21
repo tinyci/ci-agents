@@ -25,6 +25,7 @@ Method | HTTP request | Description
 [**runsCountGet**](DefaultApi.md#runsCountGet) | **GET** /runs/count | Count the runs
 [**runsGet**](DefaultApi.md#runsGet) | **GET** /runs | Obtain the run list for the user
 [**submitGet**](DefaultApi.md#submitGet) | **GET** /submit | Perform a manual submission to tinyCI
+[**tasksCancelIdPost**](DefaultApi.md#tasksCancelIdPost) | **POST** /tasks/cancel/{id} | Cancel by Task ID
 [**tasksCountGet**](DefaultApi.md#tasksCountGet) | **GET** /tasks/count | Count the Tasks
 [**tasksGet**](DefaultApi.md#tasksGet) | **GET** /tasks | Obtain the task list optionally filtering by repository and sha.
 [**tasksRunsIdCountGet**](DefaultApi.md#tasksRunsIdCountGet) | **GET** /tasks/runs/{id}/count | Count the runs corresponding to the task ID.
@@ -1172,6 +1173,62 @@ Name | Type | Description  | Notes
  **repository** | **String**| the repository owner/repo to be tested. | 
  **sha** | **String**| the sha or branch to be tested | 
  **all** | **Boolean**| Run all tests instead of relying on diff selection to pick them. | [optional] 
+
+### Return type
+
+null (empty response body)
+
+### Authorization
+
+[session](../README.md#session), [token](../README.md#token)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: */*
+
+
+## tasksCancelIdPost
+
+> tasksCancelIdPost(id)
+
+Cancel by Task ID
+
+Cancel the runs for a task by ID 
+
+### Example
+
+```javascript
+import Uisvc from 'uisvc';
+let defaultClient = Uisvc.ApiClient.instance;
+// Configure API key authorization: session
+let session = defaultClient.authentications['session'];
+session.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//session.apiKeyPrefix = 'Token';
+// Configure API key authorization: token
+let token = defaultClient.authentications['token'];
+token.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//token.apiKeyPrefix = 'Token';
+
+let apiInstance = new Uisvc.DefaultApi();
+let id = 56; // Number | The ID of the task to retrieve
+apiInstance.tasksCancelIdPost(id, (error, data, response) => {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+});
+```
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **Number**| The ID of the task to retrieve | 
 
 ### Return type
 
