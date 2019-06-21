@@ -67,6 +67,7 @@ func (hc HandlerConfig) Configure(router handlers.Routes) *errors.Error {
 	router.SetProcessor("/tasks/runs/{id}", "get", processors.GetRunsForTask)
 	router.SetProcessor("/tasks/runs/{id}/count", "get", processors.CountRunsForTask)
 	router.SetProcessor("/tasks/subscribed", "get", processors.ListSubscribedTasksForUser)
+	router.SetProcessor("/tasks/cancel/{id}", "post", processors.CancelTask)
 
 	router.SetProcessor("/runs", "get", processors.ListRuns)
 	router.SetProcessor("/runs/count", "get", processors.CountRuns)

@@ -118,3 +118,9 @@ func (c *Client) ListSubscribedTasksForUser(userID, page, perPage int64) ([]*mod
 
 	return modelTasks, nil
 }
+
+// CancelTask cancels a task by id.
+func (c *Client) CancelTask(id int64) *errors.Error {
+	_, err := c.client.CancelTask(context.Background(), &types.IntID{ID: id})
+	return errors.New(err)
+}

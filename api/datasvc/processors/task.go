@@ -11,6 +11,15 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
+// CancelTask cancels a task by ID.
+func (ds *DataServer) CancelTask(ctx context.Context, id *types.IntID) (*empty.Empty, error) {
+	if err := ds.H.Model.CancelTaskByID(id.ID, ds.H.UserConfig.URL, nil); err != nil {
+		return nil, err.Wrapf("could not cancel runs for for task_id %d", id.ID)
+	}
+
+	return &empty.Empty{}, nil
+}
+
 // CancelTasksByPR cancels multiple tasks by Pull Request ID.
 func (ds *DataServer) CancelTasksByPR(ctx context.Context, prq *types.CancelPRRequest) (*empty.Empty, error) {
 	if err := ds.H.Model.CancelTasksForPR(prq.Repository, prq.Id, ds.H.URL); err != nil {

@@ -94,3 +94,17 @@ func ListSubscribedTasksForUser(h *handlers.H, ctx *gin.Context) (interface{}, i
 
 	return tasks, 200, nil
 }
+
+// CancelTask cancels a task by ID.
+func CancelTask(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+	id, eErr := strconv.ParseInt(ctx.GetString("id"), 10, 64)
+	if eErr != nil {
+		return nil, 500, errors.New(eErr)
+	}
+
+	if err := h.Clients.Data.CancelTask(id); err != nil {
+		return nil, 500, err
+	}
+
+	return nil, 200, nil
+}
