@@ -12,7 +12,7 @@ github.com/erikh/go-transport
 github.com/fatih/color
 # github.com/gin-contrib/sessions v0.0.0-20190512062852-3cb4c4f2d615
 github.com/gin-contrib/sessions
-# github.com/gin-contrib/sse v0.1.0
+# github.com/gin-contrib/sse v0.0.0-20190301062529-5545eab6dad3
 github.com/gin-contrib/sse
 # github.com/gin-gonic/gin v1.4.0
 github.com/gin-gonic/gin
@@ -22,18 +22,18 @@ github.com/gin-gonic/gin/render
 # github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 github.com/globalsign/mgo/bson
 github.com/globalsign/mgo/internal/json
-# github.com/go-openapi/analysis v0.19.0
+# github.com/go-openapi/analysis v0.19.2
 github.com/go-openapi/analysis
 github.com/go-openapi/analysis/internal
-# github.com/go-openapi/errors v0.19.0
+# github.com/go-openapi/errors v0.19.2
 github.com/go-openapi/errors
-# github.com/go-openapi/jsonpointer v0.19.0
+# github.com/go-openapi/jsonpointer v0.19.2
 github.com/go-openapi/jsonpointer
-# github.com/go-openapi/jsonreference v0.19.0
+# github.com/go-openapi/jsonreference v0.19.2
 github.com/go-openapi/jsonreference
-# github.com/go-openapi/loads v0.19.0
+# github.com/go-openapi/loads v0.19.2
 github.com/go-openapi/loads
-# github.com/go-openapi/runtime v0.19.0
+# github.com/go-openapi/runtime v0.19.2
 github.com/go-openapi/runtime
 github.com/go-openapi/runtime/client
 github.com/go-openapi/runtime/logger
@@ -42,13 +42,13 @@ github.com/go-openapi/runtime/middleware/denco
 github.com/go-openapi/runtime/middleware/header
 github.com/go-openapi/runtime/middleware/untyped
 github.com/go-openapi/runtime/security
-# github.com/go-openapi/spec v0.19.0
+# github.com/go-openapi/spec v0.19.2
 github.com/go-openapi/spec
 # github.com/go-openapi/strfmt v0.19.0
 github.com/go-openapi/strfmt
-# github.com/go-openapi/swag v0.19.0
+# github.com/go-openapi/swag v0.19.2
 github.com/go-openapi/swag
-# github.com/go-openapi/validate v0.19.0
+# github.com/go-openapi/validate v0.19.2
 github.com/go-openapi/validate
 # github.com/golang/mock v1.3.1
 github.com/golang/mock/gomock
@@ -74,14 +74,14 @@ github.com/gorilla/securecookie
 github.com/gorilla/sessions
 # github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645
 github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc
-# github.com/jinzhu/gorm v1.9.8
+# github.com/jinzhu/gorm v1.9.9
 github.com/jinzhu/gorm
 github.com/jinzhu/gorm/dialects/postgres
-# github.com/jinzhu/inflection v0.0.0-20190603042836-f5c5f50e6090
+# github.com/jinzhu/inflection v1.0.0
 github.com/jinzhu/inflection
 # github.com/json-iterator/go v1.1.6
 github.com/json-iterator/go
-# github.com/konsorten/go-windows-terminal-sequences v1.0.2
+# github.com/konsorten/go-windows-terminal-sequences v1.0.1
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/kr/pretty v0.1.0
 github.com/kr/pretty
@@ -92,7 +92,7 @@ github.com/lib/pq
 github.com/lib/pq/hstore
 github.com/lib/pq/oid
 github.com/lib/pq/scram
-# github.com/mailru/easyjson v0.0.0-20190403194419-1ea4449da983
+# github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
 github.com/mailru/easyjson/buffer
@@ -144,7 +144,7 @@ github.com/uber/jaeger-lib/metrics
 github.com/ugorji/go/codec
 # github.com/urfave/cli v1.20.0
 github.com/urfave/cli
-# golang.org/x/net v0.0.0-20190607181551-461777fb6f67
+# golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 golang.org/x/net/websocket
 golang.org/x/net/context
 golang.org/x/net/trace
@@ -158,7 +158,7 @@ golang.org/x/net/idna
 golang.org/x/oauth2
 golang.org/x/oauth2/github
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.0.0-20190606203320-7fc4e5ec1444
+# golang.org/x/sys v0.0.0-20190616124812-15dcb6c0061f
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.2
 golang.org/x/text/unicode/norm
@@ -169,7 +169,7 @@ golang.org/x/text/transform
 # golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/appengine v1.6.1
+# google.golang.org/appengine v1.4.0
 google.golang.org/appengine/urlfetch
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/urlfetch
@@ -177,7 +177,7 @@ google.golang.org/appengine/internal/base
 google.golang.org/appengine/internal/datastore
 google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
-# google.golang.org/genproto v0.0.0-20190605220351-eb0b1bdb6ae6
+# google.golang.org/genproto v0.0.0-20190404172233-64821d5d2107
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.21.1
 google.golang.org/grpc/codes
