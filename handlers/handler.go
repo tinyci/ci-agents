@@ -344,8 +344,14 @@ func CORS(ctx *gin.Context) {
 }
 
 // GetGithub gets the github user from the session and loads it.
-func (h *H) GetGithub(ctx *gin.Context) (*model.User, *errors.Error) {
+func (h *H) GetGithub(ctx *gin.Context) (u *model.User, outErr *errors.Error) {
 	sess := sessions.Default(ctx)
+
+	defer func() {
+		if outErr != nil {
+			sess.Clear()
+		}
+	}()
 
 	uname, ok := sess.Get(SessionUsername).(string)
 	if ok && strings.TrimSpace(uname) != "" {
