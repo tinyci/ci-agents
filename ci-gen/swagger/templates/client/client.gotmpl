@@ -31,14 +31,18 @@ type Client struct {
 
 // New creates a new *Client. Passing a cert will enable client/server
 // certificate authentication; otherwise pass nil for no auth.
-func New(baseURL string, token string) (*Client, *errors.Error) {
+func New(baseURL string, token string, cert *transport.Cert) (*Client, *errors.Error) {
+  t, err := transport.NewHTTP(cert)
+  if err != nil {
+    return nil, errors.New(err)
+  }
+
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, errors.New(err)
 	}
 
-	client := &http.Client{Transport: &http.Transport{IdleConnTimeout: 15*time.Second, MaxIdleConns: 10}}
-
+	client := t.Client(&http.Transport{IdleConnTimeout: 15*time.Second, MaxIdleConns: 10})
 	return &Client{url: u, client: client, token: token}, nil
 }
 
