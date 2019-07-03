@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/ci-gen/gen/client/uisvc/client/operations"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
@@ -16,8 +17,8 @@ type Client struct {
 }
 
 // New constructs a new *Client
-func New(url, token string) (*Client, *errors.Error) {
-	c, err := operations.New(url, token)
+func New(url, token string, cert *transport.Cert) (*Client, *errors.Error) {
+	c, err := operations.New(url, token, cert)
 	if err != nil {
 		return nil, err
 	}

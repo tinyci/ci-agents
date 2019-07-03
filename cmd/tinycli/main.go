@@ -11,6 +11,7 @@ import (
 	"text/tabwriter"
 	"time"
 
+	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/clients/tinyci"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
@@ -43,6 +44,24 @@ func getConfigPath(ctx *cli.Context) (string, *errors.Error) {
 	return path.Join(tinyCIConfig, config), nil
 }
 
+func getCert(ctx *cli.Context) (*transport.Cert, *errors.Error) {
+	ca, certStr, keyStr := ctx.GlobalString("ca"),
+		ctx.GlobalString("cert"),
+		ctx.GlobalString("key")
+
+	if ca == "" || certStr == "" || keyStr == "" {
+		fmt.Fprintln(os.Stderr, "TLS parameters not provided, using plaintext or standard TLS")
+		return nil, nil
+	}
+
+	cert, err := transport.LoadCert(ca, certStr, keyStr, "")
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	return cert, nil
+}
+
 func loadConfig(ctx *cli.Context) (*tinyci.Client, *errors.Error) {
 	filename, e := getConfigPath(ctx)
 	if e != nil {
@@ -61,11 +80,15 @@ func loadConfig(ctx *cli.Context) (*tinyci.Client, *errors.Error) {
 		return nil, errors.New(err).Wrapf("Could not decode tinyCI JSON configuration in %q", filename)
 	}
 
-	return c.mkClient()
+	return c.mkClient(ctx)
 }
 
-func (c Config) mkClient() (*tinyci.Client, *errors.Error) {
-	return tinyci.New(c.Endpoint, c.Token)
+func (c Config) mkClient(ctx *cli.Context) (*tinyci.Client, *errors.Error) {
+	cert, err := getCert(ctx)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+	return tinyci.New(c.Endpoint, c.Token, cert)
 }
 
 // Version is the version of this service.
@@ -97,6 +120,21 @@ You can also specify the TINYCLI_CONFIG environment variable.
 			Usage:  fmt.Sprintf("Name of configuration to use; comes from %q", tinyCIConfig),
 			Value:  "default",
 			EnvVar: "TINYCLI_CONFIG",
+		},
+		cli.StringFlag{
+			Name:   "ca, a",
+			Usage:  "CA certificate used to contact remote service",
+			EnvVar: "TINYCLI_CA_CERT",
+		},
+		cli.StringFlag{
+			Name:   "cert, t",
+			Usage:  "TLS certificate to use to contact remote service (ecdsa only)",
+			EnvVar: "TINYCLI_CERT",
+		},
+		cli.StringFlag{
+			Name:   "key, k",
+			Usage:  "TLS private key to use to contact remote service (ecdsa only)",
+			EnvVar: "TINYCLI_KEY",
 		},
 	}
 
@@ -229,6 +267,11 @@ func doInit(ctx *cli.Context) error {
 	token := ctx.String("token")
 	u := ctx.String("url")
 
+	cert, err := getCert(ctx)
+	if err != nil {
+		return errors.New(err)
+	}
+
 	if u == "" {
 		fmt.Print("Paste in your tinyCI ui service URL endpoint: ")
 		s := bufio.NewScanner(os.Stdin)
@@ -256,7 +299,7 @@ func doInit(ctx *cli.Context) error {
 		}
 	}
 
-	client, err := tinyci.New(u, token)
+	client, err := tinyci.New(u, token, cert)
 	if err != nil {
 		return errors.New(err)
 	}
