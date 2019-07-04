@@ -1,6 +1,8 @@
 package client
 
 import (
+	transport "github.com/erikh/go-transport"
+
 	"github.com/tinyci/ci-agents/ci-gen/gen/client/uisvc/client/operations"
 )
 
@@ -9,6 +11,6 @@ import (
 
 // New creates a new *Client. Passing a cert will enable client/server
 // certificate authentication; otherwise pass nil for no auth.
-func New(baseURL, token string) (*operations.Client, error) {
-	return operations.New(baseURL, token)
+func New(baseURL, token string, cert *transport.Cert) (*operations.Client, error) {
+	return operations.New(baseURL, token, cert)
 }
