@@ -12,6 +12,16 @@ import (
 	"github.com/tinyci/ci-agents/types"
 )
 
+func (ms *modelSuite) CreateRef(r *Repository, name, sha string) (*Ref, *errors.Error) {
+	ref := &Ref{
+		Repository: r,
+		SHA:        sha,
+		RefName:    name,
+	}
+
+	return ref, ms.model.WrapError(ms.model.Create(ref), "creating ref for test")
+}
+
 // CreateUsers creates `count` random users.
 func (ms *modelSuite) CreateUsers(count int) ([]*User, *errors.Error) {
 	users := []*User{}
@@ -30,11 +40,14 @@ func (ms *modelSuite) CreateUsers(count int) ([]*User, *errors.Error) {
 
 // CreateRepository creates a random repository.
 func (ms *modelSuite) CreateRepository() (*Repository, *errors.Error) {
+	return ms.CreateRepositoryWithName(path.Join(testutil.RandString(8), testutil.RandString(8)))
+}
+
+func (ms *modelSuite) CreateRepositoryWithName(name string) (*Repository, *errors.Error) {
 	owners, err := ms.CreateUsers(1)
 	if err != nil {
 		return nil, err
 	}
-	name := path.Join(testutil.RandString(8), testutil.RandString(8))
 	r := &Repository{
 		Name:   name,
 		Github: &gh.Repository{FullName: github.String(name)},

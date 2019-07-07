@@ -298,3 +298,17 @@ definitions:
         type: string
       message:
         type: string
+  ModelSubmission:
+    type: object
+    properties:
+      id:
+        type: integer
+      user:
+        $ref: '#/definitions/User'
+      head_ref:
+        $ref: '#/definitions/Ref'
+      base_ref:
+        $ref: '#/definitions/Ref'
+      created_at:
+        type: string
+        format: date-time
