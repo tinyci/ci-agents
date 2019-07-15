@@ -27,5 +27,11 @@ runs:
     command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "^TestTaskListForks$" ]
   runs_for_task:
     command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "^TestRunsForTask$" ]
+  cancellations-by-run:
+    command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "CancellationByRun" ]
+  cancellations-by-ref:
+    command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "CancellationByRef" ]
+  cancellations-by-task:
+    command: [ "go", "test", "-race", "-v", "./model", "-check.v", "-check.f", "CancellationByTask" ]
   others:
-    command: [ "bash", "-c", "set -e; for i in $((go test -v ./model -check.v -check.testlist || exit 1) | grep -vE 'Queue|RunsForTask|TaskList' | tail -n +2 | head -n -1); do go test -race -v ./model -check.v -check.f ^$i\\$; done"]
+    command: [ "bash", "-c", "set -e; for i in $((go test -v ./model -check.v -check.testlist || exit 1) | grep -vE 'Cancellation|Queue|RunsForTask|TaskList' | tail -n +2 | head -n -1); do go test -race -v ./model -check.v -check.f ^$i\\$; done"]
