@@ -49,8 +49,7 @@ func getCert(ctx *cli.Context) (*transport.Cert, *errors.Error) {
 		ctx.GlobalString("cert"),
 		ctx.GlobalString("key")
 
-	if ca == "" || certStr == "" || keyStr == "" {
-		fmt.Fprintln(os.Stderr, "TLS parameters not provided, using plaintext or standard TLS")
+	if ca == "" && certStr == "" && keyStr == "" {
 		return nil, nil
 	}
 
