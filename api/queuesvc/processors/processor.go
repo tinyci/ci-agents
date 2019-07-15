@@ -22,6 +22,7 @@ const defaultMasterBranch = "heads/master"
 
 // InternalSubmission is a transformed struct with the types pulled from the db.
 type InternalSubmission struct {
+	User       *model.User
 	Sub        *types.Submission
 	ProcessMap map[string]bool
 	RepoConfig *types.RepoConfig
@@ -43,6 +44,69 @@ func getLogger(sub *types.Submission, h *handler.H) *log.SubLogger {
 		})
 	}
 	return h.Clients.Log
+}
+
+func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, client github.Client, is *InternalSubmission) (map[string]*model.Task, *errors.Error) {
+	taskDirTime := time.Now()
+	defer getLogger(is.Sub, h).Infof(ctx, "Computing task dirs took %v", time.Since(taskDirTime))
+
+	headRef := is.Ref
+	baseRef := is.ParentRef
+
+	if baseRef == nil {
+		baseRef = headRef
+	}
+
+	sub, err := h.Clients.Data.PutSubmission(&model.Submission{User: is.User, HeadRef: baseRef, BaseRef: headRef})
+	if err != nil {
+		return nil, err.Wrap("couldn't convert submission")
+	}
+
+	tasks := map[string]*model.Task{}
+
+	getLogger(is.Sub, h).Info(ctx, "Computing task dirs")
+	for i := 0; i < len(taskdirs); i++ {
+		dir := taskdirs[i]
+
+		// FIXME move this string.
+		content, err := client.GetFile(is.Sub.Fork, is.Sub.HeadSHA, path.Join(dir, "task.yml"))
+		if err != nil {
+			return nil, err
+		}
+
+		ts, err := types.NewTaskSettings(content, false, is.RepoConfig)
+		if err != nil {
+			if is.Sub.PullRequest != 0 {
+				if cerr := client.CommentError(is.Sub.Parent, is.Sub.PullRequest, err.Wrap("tinyCI had an error processing your pull request")); cerr != nil {
+					return nil, cerr
+				}
+			}
+
+			return nil, err
+		}
+
+		task := &model.Task{
+			Parent:        is.ParentRepo,
+			BaseSHA:       is.Sub.BaseSHA,
+			PullRequestID: is.Sub.PullRequest,
+			Ref:           is.Ref,
+			Path:          dir,
+			TaskSettings:  ts,
+			CreatedAt:     time.Now(),
+			Submission:    sub,
+		}
+
+		tasks[dir] = task
+
+		for _, dir := range ts.Dependencies {
+			if _, ok := is.ProcessMap[dir]; !ok {
+				is.ProcessMap[dir] = true
+				taskdirs = append(taskdirs, dir)
+			}
+		}
+	}
+
+	return tasks, nil
 }
 
 func makeQueueItemsFromTask(h *handler.H, client github.Client, is *InternalSubmission, dir string, task *model.Task) ([]*model.QueueItem, *errors.Error) {
@@ -97,62 +161,20 @@ func GenerateQueueItems(ctx context.Context, h *handler.H, client github.Client,
 		getLogger(is.Sub, h).Errorf(ctx, "Couldn't clear states for repo %q ref %q: %v", is.Sub.Parent, is.Sub.HeadSHA, err)
 	}
 
-	taskDirTime := time.Now()
-
 	taskdirs := []string{}
 
 	for dir := range is.ProcessMap {
 		taskdirs = append(taskdirs, dir)
 	}
 
-	tasks := map[string]*model.Task{}
-
-	getLogger(is.Sub, h).Info(ctx, "Computing task dirs")
-	for i := 0; i < len(taskdirs); i++ {
-		dir := taskdirs[i]
-
-		// FIXME move this string.
-		content, err := client.GetFile(is.Sub.Fork, is.Sub.HeadSHA, path.Join(dir, "task.yml"))
-		if err != nil {
-			return nil, err
-		}
-
-		ts, err := types.NewTaskSettings(content, false, is.RepoConfig)
-		if err != nil {
-			if is.Sub.PullRequest != 0 {
-				if cerr := client.CommentError(is.Sub.Parent, is.Sub.PullRequest, err.Wrap("tinyCI had an error processing your pull request")); cerr != nil {
-					return nil, cerr
-				}
-			}
-
-			return nil, err
-		}
-
-		task := &model.Task{
-			Parent:        is.ParentRepo,
-			BaseSHA:       is.Sub.BaseSHA,
-			PullRequestID: is.Sub.PullRequest,
-			Ref:           is.Ref,
-			Path:          dir,
-			TaskSettings:  ts,
-			CreatedAt:     time.Now(),
-		}
-
-		tasks[dir] = task
-
-		for _, dir := range ts.Dependencies {
-			if _, ok := is.ProcessMap[dir]; !ok {
-				is.ProcessMap[dir] = true
-				taskdirs = append(taskdirs, dir)
-			}
-		}
+	tasks, err := computeTaskDirs(ctx, h, taskdirs, client, is)
+	if err != nil {
+		return nil, err.Wrap("computing task dirs")
 	}
 
-	getLogger(is.Sub, h).Infof(ctx, "Computing task dirs took %v", time.Since(taskDirTime))
-
 	queueCreateTime := time.Now()
-
 	getLogger(is.Sub, h).Info(ctx, "Generating Queue Items")
+
 	for dir, task := range tasks {
 		if err := task.Validate(); err != nil {
 			// an error here merely means the task is invalid (probably because it
@@ -387,25 +409,25 @@ func GetRepoConfig(client github.Client, sub *types.Submission) (*types.RepoConf
 	return types.NewRepoConfig(content)
 }
 
-func resolveParentInfo(ctx context.Context, h *handler.H, sub *types.Submission) (*types.Submission, *errors.Error) {
+func resolveParentInfo(ctx context.Context, h *handler.H, sub *types.Submission) (*types.Submission, *model.User, *errors.Error) {
 	// to do this properly, we take the submitted by argument in the case of a
 	// manual submission. In the uisvc, this is taken from session data -- never
 	// from foreign input so unless a foreign agent can submit directly to the
 	// queuesvc this should not be an issue.
 	user, eErr := h.Clients.Data.GetUser(sub.SubmittedBy)
 	if eErr != nil {
-		return nil, eErr
+		return nil, nil, eErr
 	}
 
 	token := &types.OAuthToken{}
 	if err := utils.JSONIO(user.Token, token); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	client := h.OAuth.GithubClient(token)
 	repo, err := client.GetRepository(sub.Fork)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// this is ok; if modelRepo is nil then it's disabled.
@@ -422,7 +444,7 @@ func resolveParentInfo(ctx context.Context, h *handler.H, sub *types.Submission)
 	}
 
 	if _, _, err := utils.OwnerRepo(sub.Parent); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var ciRepo *model.Repository
@@ -432,28 +454,29 @@ func resolveParentInfo(ctx context.Context, h *handler.H, sub *types.Submission)
 		var err *errors.Error
 		ciRepo, err = h.Clients.Data.GetRepository(sub.Parent)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	if ciRepo.Disabled {
-		return nil, errors.New("repository is disabled")
+		return nil, nil, errors.New("repository is disabled")
 	}
 
 	if len(sub.HeadSHA) != 40 {
 		sub.HeadSHA, err = client.GetSHA(sub.Fork, sub.HeadSHA)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	sub.BaseSHA, err = client.GetSHA(sub.Parent, "heads/master")
-	return sub, err
+	return sub, user, err
 }
 
 // Process handles the overall processing of the submission. All other calls in this package originate here.
 func Process(ctx context.Context, h *handler.H, sub *types.Submission) (retQI []*model.QueueItem, retErr *errors.Error) {
 	var is *InternalSubmission
+	var user *model.User
 	since := time.Now()
 
 	defer func() {
@@ -483,8 +506,12 @@ func Process(ctx context.Context, h *handler.H, sub *types.Submission) (retQI []
 	}
 
 	if sub.Manual {
-		var err *errors.Error
-		if sub, err = resolveParentInfo(ctx, h, sub); err != nil {
+		var (
+			err *errors.Error
+		)
+
+		sub, user, err = resolveParentInfo(ctx, h, sub)
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -522,6 +549,7 @@ func Process(ctx context.Context, h *handler.H, sub *types.Submission) (retQI []
 		ParentRepo: parentRepo,
 		Ref:        modelRef,
 		ParentRef:  parentRef,
+		User:       user,
 	}
 
 	return GenerateQueueItems(ctx, h, client, is)

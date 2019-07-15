@@ -10,6 +10,7 @@ import "github.com/golang/protobuf/ptypes/struct/struct.proto";
 import "github.com/tinyci/ci-agents/ci-gen/grpc/types/repository.proto";
 import "github.com/tinyci/ci-agents/ci-gen/grpc/types/ref.proto";
 import "github.com/tinyci/ci-agents/ci-gen/grpc/types/run_settings.proto";
+import "github.com/tinyci/ci-agents/ci-gen/grpc/types/submission.proto";
 
 // Task corresponds to directories within the tree that have a `task.yml`
 // placed in them. Each task is decomposed into runs, and this record is
@@ -29,6 +30,7 @@ message Task {
   TaskSettings              settings      = 12; // TaskSettings associated with the task (parsed task.yml)
   string                    path          = 13; // dirname of the task.yml
   int64                     runs          = 14; // count of runs for this task
+  types.Submission          submission    = 15; // submission associated with the run
 }
 
 // TaskSettings is the parsed representation to struct of task.yml files.

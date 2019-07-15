@@ -147,9 +147,8 @@ func (c *cmd) mkParents(users []*model.User) (model.RepositoryList, *errors.Erro
 	return parents, nil
 }
 
-func (c *cmd) mkForks(users []*model.User, parents model.RepositoryList) (map[string]*model.Repository, model.RepositoryList, *errors.Error) {
+func (c *cmd) mkForks(users []*model.User, parents model.RepositoryList) (map[string]*model.Repository, *errors.Error) {
 	forkParents := map[string]*model.Repository{}
-	forks := model.RepositoryList{}
 
 	for i := rand.Intn(int(c.ctx.GlobalUint("forks"))) + 1; i >= 0; i-- {
 		ou := users[rand.Intn(len(users))]
@@ -169,33 +168,33 @@ func (c *cmd) mkForks(users []*model.User, parents model.RepositoryList) (map[st
 		ghRepos := []*github.Repository{}
 
 		if err := utils.JSONIO(repos, &ghRepos); err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		if err := c.dc.Client().PutRepositories(ou.Username, ghRepos, true); err != nil {
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 		}
 
 		repo, err := c.dc.Client().GetRepository(name)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		forks = append(forks, repo)
 		forkParents[repo.Name] = pr
 	}
 
-	return forkParents, forks, nil
+	return forkParents, nil
 }
 
-func (c *cmd) mkRefs(forks model.RepositoryList) ([]*model.Ref, *errors.Error) {
-	refs := []*model.Ref{}
+func (c *cmd) mkRefs(forkParents map[string]*model.Repository) ([]*model.Ref, []*model.Ref, *errors.Error) {
+	headrefs := []*model.Ref{}
+	baserefs := []*model.Ref{}
 
-	for _, fork := range forks {
+	for fork, parent := range forkParents {
 		for refC := rand.Intn(int(c.ctx.GlobalUint("refs"))) + 1; refC >= 0; refC-- {
-			refName := "refs/heads/" + c.getString()
+			refName := "heads/" + c.getString()
 
 			for shaC := rand.Intn(int(c.ctx.GlobalUint("shas"))) + 1; shaC >= 0; shaC-- {
 				sha := ""
@@ -203,32 +202,48 @@ func (c *cmd) mkRefs(forks model.RepositoryList) ([]*model.Ref, *errors.Error) {
 					sha += fmt.Sprintf("%x", rune(rand.Intn(16)))
 				}
 
+				f, err := c.dc.Client().GetRepository(fork)
+				if err != nil {
+					return nil, nil, err
+				}
+
 				ref := &model.Ref{
-					Repository: fork,
+					Repository: f,
 					RefName:    refName,
 					SHA:        sha,
 				}
 
-				var err *errors.Error
 				ref.ID, err = c.dc.Client().PutRef(ref)
 				if err != nil {
-					return nil, err
+					return nil, nil, err
 				}
 
-				refs = append(refs, ref)
+				headrefs = append(headrefs, ref)
+				sha = ""
+				for i := 0; i < 40; i++ {
+					sha += fmt.Sprintf("%x", rune(rand.Intn(16)))
+				}
+
+				ref = &model.Ref{
+					Repository: parent,
+					RefName:    "heads/master",
+					SHA:        sha,
+				}
+
+				ref.ID, err = c.dc.Client().PutRef(ref)
+				if err != nil {
+					return nil, nil, err
+				}
+
+				baserefs = append(baserefs, ref)
 			}
 		}
 	}
 
-	return refs, nil
+	return headrefs, baserefs, nil
 }
 
-func (c *cmd) mkTask(ref *model.Ref, forkParents map[string]*model.Repository) (*model.Task, *errors.Error) {
-	basesha := ""
-	for i := 0; i < 40; i++ {
-		basesha += fmt.Sprintf("%x", rune(rand.Intn(16)))
-	}
-
+func (c *cmd) mkTask(sub *model.Submission) (*model.Task, *errors.Error) {
 	started := rand.Intn(2) == 0
 	finished := started && rand.Intn(2) == 0
 
@@ -258,24 +273,25 @@ func (c *cmd) mkTask(ref *model.Ref, forkParents map[string]*model.Repository) (
 
 	task := &model.Task{
 		Path:          c.getString(),
-		Parent:        forkParents[ref.Repository.Name],
-		Ref:           ref,
-		BaseSHA:       basesha,
+		Parent:        sub.BaseRef.Repository,
+		Ref:           sub.HeadRef,
+		BaseSHA:       sub.BaseRef.SHA,
 		PullRequestID: rand.Int63n(9000),
 		CreatedAt:     createdAt,
 		FinishedAt:    finishedAt,
 		StartedAt:     startedAt,
 		Status:        status,
 		TaskSettings:  ts,
+		Submission:    sub,
 	}
 
 	return c.dc.Client().PutTask(task)
 }
 
-func (c *cmd) mkTasks(refs []*model.Ref, forkParents map[string]*model.Repository) *errors.Error {
-	for _, ref := range refs {
+func (c *cmd) mkTasks(subs []*model.Submission) *errors.Error {
+	for _, sub := range subs {
 		for taskC := rand.Intn(int(c.ctx.GlobalUint("tasks"))) + 1; taskC >= 0; taskC-- {
-			task, err := c.mkTask(ref, forkParents)
+			task, err := c.mkTask(sub)
 			if err != nil {
 				return err
 			}
@@ -301,6 +317,32 @@ func (c *cmd) mkTasks(refs []*model.Ref, forkParents map[string]*model.Repositor
 	}
 
 	return nil
+}
+
+func (c *cmd) mkSubmissions(u *model.User, baserefs []*model.Ref, headrefs []*model.Ref) ([]*model.Submission, *errors.Error) {
+	if len(headrefs) != len(baserefs) {
+		return nil, errors.New("refs count is not equal")
+	}
+
+	subs := []*model.Submission{}
+
+	for i := 0; i < len(baserefs); i++ {
+		sub := &model.Submission{
+			HeadRef: headrefs[i],
+			BaseRef: baserefs[i],
+			User:    u,
+		}
+
+		var err *errors.Error
+		sub, err = c.dc.Client().PutSubmission(sub)
+		if err != nil {
+			return nil, err
+		}
+
+		subs = append(subs, sub)
+	}
+
+	return subs, nil
 }
 
 func generate(ctx *cli.Context) error {
@@ -333,17 +375,22 @@ func generate(ctx *cli.Context) error {
 		return err
 	}
 
-	forkParents, forks, err := c.mkForks(users, parents)
+	forkParents, err := c.mkForks(users, parents)
 	if err != nil {
 		return err
 	}
 
-	refs, err := c.mkRefs(forks)
+	headrefs, baserefs, err := c.mkRefs(forkParents)
 	if err != nil {
 		return err
 	}
 
-	if err := c.mkTasks(refs, forkParents); err != nil {
+	subs, err := c.mkSubmissions(users[0], headrefs, baserefs)
+	if err != nil {
+		return err
+	}
+
+	if err := c.mkTasks(subs); err != nil {
 		return err
 	}
 

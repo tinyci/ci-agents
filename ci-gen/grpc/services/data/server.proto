@@ -15,6 +15,7 @@ import "github.com/tinyci/ci-agents/ci-gen/grpc/types/run.proto";
 import "github.com/tinyci/ci-agents/ci-gen/grpc/types/user.proto";
 import "github.com/tinyci/ci-agents/ci-gen/grpc/types/task.proto";
 import "github.com/tinyci/ci-agents/ci-gen/grpc/types/id.proto";
+import "github.com/tinyci/ci-agents/ci-gen/grpc/types/submission.proto";
 
 // datasvc is the conduit between the other services and the database. Most of
 // these calls map either directly or close to the model calls.
@@ -94,6 +95,9 @@ service Data {
   rpc AddSubscription(RepoUserSelection)    returns (google.protobuf.Empty) {};
   // lists all the subscriptions for the user.
   rpc ListSubscriptions(NameSearch)         returns (types.RepositoryList)  {};
+
+  // Add a submission to the db.
+  rpc PutSubmission(types.Submission) returns (types.Submission) {};
 
   // Add a task to the db.
   rpc PutTask(types.Task)                                     returns (types.Task)            {}; 

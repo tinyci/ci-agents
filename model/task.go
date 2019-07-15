@@ -40,6 +40,9 @@ type Task struct {
 	TaskSettings *types.TaskSettings `json:"settings"`
 
 	Runs int64 `json:"runs" gorm:"-"`
+
+	Submission   *Submission `gorm:"association_autoupdate:false" json:"submission"`
+	SubmissionID int64       `json:"-"`
 }
 
 // NewTaskFromProto converts the proto representation to the task type.
@@ -51,6 +54,15 @@ func NewTaskFromProto(gt *gtypes.Task) (*Task, *errors.Error) {
 	ref, err := NewRefFromProto(gt.Ref)
 	if err != nil {
 		return nil, err
+	}
+
+	var sub *Submission
+	if gt.Submission != nil {
+		var err *errors.Error
+		sub, err = NewSubmissionFromProto(gt.Submission)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Task{
@@ -67,6 +79,7 @@ func NewTaskFromProto(gt *gtypes.Task) (*Task, *errors.Error) {
 		Status:        MakeStatus(gt.Status, gt.StatusSet),
 		TaskSettings:  types.NewTaskSettingsFromProto(gt.Settings),
 		Runs:          gt.Runs,
+		Submission:    sub,
 	}, nil
 }
 
@@ -76,6 +89,12 @@ func (t *Task) ToProto() *gtypes.Task {
 	if t.Status != nil {
 		status = *t.Status
 		set = true
+	}
+
+	var sub *gtypes.Submission
+
+	if t.Submission != nil {
+		sub = t.Submission.ToProto()
 	}
 
 	return &gtypes.Task{
@@ -93,6 +112,7 @@ func (t *Task) ToProto() *gtypes.Task {
 		StatusSet:     set,
 		Settings:      t.TaskSettings.ToProto(),
 		Runs:          t.Runs,
+		Submission:    sub,
 	}
 }
 
@@ -120,6 +140,10 @@ func (t *Task) Validate() *errors.Error {
 // AfterFind validates the output from the database before releasing it to the
 // hook chain
 func (t *Task) AfterFind(tx *gorm.DB) error {
+	if t.SubmissionID == 0 {
+		t.Submission = nil
+	}
+
 	if err := json.Unmarshal(t.TaskSettingsJSON, &t.TaskSettings); err != nil {
 		return errors.New(err).Wrapf("unpacking task settings for task %d", t.ID)
 	}
@@ -128,7 +152,7 @@ func (t *Task) AfterFind(tx *gorm.DB) error {
 		return errors.New(err).Wrapf("reading task id %d", t.ID)
 	}
 
-	return nil //tx.Model(&Run{}).Where("task_id = ?", t.ID).Count(&t.Runs).Error
+	return nil
 }
 
 // BeforeCreate just calls BeforeSave.
