@@ -55,12 +55,12 @@ func (qc *QueueClient) SetUpSubmissionRepo(name string, forkOf string) *errors.E
 
 // SetMockSubmissionOnFork sets mock submissions for fork-only repositories. Used in a few tests.
 func (qc *QueueClient) SetMockSubmissionOnFork(mock *github.MockClientMockRecorder, sub *types.Submission, parent, resolvedSHA string) error {
-	repoConfigBytes, err := ioutil.ReadFile("../../testdata/standard_repoconfig.yml")
+	repoConfigBytes, err := ioutil.ReadFile("../testdata/standard_repoconfig.yml")
 	if err != nil {
 		return err
 	}
 
-	taskBytes, err := ioutil.ReadFile("../../testdata/standard_task.yml")
+	taskBytes, err := ioutil.ReadFile("../testdata/standard_task.yml")
 	if err != nil {
 		return err
 	}
@@ -97,12 +97,12 @@ func (qc *QueueClient) SetMockSubmissionOnFork(mock *github.MockClientMockRecord
 
 // SetMockSubmissionSuccess creates all the mock tooling necessary to set up a submission
 func (qc *QueueClient) SetMockSubmissionSuccess(mock *github.MockClientMockRecorder, sub *types.Submission) error {
-	repoConfigBytes, err := ioutil.ReadFile("../../testdata/standard_repoconfig.yml")
+	repoConfigBytes, err := ioutil.ReadFile("../testdata/standard_repoconfig.yml")
 	if err != nil {
 		return err
 	}
 
-	taskBytes, err := ioutil.ReadFile("../../testdata/standard_task.yml")
+	taskBytes, err := ioutil.ReadFile("../testdata/standard_task.yml")
 	if err != nil {
 		return err
 	}

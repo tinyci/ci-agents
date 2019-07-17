@@ -17,7 +17,6 @@ import (
 	_struct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/sirupsen/logrus"
-	logsvc "github.com/tinyci/ci-agents/api/logsvc/processors"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/log"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
@@ -31,6 +30,15 @@ type Client struct {
 	closer io.Closer
 	closed bool
 }
+
+const (
+	// LevelDebug is the debug loglevel
+	LevelDebug = "DEBUG"
+	// LevelError is the error loglevel
+	LevelError = "ERROR"
+	// LevelInfo is the info loglevel
+	LevelInfo = "INFO"
+)
 
 // Close closes the client's tracing functionality
 func (c *Client) Close() error {
@@ -260,36 +268,36 @@ func (sub *SubLogger) Log(ctx context.Context, level string, msg interface{}, lo
 
 // Info prints an info message
 func (sub *SubLogger) Info(ctx context.Context, msg interface{}) error {
-	sub.Log(ctx, logsvc.LevelInfo, msg, logrus.WithFields(sub.Fields.ToLogrus()).Info)
+	sub.Log(ctx, LevelInfo, msg, logrus.WithFields(sub.Fields.ToLogrus()).Info)
 	return nil
 }
 
 // Infof is the format-capable version of Info
 func (sub *SubLogger) Infof(ctx context.Context, msg string, values ...interface{}) error {
-	sub.Logf(ctx, logsvc.LevelInfo, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Infof)
+	sub.Logf(ctx, LevelInfo, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Infof)
 	return nil
 }
 
 // Error prints an error message
 func (sub *SubLogger) Error(ctx context.Context, msg interface{}) error {
-	sub.Log(ctx, logsvc.LevelError, msg, logrus.WithFields(sub.Fields.ToLogrus()).Error)
+	sub.Log(ctx, LevelError, msg, logrus.WithFields(sub.Fields.ToLogrus()).Error)
 	return nil
 }
 
 // Errorf is the format-capable version of Error
 func (sub *SubLogger) Errorf(ctx context.Context, msg string, values ...interface{}) error {
-	sub.Logf(ctx, logsvc.LevelError, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Errorf)
+	sub.Logf(ctx, LevelError, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Errorf)
 	return nil
 }
 
 // Debug prints a debug message
 func (sub *SubLogger) Debug(ctx context.Context, msg interface{}) error {
-	sub.Log(ctx, logsvc.LevelDebug, msg, logrus.WithFields(sub.Fields.ToLogrus()).Debug)
+	sub.Log(ctx, LevelDebug, msg, logrus.WithFields(sub.Fields.ToLogrus()).Debug)
 	return nil
 }
 
 // Debugf is the format-capable version of Debug
 func (sub *SubLogger) Debugf(ctx context.Context, msg string, values ...interface{}) error {
-	sub.Logf(ctx, logsvc.LevelDebug, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Debugf)
+	sub.Logf(ctx, LevelDebug, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Debugf)
 	return nil
 }

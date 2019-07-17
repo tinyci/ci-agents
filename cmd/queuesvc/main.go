@@ -7,7 +7,7 @@ import (
 	"syscall"
 
 	transport "github.com/erikh/go-transport"
-	"github.com/tinyci/ci-agents/api/queuesvc/processors"
+	"github.com/tinyci/ci-agents/api/queuesvc"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/queue"
 	"github.com/tinyci/ci-agents/config"
@@ -64,7 +64,7 @@ func serve(ctx *cli.Context) error {
 		return err
 	}
 
-	queue.RegisterQueueServer(s, &processors.QueueServer{H: h})
+	queue.RegisterQueueServer(s, &queuesvc.QueueServer{H: h})
 
 	finished := make(chan struct{})
 	doneChan, err := h.Boot(t, s, finished)

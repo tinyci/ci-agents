@@ -7,7 +7,7 @@ import (
 	"syscall"
 
 	transport "github.com/erikh/go-transport"
-	"github.com/tinyci/ci-agents/api/datasvc/processors"
+	"github.com/tinyci/ci-agents/api/datasvc"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/config"
@@ -66,7 +66,7 @@ func serve(ctx *cli.Context) error {
 		return err
 	}
 
-	data.RegisterDataServer(s, &processors.DataServer{H: h})
+	data.RegisterDataServer(s, &datasvc.DataServer{H: h})
 
 	finished := make(chan struct{})
 	doneChan, err := h.Boot(t, s, finished)

@@ -7,7 +7,7 @@ import (
 	"syscall"
 
 	transport "github.com/erikh/go-transport"
-	"github.com/tinyci/ci-agents/api/logsvc/processors"
+	"github.com/tinyci/ci-agents/api/logsvc"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/log"
 	"github.com/tinyci/ci-agents/config"
@@ -64,7 +64,7 @@ func serve(ctx *cli.Context) error {
 		return err
 	}
 
-	log.RegisterLogServer(s, processors.New(nil))
+	log.RegisterLogServer(s, logsvc.New(nil))
 
 	finished := make(chan struct{})
 	doneChan, err := h.Boot(t, s, finished)

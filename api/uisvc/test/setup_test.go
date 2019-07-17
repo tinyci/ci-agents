@@ -5,6 +5,10 @@ import (
 	"time"
 
 	check "github.com/erikh/check"
+	"github.com/tinyci/ci-agents/api/assetsvc"
+	"github.com/tinyci/ci-agents/api/datasvc"
+	"github.com/tinyci/ci-agents/api/logsvc"
+	"github.com/tinyci/ci-agents/api/queuesvc"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/clients/asset"
 	"github.com/tinyci/ci-agents/config"
@@ -27,7 +31,7 @@ type uisvcSuite struct {
 	queueHandler   *handler.H
 	assetHandler   *handler.H
 
-	logJournal *testservers.LogJournal
+	logJournal *logsvc.LogJournal
 }
 
 var _ = check.Suite(&uisvcSuite{})
@@ -41,16 +45,16 @@ func (us *uisvcSuite) SetUpTest(c *check.C) {
 	testutil.WipeDB(c)
 
 	var err error
-	us.dataHandler, us.dataDoneChan, err = testservers.MakeDataServer()
+	us.dataHandler, us.dataDoneChan, err = datasvc.MakeDataServer()
 	c.Assert(err, check.IsNil)
 
-	us.queueHandler, us.queueDoneChan, err = testservers.MakeQueueServer()
+	us.queueHandler, us.queueDoneChan, err = queuesvc.MakeQueueServer()
 	c.Assert(err, check.IsNil)
 
-	us.assetHandler, us.assetDoneChan, err = testservers.MakeAssetServer()
+	us.assetHandler, us.assetDoneChan, err = assetsvc.MakeAssetServer()
 	c.Assert(err, check.IsNil)
 
-	us.logHandler, us.logDoneChan, us.logJournal, err = testservers.MakeLogServer()
+	us.logHandler, us.logDoneChan, us.logJournal, err = logsvc.MakeLogServer()
 	c.Assert(err, check.IsNil)
 
 	go us.logJournal.Tail()
