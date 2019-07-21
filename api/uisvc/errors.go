@@ -1,4 +1,4 @@
-package processors
+package uisvc
 
 import (
 	"github.com/gin-gonic/gin"

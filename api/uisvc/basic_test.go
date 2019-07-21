@@ -1,4 +1,4 @@
-package test
+package uisvc
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/mocks/github"
-	"github.com/tinyci/ci-agents/testutil/testservers"
+	"github.com/tinyci/ci-agents/testutil/uisvc"
 	"github.com/tinyci/ci-agents/types"
 
 	gh "github.com/google/go-github/github"
@@ -20,7 +20,7 @@ import (
 
 func (us *uisvcSuite) TestCapabilities(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, utc, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, utc, err := uisvc.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -44,7 +44,7 @@ func (us *uisvcSuite) TestCapabilities(c *check.C) {
 
 func (us *uisvcSuite) TestErrors(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, _, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, _, err := uisvc.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -55,7 +55,7 @@ func (us *uisvcSuite) TestErrors(c *check.C) {
 
 func (us *uisvcSuite) TestLogAttach(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, _, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, _, err := uisvc.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -79,7 +79,7 @@ func (us *uisvcSuite) TestLogAttach(c *check.C) {
 
 func (us *uisvcSuite) TestTokenEndpoints(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, _, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, _, err := uisvc.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -90,7 +90,7 @@ func (us *uisvcSuite) TestTokenEndpoints(c *check.C) {
 
 func (us *uisvcSuite) TestDeleteToken(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, _, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, _, err := uisvc.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -101,7 +101,7 @@ func (us *uisvcSuite) TestDeleteToken(c *check.C) {
 
 func (us *uisvcSuite) TestSubmit(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, utc, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, utc, err := uisvc.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -206,7 +206,7 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 
 func (us *uisvcSuite) TestAddDeleteCI(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	h, doneChan, tc, utc, err := testservers.MakeUIServer(client)
+	h, doneChan, tc, utc, err := uisvc.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -262,7 +262,7 @@ func (us *uisvcSuite) TestAddDeleteCI(c *check.C) {
 
 func (us *uisvcSuite) TestSubscriptions(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, _, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, _, err := uisvc.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -295,7 +295,7 @@ func (us *uisvcSuite) TestSubscriptions(c *check.C) {
 
 func (us *uisvcSuite) TestVisibility(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, _, err := testservers.MakeUIServer(client)
+	_, doneChan, tc, _, err := uisvc.MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
