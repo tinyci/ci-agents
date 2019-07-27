@@ -7,13 +7,12 @@ import (
 
 	check "github.com/erikh/check"
 	"github.com/tinyci/ci-agents/clients/log"
-	client "github.com/tinyci/ci-agents/clients/log"
 	"github.com/tinyci/ci-agents/model"
 )
 
 func (ls *logsvcSuite) Test01Journal(c *check.C) {
 	log.New().Info(context.Background(), "test")
-	j := ls.journal.Journal[client.LevelInfo]
+	j := ls.journal.Journal[log.LevelInfo]
 	c.Assert(len(j), check.Equals, 1)
 	c.Assert(j[0].Message, check.Equals, "test")
 }
@@ -25,7 +24,7 @@ func (ls *logsvcSuite) TestLevels(c *check.C) {
 	l.Info(ctx, "test")
 	l.Infof(ctx, "test %d", 2)
 
-	j := ls.journal.Journal[client.LevelInfo]
+	j := ls.journal.Journal[log.LevelInfo]
 	c.Assert(len(j), check.Equals, 2)
 	c.Assert(j[0].Message, check.Equals, "test")
 	c.Assert(j[1].Message, check.Equals, "test 2")
@@ -33,7 +32,7 @@ func (ls *logsvcSuite) TestLevels(c *check.C) {
 	l.Error(ctx, "test")
 	l.Errorf(ctx, "test %d", 2)
 
-	j = ls.journal.Journal[client.LevelError]
+	j = ls.journal.Journal[log.LevelError]
 	c.Assert(len(j), check.Equals, 2)
 	c.Assert(j[0].Message, check.Equals, "test")
 	c.Assert(j[1].Message, check.Equals, "test 2")
@@ -41,7 +40,7 @@ func (ls *logsvcSuite) TestLevels(c *check.C) {
 	l.Debug(ctx, "test")
 	l.Debugf(ctx, "test %d", 2)
 
-	j = ls.journal.Journal[client.LevelDebug]
+	j = ls.journal.Journal[log.LevelDebug]
 	c.Assert(len(j), check.Equals, 2)
 	c.Assert(j[0].Message, check.Equals, "test")
 	c.Assert(j[1].Message, check.Equals, "test 2")

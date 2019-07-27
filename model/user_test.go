@@ -6,7 +6,6 @@ import (
 
 	check "github.com/erikh/check"
 	"github.com/google/go-github/github"
-	gh "github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/types"
@@ -214,7 +213,7 @@ func (ms *modelSuite) TestSaveRepositories(c *check.C) {
 	owners, err := ms.CreateUsers(1)
 	c.Assert(err, check.IsNil)
 
-	err = ms.model.SaveRepositories([]*gh.Repository{
+	err = ms.model.SaveRepositories([]*github.Repository{
 		{
 			FullName: github.String("erikh/barbara"),
 		},
