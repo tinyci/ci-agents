@@ -244,6 +244,42 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
 	)
 	addRoute(
 		h,
+		handlers.TransformSwaggerRoute("/submission/{id}"),
+		"GET",
+		&handlers.Route{
+			ParamValidator: operations.GetSubmissionIDValidateURLParams,
+			Handler:        operations.GetSubmissionID,
+			Method:         "GET",
+			UseCORS:        true,
+			UseAuth:        true,
+		},
+	)
+	addRoute(
+		h,
+		handlers.TransformSwaggerRoute("/submission/{id}/tasks"),
+		"GET",
+		&handlers.Route{
+			ParamValidator: operations.GetSubmissionIDTasksValidateURLParams,
+			Handler:        operations.GetSubmissionIDTasks,
+			Method:         "GET",
+			UseCORS:        true,
+			UseAuth:        true,
+		},
+	)
+	addRoute(
+		h,
+		handlers.TransformSwaggerRoute("/submissions"),
+		"GET",
+		&handlers.Route{
+			ParamValidator: operations.GetSubmissionsValidateURLParams,
+			Handler:        operations.GetSubmissions,
+			Method:         "GET",
+			UseCORS:        true,
+			UseAuth:        true,
+		},
+	)
+	addRoute(
+		h,
 		handlers.TransformSwaggerRoute("/submit"),
 		"GET",
 		&handlers.Route{

@@ -6,7 +6,7 @@ DOCKER_CONTAINER_DIR=-v $(shell realpath ${PWD}/..):$(CONTAINER_DIR) \
 								-w $(CONTAINER_DIR)
 DOCKER_IMAGE=tinyci-gen
 SWAGGER_SERVICES := uisvc
-TARGET_DIR=${PWD}/ci-gen
+TARGET_DIR=${PWD}
 
 get-box:
 	@if [ ! -f "$(shell which box)" ]; \
@@ -18,7 +18,7 @@ get-box:
 build-gen-image: get-box
 	box -t $(DOCKER_IMAGE) box.rb
 
-gen: build-gen-image
+gen: gen-javascript build-gen-image
 	$(DOCKER_RUN) -u $$(id -u):$$(id -g) $(DOCKER_CONTAINER_DIR) $(DOCKER_IMAGE) bash ci-gen/gen.sh
 
 gen-javascript:

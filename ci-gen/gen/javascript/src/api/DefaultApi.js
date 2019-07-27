@@ -14,6 +14,7 @@
 
 import ApiClient from "../ApiClient";
 import Error from '../model/Error';
+import ModelSubmission from '../model/ModelSubmission';
 import Repository from '../model/Repository';
 import Run from '../model/Run';
 import Task from '../model/Task';
@@ -891,6 +892,145 @@ export default class DefaultApi {
       let returnType = [Run];
       return this.apiClient.callApi(
         '/runs', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null, callback
+      );
+    }
+
+    /**
+     * Callback function to receive the result of the submissionIdGet operation.
+     * @callback module:api/DefaultApi~submissionIdGetCallback
+     * @param {String} error Error message, if any.
+     * @param {module:model/ModelSubmission} data The data returned by the service call.
+     * @param {String} response The complete HTTP response.
+     */
+
+    /**
+     * Get a submission by ID
+     * Retrieve a Submission by ID; this will return the full Submission object including all relationships.
+     * @param {Number} id The ID of the submission to retrieve
+     * @param {module:api/DefaultApi~submissionIdGetCallback} callback The callback function, accepting three arguments: error, data, response
+     * data is of type: {@link module:model/ModelSubmission}
+     */
+    submissionIdGet(id, callback) {
+      let postBody = null;
+      // verify the required parameter 'id' is set
+      if (id === undefined || id === null) {
+        throw new Error("Missing the required parameter 'id' when calling submissionIdGet");
+      }
+
+      let pathParams = {
+        'id': id
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = ['session', 'token'];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = ModelSubmission;
+      return this.apiClient.callApi(
+        '/submission/{id}', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null, callback
+      );
+    }
+
+    /**
+     * Callback function to receive the result of the submissionIdTasksGet operation.
+     * @callback module:api/DefaultApi~submissionIdTasksGetCallback
+     * @param {String} error Error message, if any.
+     * @param {Array.<module:model/Task>} data The data returned by the service call.
+     * @param {String} response The complete HTTP response.
+     */
+
+    /**
+     * Get submission tasks by ID
+     * Retrieve a Submission's tasks by ID; this will return the list of tasks with pagination.
+     * @param {Number} id The ID of the submission to retrieve
+     * @param {Object} opts Optional parameters
+     * @param {Number} opts.page pagination control: what page to retrieve in the query. (default to 0)
+     * @param {Number} opts.perPage pagination control: how many items counts as a page. (default to 100)
+     * @param {module:api/DefaultApi~submissionIdTasksGetCallback} callback The callback function, accepting three arguments: error, data, response
+     * data is of type: {@link Array.<module:model/Task>}
+     */
+    submissionIdTasksGet(id, opts, callback) {
+      opts = opts || {};
+      let postBody = null;
+      // verify the required parameter 'id' is set
+      if (id === undefined || id === null) {
+        throw new Error("Missing the required parameter 'id' when calling submissionIdTasksGet");
+      }
+
+      let pathParams = {
+        'id': id
+      };
+      let queryParams = {
+        'page': opts['page'],
+        'perPage': opts['perPage']
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = ['session', 'token'];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = [Task];
+      return this.apiClient.callApi(
+        '/submission/{id}/tasks', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null, callback
+      );
+    }
+
+    /**
+     * Callback function to receive the result of the submissionsGet operation.
+     * @callback module:api/DefaultApi~submissionsGetCallback
+     * @param {String} error Error message, if any.
+     * @param {Array.<module:model/ModelSubmission>} data The data returned by the service call.
+     * @param {String} response The complete HTTP response.
+     */
+
+    /**
+     * List submisssions
+     * Retrieve a list of Submissions; this will return the full Submission object including all relationships.
+     * @param {Object} opts Optional parameters
+     * @param {Number} opts.page pagination control: what page to retrieve in the query. (default to 0)
+     * @param {Number} opts.perPage pagination control: how many items counts as a page. (default to 100)
+     * @param {String} opts.repository the repository owner/repo to be viewed.
+     * @param {String} opts.sha the sha or branch to be viewed.
+     * @param {module:api/DefaultApi~submissionsGetCallback} callback The callback function, accepting three arguments: error, data, response
+     * data is of type: {@link Array.<module:model/ModelSubmission>}
+     */
+    submissionsGet(opts, callback) {
+      opts = opts || {};
+      let postBody = null;
+
+      let pathParams = {
+      };
+      let queryParams = {
+        'page': opts['page'],
+        'perPage': opts['perPage'],
+        'repository': opts['repository'],
+        'sha': opts['sha']
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = ['session', 'token'];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = [ModelSubmission];
+      return this.apiClient.callApi(
+        '/submissions', 'GET',
         pathParams, queryParams, headerParams, formParams, postBody,
         authNames, contentTypes, accepts, returnType, null, callback
       );

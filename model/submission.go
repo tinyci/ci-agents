@@ -6,6 +6,7 @@ import (
 	gtypes "github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/types"
+	"github.com/tinyci/ci-agents/utils"
 )
 
 // Submission is the concrete type for a test submission, unlike
@@ -123,4 +124,82 @@ func (m *Model) NewSubmissionFromMessage(sub *types.Submission) (*Submission, *e
 		HeadRef: head,
 		BaseRef: base,
 	}, nil
+}
+
+// SubmissionList returns a list of submissions with pagination and repo/sha filtering.
+func (m *Model) SubmissionList(page, perPage int64, repository, sha string) ([]*Submission, *errors.Error) {
+	subs := []*Submission{}
+
+	page, perPage, err := utils.ScopePaginationInt(page, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	obj := m.Offset(page * perPage).Limit(perPage).Order("submissions.id DESC")
+
+	if repository != "" {
+		repo, err := m.GetRepositoryByName(repository)
+		if err != nil {
+			return nil, err
+		}
+
+		var ref *Ref
+
+		if sha != "" {
+			var err *errors.Error
+			ref, err = m.GetRefByNameAndSHA(repository, sha)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return m.SubmissionListForRepository(repo, ref, page, perPage)
+	}
+
+	return subs, m.WrapError(obj.Find(&subs), "listing submissions")
+}
+
+// SubmissionListForRepository returns a list of submissions with pagination. If ref
+// is non-nil, it will isolate to the ref only and ignore the repo.
+func (m *Model) SubmissionListForRepository(repo *Repository, ref *Ref, page, perPage int64) ([]*Submission, *errors.Error) {
+	// FIXME this should probably be two independent calls with a query builder or something
+	subs := []*Submission{}
+
+	page, perPage, err := utils.ScopePaginationInt(page, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	obj := m.Offset(page * perPage).
+		Limit(perPage).
+		Order("submissions.id DESC").
+		Joins("inner join refs on refs.id = submissions.base_ref_id").
+		Joins("inner join repositories on repositories.id = refs.repository_id")
+
+	if ref != nil {
+		obj = obj.Where("submissions.base_ref_id = ?", ref.ID)
+	} else {
+		obj = obj.Where("repositories.id = ?", repo.ID)
+	}
+
+	return subs, m.WrapError(obj.Find(&subs), "listing submissions for repository")
+}
+
+// TasksForSubmission returns all the tasks for a given submission.
+func (m *Model) TasksForSubmission(sub *Submission, page, perPage int64) ([]*Task, *errors.Error) {
+	tasks := []*Task{}
+
+	obj := m.Offset(page*perPage).
+		Limit(perPage).
+		Order("tasks.id DESC").
+		Joins("inner join submissions on tasks.submission_id = submissions.id").
+		Where("submissions.id = ?", sub.ID)
+
+	return tasks, m.WrapError(obj.Find(&tasks), "listing tasks for a submission")
+}
+
+// GetSubmissionByID returns a submission by internal identifier
+func (m *Model) GetSubmissionByID(id int64) (*Submission, *errors.Error) {
+	sub := &Submission{}
+	return sub, m.WrapError(m.Where("submissions.id = ?", id).First(sub), "getting submission by id")
 }

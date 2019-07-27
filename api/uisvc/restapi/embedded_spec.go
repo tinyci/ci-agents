@@ -731,6 +731,150 @@ func init() {
         }
       }
     },
+    "/submission/{id}": {
+      "get": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Retrieve a Submission by ID; this will return the full Submission object including all relationships.",
+        "summary": "Get a submission by ID",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "The ID of the submission to retrieve",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "../models.yml#/definitions/ModelSubmission"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "../models.yml#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/submission/{id}/tasks": {
+      "get": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Retrieve a Submission's tasks by ID; this will return the list of tasks with pagination.",
+        "summary": "Get submission tasks by ID",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "The ID of the submission to retrieve",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "default": 0,
+            "description": "pagination control: what page to retrieve in the query.",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 100,
+            "description": "pagination control: how many items counts as a page.",
+            "name": "perPage",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "../models.yml#/definitions/TaskList"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "../models.yml#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/submissions": {
+      "get": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Retrieve a list of Submissions; this will return the full Submission object including all relationships.",
+        "summary": "List submisssions",
+        "parameters": [
+          {
+            "type": "integer",
+            "default": 0,
+            "description": "pagination control: what page to retrieve in the query.",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 100,
+            "description": "pagination control: how many items counts as a page.",
+            "name": "perPage",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the repository owner/repo to be viewed.",
+            "name": "repository",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the sha or branch to be viewed.",
+            "name": "sha",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "../models.yml#/definitions/ModelSubmissionList"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "../models.yml#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/submit": {
       "get": {
         "security": [
@@ -1846,6 +1990,150 @@ func init() {
         }
       }
     },
+    "/submission/{id}": {
+      "get": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Retrieve a Submission by ID; this will return the full Submission object including all relationships.",
+        "summary": "Get a submission by ID",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "The ID of the submission to retrieve",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/modelSubmission"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/submission/{id}/tasks": {
+      "get": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Retrieve a Submission's tasks by ID; this will return the list of tasks with pagination.",
+        "summary": "Get submission tasks by ID",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "The ID of the submission to retrieve",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "default": 0,
+            "description": "pagination control: what page to retrieve in the query.",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 100,
+            "description": "pagination control: how many items counts as a page.",
+            "name": "perPage",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/taskList"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/submissions": {
+      "get": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Retrieve a list of Submissions; this will return the full Submission object including all relationships.",
+        "summary": "List submisssions",
+        "parameters": [
+          {
+            "type": "integer",
+            "default": 0,
+            "description": "pagination control: what page to retrieve in the query.",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 100,
+            "description": "pagination control: how many items counts as a page.",
+            "name": "perPage",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the repository owner/repo to be viewed.",
+            "name": "repository",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the sha or branch to be viewed.",
+            "name": "sha",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/modelSubmissionList"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
     "/submit": {
       "get": {
         "security": [
@@ -2247,6 +2535,257 @@ func init() {
         "log": {
           "type": "boolean",
           "default": true
+        }
+      }
+    },
+    "modelSubmission": {
+      "type": "object",
+      "properties": {
+        "base_ref": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "ref_name": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "object",
+              "properties": {
+                "auto_created": {
+                  "type": "boolean"
+                },
+                "disabled": {
+                  "type": "boolean"
+                },
+                "github": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "private": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "sha": {
+              "type": "string"
+            }
+          }
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "head_ref": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "ref_name": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "object",
+              "properties": {
+                "auto_created": {
+                  "type": "boolean"
+                },
+                "disabled": {
+                  "type": "boolean"
+                },
+                "github": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "private": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "sha": {
+              "type": "string"
+            }
+          }
+        },
+        "id": {
+          "type": "integer"
+        },
+        "user": {
+          "type": "object",
+          "properties": {
+            "errors": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "error": {
+                    "type": "string",
+                    "example": "achtung, baby!"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                }
+              }
+            },
+            "id": {
+              "type": "integer"
+            },
+            "last_scanned_repos": {
+              "type": "string",
+              "format": "date-time",
+              "x-nullable": true
+            },
+            "token": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "username": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "modelSubmissionList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "base_ref": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "ref_name": {
+                "type": "string"
+              },
+              "repository": {
+                "type": "object",
+                "properties": {
+                  "auto_created": {
+                    "type": "boolean"
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "github": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "id": {
+                    "type": "integer"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "private": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "sha": {
+                "type": "string"
+              }
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "head_ref": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "ref_name": {
+                "type": "string"
+              },
+              "repository": {
+                "type": "object",
+                "properties": {
+                  "auto_created": {
+                    "type": "boolean"
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "github": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "id": {
+                    "type": "integer"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "private": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "sha": {
+                "type": "string"
+              }
+            }
+          },
+          "id": {
+            "type": "integer"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "errors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "achtung, baby!"
+                    },
+                    "id": {
+                      "type": "integer",
+                      "example": 1
+                    }
+                  }
+                }
+              },
+              "id": {
+                "type": "integer"
+              },
+              "last_scanned_repos": {
+                "type": "string",
+                "format": "date-time",
+                "x-nullable": true
+              },
+              "token": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "username": {
+                "type": "string"
+              }
+            }
+          }
         }
       }
     },

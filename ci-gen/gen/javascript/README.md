@@ -22,7 +22,7 @@ Then install it via:
 npm install uisvc --save
 ```
 
-Finaly, you need to build the module:
+Finally, you need to build the module:
 
 ```shell
 npm run build
@@ -48,7 +48,7 @@ To use the link you just defined in your project, switch to the directory you wa
 npm link /path/to/<JAVASCRIPT_CLIENT_DIR>
 ```
 
-Finaly, you need to build the module:
+Finally, you need to build the module:
 
 ```shell
 npm run build
@@ -151,6 +151,9 @@ Class | Method | HTTP request | Description
 *Uisvc.DefaultApi* | [**runRunIdGet**](docs/DefaultApi.md#runRunIdGet) | **GET** /run/{run_id} | Get a run by ID
 *Uisvc.DefaultApi* | [**runsCountGet**](docs/DefaultApi.md#runsCountGet) | **GET** /runs/count | Count the runs
 *Uisvc.DefaultApi* | [**runsGet**](docs/DefaultApi.md#runsGet) | **GET** /runs | Obtain the run list for the user
+*Uisvc.DefaultApi* | [**submissionIdGet**](docs/DefaultApi.md#submissionIdGet) | **GET** /submission/{id} | Get a submission by ID
+*Uisvc.DefaultApi* | [**submissionIdTasksGet**](docs/DefaultApi.md#submissionIdTasksGet) | **GET** /submission/{id}/tasks | Get submission tasks by ID
+*Uisvc.DefaultApi* | [**submissionsGet**](docs/DefaultApi.md#submissionsGet) | **GET** /submissions | List submisssions
 *Uisvc.DefaultApi* | [**submitGet**](docs/DefaultApi.md#submitGet) | **GET** /submit | Perform a manual submission to tinyCI
 *Uisvc.DefaultApi* | [**tasksCancelIdPost**](docs/DefaultApi.md#tasksCancelIdPost) | **POST** /tasks/cancel/{id} | Cancel by Task ID
 *Uisvc.DefaultApi* | [**tasksCountGet**](docs/DefaultApi.md#tasksCountGet) | **GET** /tasks/count | Count the Tasks
@@ -166,6 +169,7 @@ Class | Method | HTTP request | Description
 ## Documentation for Models
 
  - [Uisvc.Error](docs/Error.md)
+ - [Uisvc.ModelSubmission](docs/ModelSubmission.md)
  - [Uisvc.Ref](docs/Ref.md)
  - [Uisvc.RepoConfig](docs/RepoConfig.md)
  - [Uisvc.Repository](docs/Repository.md)
@@ -173,6 +177,7 @@ Class | Method | HTTP request | Description
  - [Uisvc.RunSettings](docs/RunSettings.md)
  - [Uisvc.Task](docs/Task.md)
  - [Uisvc.TaskSettings](docs/TaskSettings.md)
+ - [Uisvc.User](docs/User.md)
  - [Uisvc.UserError](docs/UserError.md)
 
 

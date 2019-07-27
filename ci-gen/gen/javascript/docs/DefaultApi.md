@@ -24,6 +24,9 @@ Method | HTTP request | Description
 [**runRunIdGet**](DefaultApi.md#runRunIdGet) | **GET** /run/{run_id} | Get a run by ID
 [**runsCountGet**](DefaultApi.md#runsCountGet) | **GET** /runs/count | Count the runs
 [**runsGet**](DefaultApi.md#runsGet) | **GET** /runs | Obtain the run list for the user
+[**submissionIdGet**](DefaultApi.md#submissionIdGet) | **GET** /submission/{id} | Get a submission by ID
+[**submissionIdTasksGet**](DefaultApi.md#submissionIdTasksGet) | **GET** /submission/{id}/tasks | Get submission tasks by ID
+[**submissionsGet**](DefaultApi.md#submissionsGet) | **GET** /submissions | List submisssions
 [**submitGet**](DefaultApi.md#submitGet) | **GET** /submit | Perform a manual submission to tinyCI
 [**tasksCancelIdPost**](DefaultApi.md#tasksCancelIdPost) | **POST** /tasks/cancel/{id} | Cancel by Task ID
 [**tasksCountGet**](DefaultApi.md#tasksCountGet) | **GET** /tasks/count | Count the Tasks
@@ -1115,6 +1118,188 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**[Run]**](Run.md)
+
+### Authorization
+
+[session](../README.md#session), [token](../README.md#token)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: */*
+
+
+## submissionIdGet
+
+> ModelSubmission submissionIdGet(id)
+
+Get a submission by ID
+
+Retrieve a Submission by ID; this will return the full Submission object including all relationships.
+
+### Example
+
+```javascript
+import Uisvc from 'uisvc';
+let defaultClient = Uisvc.ApiClient.instance;
+// Configure API key authorization: session
+let session = defaultClient.authentications['session'];
+session.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//session.apiKeyPrefix = 'Token';
+// Configure API key authorization: token
+let token = defaultClient.authentications['token'];
+token.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//token.apiKeyPrefix = 'Token';
+
+let apiInstance = new Uisvc.DefaultApi();
+let id = 56; // Number | The ID of the submission to retrieve
+apiInstance.submissionIdGet(id, (error, data, response) => {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+});
+```
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **Number**| The ID of the submission to retrieve | 
+
+### Return type
+
+[**ModelSubmission**](ModelSubmission.md)
+
+### Authorization
+
+[session](../README.md#session), [token](../README.md#token)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: */*
+
+
+## submissionIdTasksGet
+
+> [Task] submissionIdTasksGet(id, opts)
+
+Get submission tasks by ID
+
+Retrieve a Submission&#39;s tasks by ID; this will return the list of tasks with pagination.
+
+### Example
+
+```javascript
+import Uisvc from 'uisvc';
+let defaultClient = Uisvc.ApiClient.instance;
+// Configure API key authorization: session
+let session = defaultClient.authentications['session'];
+session.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//session.apiKeyPrefix = 'Token';
+// Configure API key authorization: token
+let token = defaultClient.authentications['token'];
+token.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//token.apiKeyPrefix = 'Token';
+
+let apiInstance = new Uisvc.DefaultApi();
+let id = 56; // Number | The ID of the submission to retrieve
+let opts = {
+  'page': 0, // Number | pagination control: what page to retrieve in the query.
+  'perPage': 100 // Number | pagination control: how many items counts as a page.
+};
+apiInstance.submissionIdTasksGet(id, opts, (error, data, response) => {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+});
+```
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **Number**| The ID of the submission to retrieve | 
+ **page** | **Number**| pagination control: what page to retrieve in the query. | [optional] [default to 0]
+ **perPage** | **Number**| pagination control: how many items counts as a page. | [optional] [default to 100]
+
+### Return type
+
+[**[Task]**](Task.md)
+
+### Authorization
+
+[session](../README.md#session), [token](../README.md#token)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: */*
+
+
+## submissionsGet
+
+> [ModelSubmission] submissionsGet(opts)
+
+List submisssions
+
+Retrieve a list of Submissions; this will return the full Submission object including all relationships.
+
+### Example
+
+```javascript
+import Uisvc from 'uisvc';
+let defaultClient = Uisvc.ApiClient.instance;
+// Configure API key authorization: session
+let session = defaultClient.authentications['session'];
+session.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//session.apiKeyPrefix = 'Token';
+// Configure API key authorization: token
+let token = defaultClient.authentications['token'];
+token.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//token.apiKeyPrefix = 'Token';
+
+let apiInstance = new Uisvc.DefaultApi();
+let opts = {
+  'page': 0, // Number | pagination control: what page to retrieve in the query.
+  'perPage': 100, // Number | pagination control: how many items counts as a page.
+  'repository': "repository_example", // String | the repository owner/repo to be viewed.
+  'sha': "sha_example" // String | the sha or branch to be viewed.
+};
+apiInstance.submissionsGet(opts, (error, data, response) => {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+});
+```
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **page** | **Number**| pagination control: what page to retrieve in the query. | [optional] [default to 0]
+ **perPage** | **Number**| pagination control: how many items counts as a page. | [optional] [default to 100]
+ **repository** | **String**| the repository owner/repo to be viewed. | [optional] 
+ **sha** | **String**| the sha or branch to be viewed. | [optional] 
+
+### Return type
+
+[**[ModelSubmission]**](ModelSubmission.md)
 
 ### Authorization
 
