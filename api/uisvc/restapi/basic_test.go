@@ -1,4 +1,4 @@
-package uisvc
+package restapi
 
 import (
 	"bytes"

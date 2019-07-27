@@ -11,7 +11,7 @@ import (
 	"github.com/tinyci/ci-agents/handlers"
 	"github.com/urfave/cli"
 
-	"github.com/tinyci/ci-agents/ci-gen/gen/svc/uisvc/restapi"
+	"github.com/tinyci/ci-agents/api/uisvc/restapi"
 )
 
 // Version of API service

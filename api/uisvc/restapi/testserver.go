@@ -1,7 +1,7 @@
-package uisvc
+package restapi
 
 import (
-	"github.com/tinyci/ci-agents/ci-gen/gen/svc/uisvc/restapi"
+	"github.com/tinyci/ci-agents/clients/data"
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/clients/tinyci"
 	"github.com/tinyci/ci-agents/config"
@@ -14,7 +14,7 @@ import (
 // MakeUIServer makes a uisvc.
 func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Client, *tinyci.Client, *errors.Error) {
 	h := &handlers.H{
-		Config: restapi.HandlerConfig{},
+		Config: HandlerConfig{},
 		Service: config.Service{
 			Name: "uisvc",
 		},
@@ -38,7 +38,7 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 		},
 	}
 
-	d, err := d.New("localhost:6000", nil, false)
+	d, err := data.New("localhost:6000", nil, false)
 	if err != nil {
 		return nil, nil, nil, nil, errors.New(err)
 	}

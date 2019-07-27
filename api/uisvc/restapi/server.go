@@ -5,7 +5,7 @@ import (
 
 	"github.com/tinyci/ci-agents/handlers"
 
-	"github.com/tinyci/ci-agents/ci-gen/gen/svc/uisvc/restapi/operations"
+	"github.com/tinyci/ci-agents/api/uisvc/restapi/operations"
 )
 
 // SetRoutes sets the routes in the handler so gin can execute them.
