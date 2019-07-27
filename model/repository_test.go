@@ -3,11 +3,10 @@ package model
 import (
 	check "github.com/erikh/check"
 	"github.com/google/go-github/github"
-	gh "github.com/google/go-github/github"
 )
 
-var testRepository = &gh.Repository{
-	FullName: gh.String("erikh/barbara"),
+var testRepository = &github.Repository{
+	FullName: github.String("erikh/barbara"),
 }
 
 func (ms *modelSuite) TestRepositoryAssign(c *check.C) {
@@ -33,12 +32,12 @@ func (ms *modelSuite) TestRepositoryValidate(c *check.C) {
 
 	failures := []struct {
 		name   string
-		github *gh.Repository
+		github *github.Repository
 		user   *User
 	}{
 		{"", testRepository, users[0]},
-		{"erikh/barbara", &gh.Repository{FullName: github.String("something/else")}, nil},
-		{"erikh/barbara", &gh.Repository{FullName: github.String("something/else")}, users[0]},
+		{"erikh/barbara", &github.Repository{FullName: github.String("something/else")}, nil},
+		{"erikh/barbara", &github.Repository{FullName: github.String("something/else")}, users[0]},
 	}
 
 	for i, failure := range failures {
@@ -136,7 +135,7 @@ func (ms *modelSuite) TestAddEnableRepository(c *check.C) {
 	owners, err := ms.CreateUsers(1)
 	c.Assert(err, check.IsNil)
 
-	err = ms.model.SaveRepositories([]*gh.Repository{
+	err = ms.model.SaveRepositories([]*github.Repository{
 		{FullName: github.String("erikh/barbara")},
 	}, owners[0].Username, false)
 	c.Assert(err, check.IsNil)

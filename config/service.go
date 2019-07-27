@@ -17,6 +17,15 @@ import (
 // DefaultGithubClient if set, will override any requested github client.
 var DefaultGithubClient github.Client
 
+// TestClientConfig is a default test client configuration
+var TestClientConfig = ClientConfig{
+	Data:  "localhost:6000",
+	Queue: "localhost:6001",
+	UI:    "http://localhost:6010",
+	Asset: "localhost:6002",
+	Log:   "localhost:6005",
+}
+
 // ServiceConfig is the pre-normalized version of the config struct
 type ServiceConfig map[string]interface{}
 

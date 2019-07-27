@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/go-github/github"
-	gh "github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/types"
@@ -50,7 +49,7 @@ func (ms *modelSuite) CreateRepositoryWithName(name string) (*Repository, *error
 	}
 	r := &Repository{
 		Name:   name,
-		Github: &gh.Repository{FullName: github.String(name)},
+		Github: &github.Repository{FullName: github.String(name)},
 		Owner:  owners[0],
 	}
 

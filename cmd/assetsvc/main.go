@@ -7,7 +7,7 @@ import (
 	"syscall"
 
 	transport "github.com/erikh/go-transport"
-	"github.com/tinyci/ci-agents/api/assetsvc/processors"
+	"github.com/tinyci/ci-agents/api/assetsvc"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/asset"
 	"github.com/tinyci/ci-agents/config"
@@ -64,7 +64,7 @@ func serve(ctx *cli.Context) error {
 		return err
 	}
 
-	asset.RegisterAssetServer(s, &processors.AssetServer{H: h})
+	asset.RegisterAssetServer(s, &assetsvc.AssetServer{H: h})
 
 	finished := make(chan struct{})
 	doneChan, err := h.Boot(t, s, finished)
