@@ -86,7 +86,7 @@ func (qs *queuesvcSuite) TestManualSubmissionOfAddedFork(c *check.C) {
 		SubmittedBy: "erikh",
 	}
 
-	c.Assert(qs.queuesvcClient.SetMockSubmissionOnFork(qs.getMock(), sub, "erikh/foobar", "be3d26c478991039e951097f2c99f56b55396940"), check.IsNil)
+	c.Assert(qs.queuesvcClient.SetMockSubmissionOnFork(qs.getMock(), sub, "erikh/foobar", "be3d26c478991039e951097f2c99f56b55396940", ""), check.IsNil)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	c.Assert(qs.queuesvcClient.Client().Submit(ctx, sub), check.IsNil)
 	defer cancel()
@@ -104,7 +104,7 @@ func (qs *queuesvcSuite) TestManualSubmissionOfAddedFork(c *check.C) {
 		SubmittedBy: "erikh",
 	}
 
-	c.Assert(qs.queuesvcClient.SetMockSubmissionOnFork(qs.getMock(), sub, "erikh/foobar", "be3d26c478991039e951097f2c99f56b55396940"), check.IsNil)
+	c.Assert(qs.queuesvcClient.SetMockSubmissionOnFork(qs.getMock(), sub, "erikh/foobar", "be3d26c478991039e951097f2c99f56b55396940", ""), check.IsNil)
 	ctx, cancel = context.WithTimeout(context.Background(), time.Minute)
 	c.Assert(qs.queuesvcClient.Client().Submit(ctx, sub), check.NotNil)
 	defer cancel()
@@ -131,7 +131,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
 	qs.getMock().GetSHA(sub.Fork, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396940", nil)
 	qs.getMock().GetSHA(sub.Parent, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396941", nil)
-	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
+	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub, ""), check.IsNil)
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), msub), check.IsNil)
 
@@ -168,7 +168,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 
 	qs.getMock().GetSHA(sub.Fork, "heads/foobar").Return("be3d26c478991039e951097f2c99f56b55396942", nil) // also here
 	qs.getMock().GetSHA(sub.Parent, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396941", nil)
-	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
+	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub, ""), check.IsNil)
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), msub), check.IsNil)
 
@@ -194,7 +194,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 			).Return(nil)
 	}
 
-	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
+	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub, ""), check.IsNil)
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), msub), check.IsNil)
 
@@ -222,7 +222,7 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 	}
 
 	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
-	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
+	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub, ""), check.IsNil)
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
 
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
@@ -239,7 +239,7 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 	}
 
 	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
-	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub), check.IsNil)
+	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub, ""), check.IsNil)
 	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
 
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)

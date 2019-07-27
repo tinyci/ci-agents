@@ -10,17 +10,17 @@ require (
 	github.com/gin-contrib/sessions v0.0.0-20190512062852-3cb4c4f2d615
 	github.com/gin-gonic/gin v1.4.0
 	github.com/go-openapi/errors v0.19.2
-	github.com/go-openapi/runtime v0.19.2
-	github.com/go-openapi/strfmt v0.19.0
-	github.com/go-openapi/swag v0.19.3
+	github.com/go-openapi/runtime v0.19.3
+	github.com/go-openapi/strfmt v0.19.2
+	github.com/go-openapi/swag v0.19.4
 	github.com/go-openapi/validate v0.19.2
 	github.com/golang/mock v1.3.1
-	github.com/golang/protobuf v1.3.1
+	github.com/golang/protobuf v1.3.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/securecookie v1.1.1
-	github.com/gorilla/sessions v1.1.3
+	github.com/gorilla/sessions v1.2.0
 	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645
 	github.com/jinzhu/gorm v1.9.10
 	github.com/mattn/go-colorable v0.1.2 // indirect
@@ -34,9 +34,9 @@ require (
 	github.com/uber/jaeger-lib v2.0.0+incompatible // indirect
 	github.com/urfave/cli v1.20.0
 	go.uber.org/atomic v1.4.0 // indirect
-	golang.org/x/net v0.0.0-20190628185345-da137c7871d7
+	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522
-	google.golang.org/grpc v1.22.0
+	golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7
+	google.golang.org/grpc v1.22.1
 	gopkg.in/yaml.v2 v2.2.2
 )
