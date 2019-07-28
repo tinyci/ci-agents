@@ -786,3 +786,95 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '../models.yml#/definitions/Error'
+  /submissions:
+    get:
+      security:
+        - token: []
+        - session: []
+      summary: List submisssions
+      parameters:
+        - in: query
+          name: page
+          type: integer
+          default: 0
+          description: "pagination control: what page to retrieve in the query."
+        - in: query
+          name: perPage
+          type: integer
+          default: 100
+          description: "pagination control: how many items counts as a page."
+        - in: query
+          name: repository
+          description: "the repository owner/repo to be viewed."
+          type: string
+        - in: query
+          name: sha
+          description: "the sha or branch to be viewed."
+          type: string
+      description:
+        Retrieve a list of Submissions; this will return the full Submission object including all relationships.
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '../models.yml#/definitions/ModelSubmissionList'
+        500:
+          description: Internal Server Error
+          schema:
+            $ref: '../models.yml#/definitions/Error'
+  /submission/{id}:
+    get:
+      security:
+        - token: []
+        - session: []
+      summary: Get a submission by ID
+      parameters:
+        - in: path
+          name: id
+          description: The ID of the submission to retrieve
+          type: integer
+          required: true
+      description:
+        Retrieve a Submission by ID; this will return the full Submission object including all relationships.
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '../models.yml#/definitions/ModelSubmission'
+        500:
+          description: Internal Server Error
+          schema:
+            $ref: '../models.yml#/definitions/Error'
+  /submission/{id}/tasks:
+    get:
+      security:
+        - token: []
+        - session: []
+      summary: Get submission tasks by ID
+      parameters:
+        - in: path
+          name: id
+          description: The ID of the submission to retrieve
+          type: integer
+          required: true
+        - in: query
+          name: page
+          type: integer
+          default: 0
+          description: "pagination control: what page to retrieve in the query."
+        - in: query
+          name: perPage
+          type: integer
+          default: 100
+          description: "pagination control: how many items counts as a page."
+      description:
+        Retrieve a Submission's tasks by ID; this will return the list of tasks with pagination.
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '../models.yml#/definitions/TaskList'
+        500:
+          description: Internal Server Error
+          schema:
+            $ref: '../models.yml#/definitions/Error'

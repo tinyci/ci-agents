@@ -14,6 +14,7 @@
 
 import ApiClient from './ApiClient';
 import Error from './model/Error';
+import ModelSubmission from './model/ModelSubmission';
 import Ref from './model/Ref';
 import RepoConfig from './model/RepoConfig';
 import Repository from './model/Repository';
@@ -21,6 +22,7 @@ import Run from './model/Run';
 import RunSettings from './model/RunSettings';
 import Task from './model/Task';
 import TaskSettings from './model/TaskSettings';
+import User from './model/User';
 import UserError from './model/UserError';
 import DefaultApi from './api/DefaultApi';
 
@@ -70,6 +72,12 @@ export {
     Error,
 
     /**
+     * The ModelSubmission model constructor.
+     * @property {module:model/ModelSubmission}
+     */
+    ModelSubmission,
+
+    /**
      * The Ref model constructor.
      * @property {module:model/Ref}
      */
@@ -110,6 +118,12 @@ export {
      * @property {module:model/TaskSettings}
      */
     TaskSettings,
+
+    /**
+     * The User model constructor.
+     * @property {module:model/User}
+     */
+    User,
 
     /**
      * The UserError model constructor.

@@ -333,3 +333,103 @@ func (ds *datasvcSuite) TestRef(c *check.C) {
 	_, err = ds.client.Client().GetRefByNameAndSHA(path.Join(ownerName, testutil.RandString(8)), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 	c.Assert(err, check.NotNil)
 }
+
+func (ds *datasvcSuite) TestSubmissions(c *check.C) {
+	var lastRepo string
+
+	for i := 0; i < 25; i++ {
+		username := testutil.RandString(8)
+		user, err := ds.client.MakeUser(username)
+		c.Assert(err, check.IsNil)
+
+		ownerName, repoName := testutil.RandString(8), testutil.RandString(8)
+
+		lastRepo = path.Join(ownerName, repoName) // for a later check
+
+		c.Assert(ds.client.MakeRepo(path.Join(ownerName, repoName), username, false, ""), check.IsNil)
+
+		repo, err := ds.client.Client().GetRepository(path.Join(ownerName, repoName))
+		c.Assert(err, check.IsNil)
+
+		id, err := ds.client.Client().PutRef(&model.Ref{
+			Repository: repo,
+			RefName:    "heads/hi",
+			SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		})
+		c.Assert(err, check.IsNil)
+		c.Assert(id, check.Not(check.Equals), int64(0))
+
+		ref, err := ds.client.Client().GetRefByNameAndSHA(path.Join(ownerName, repoName), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+		c.Assert(err, check.IsNil)
+		c.Assert(ref.ID, check.Equals, id)
+
+		s, err := ds.client.Client().PutSubmission(&model.Submission{BaseRef: ref, User: user})
+		c.Assert(err, check.IsNil)
+		c.Assert(s.ID, check.Not(check.Equals), int64(0))
+
+		tasks := []*model.Task{}
+
+		for i := int64(0); i < 1000; i++ {
+			runName := testutil.RandString(8)
+
+			ts := &types.TaskSettings{
+				WorkDir:    "/tmp",
+				Mountpoint: "/tmp",
+				Runs: map[string]*types.RunSettings{
+					runName: {
+						Image:   "foo",
+						Command: []string{"run", "me"},
+						Queue:   "default",
+					},
+				},
+			}
+
+			task := &model.Task{
+				TaskSettings: ts,
+				Parent:       repo,
+				Ref:          ref,
+				BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+				Submission:   s,
+			}
+
+			t, err := ds.client.Client().PutTask(task)
+			c.Assert(err, check.IsNil)
+
+			tasks = append([]*model.Task{t}, tasks...)
+		}
+
+		s2, err := ds.client.Client().GetSubmissionByID(s.ID)
+		c.Assert(err, check.IsNil)
+		c.Assert(s2.ID, check.Equals, s.ID)
+
+		for x := int64(0); x < 10; x++ {
+			tasks2, err := ds.client.Client().GetTasksForSubmission(s, x, 100)
+			c.Assert(err, check.IsNil)
+
+			sliceTasks := tasks[x*100 : (x+1)*100]
+
+			for i := 0; i < 100; i++ {
+				c.Assert(tasks2[i].ID, check.Equals, sliceTasks[i].ID)
+			}
+		}
+	}
+
+	list, err := ds.client.Client().ListSubmissions(0, 100, "", "")
+	c.Assert(err, check.IsNil)
+	c.Assert(len(list), check.Equals, 25)
+
+	list, err = ds.client.Client().ListSubmissions(0, 100, lastRepo, "")
+	c.Assert(err, check.IsNil)
+	c.Assert(len(list), check.Equals, 1)
+
+	list, err = ds.client.Client().ListSubmissions(0, 100, lastRepo, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	c.Assert(err, check.IsNil)
+	c.Assert(len(list), check.Equals, 1)
+
+	list, err = ds.client.Client().ListSubmissions(0, 100, lastRepo, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab")
+	c.Assert(err, check.NotNil)
+	c.Assert(len(list), check.Equals, 0)
+
+	_, err = ds.client.Client().ListSubmissions(0, 100, "a/b", "")
+	c.Assert(err, check.NotNil)
+}

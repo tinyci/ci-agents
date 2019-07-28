@@ -56,6 +56,39 @@ func (ms *modelSuite) CreateRepositoryWithName(name string) (*Repository, *error
 	return r, errors.New(ms.model.Save(r).Error)
 }
 
+func (ms *modelSuite) CreateTaskForSubmission(sub *Submission) (*Task, *errors.Error) {
+	ts := &types.TaskSettings{
+		Mountpoint: "/tmp",
+		Runs: map[string]*types.RunSettings{
+			"default": {
+				Image:   "foo",
+				Command: []string{"run", "me"},
+				Queue:   "default",
+			},
+		},
+	}
+
+	task := &Task{
+		TaskSettings: ts,
+		Parent:       sub.BaseRef.Repository,
+		Ref:          sub.HeadRef,
+		Submission:   sub,
+		BaseSHA:      testutil.RandHexString(40),
+	}
+
+	run := &Run{
+		Name:        "default",
+		RunSettings: ts.Runs["default"],
+		Task:        task,
+	}
+
+	if err := ms.model.Save(run).Error; err != nil {
+		return nil, errors.New(err)
+	}
+
+	return run.Task, nil
+}
+
 func (ms *modelSuite) CreateRun() (*Run, *errors.Error) {
 	parent, err := ms.CreateRepository()
 	if err != nil {
@@ -133,4 +166,44 @@ func (ms *modelSuite) FillQueue(count int64) ([]*QueueItem, *errors.Error) {
 	fmt.Println("Filling queue took", time.Since(fillstart))
 
 	return qis, nil
+}
+
+func (ms *modelSuite) CreateSubmission(sub *types.Submission) (*Submission, *errors.Error) {
+	if sub.SubmittedBy != "" {
+		if _, err := ms.model.CreateUser(sub.SubmittedBy, testutil.DummyToken); err != nil {
+			return nil, err
+		}
+	}
+
+	if sub.Fork != "" {
+		r, err := ms.CreateRepositoryWithName(sub.Fork)
+		if err != nil {
+			r, err = ms.model.GetRepositoryByName(sub.Fork)
+			if err != nil {
+				return nil, err
+			}
+		}
+		if _, err := ms.CreateRef(r, "dummy", sub.HeadSHA); err != nil {
+			return nil, err
+		}
+	}
+
+	r, err := ms.CreateRepositoryWithName(sub.Parent)
+	if err != nil {
+		r, err = ms.model.GetRepositoryByName(sub.Parent)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if _, err := ms.CreateRef(r, "dummy", sub.BaseSHA); err != nil {
+		return nil, err
+	}
+
+	s, err := ms.model.NewSubmissionFromMessage(sub)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	return s, errors.New(ms.model.Save(s).Error)
 }

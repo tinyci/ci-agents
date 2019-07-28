@@ -312,3 +312,7 @@ definitions:
       created_at:
         type: string
         format: date-time
+  ModelSubmissionList:
+    type: array
+    items:
+      $ref: '#/definitions/ModelSubmission'

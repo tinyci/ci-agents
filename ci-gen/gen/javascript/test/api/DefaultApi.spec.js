@@ -248,6 +248,36 @@
         done();
       });
     });
+    describe('submissionIdGet', function() {
+      it('should call submissionIdGet successfully', function(done) {
+        //uncomment below and update the code to test submissionIdGet
+        //instance.submissionIdGet(function(error) {
+        //  if (error) throw error;
+        //expect().to.be();
+        //});
+        done();
+      });
+    });
+    describe('submissionIdTasksGet', function() {
+      it('should call submissionIdTasksGet successfully', function(done) {
+        //uncomment below and update the code to test submissionIdTasksGet
+        //instance.submissionIdTasksGet(function(error) {
+        //  if (error) throw error;
+        //expect().to.be();
+        //});
+        done();
+      });
+    });
+    describe('submissionsGet', function() {
+      it('should call submissionsGet successfully', function(done) {
+        //uncomment below and update the code to test submissionsGet
+        //instance.submissionsGet(function(error) {
+        //  if (error) throw error;
+        //expect().to.be();
+        //});
+        done();
+      });
+    });
     describe('submitGet', function() {
       it('should call submitGet successfully', function(done) {
         //uncomment below and update the code to test submitGet

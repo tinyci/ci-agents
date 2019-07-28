@@ -97,7 +97,13 @@ service Data {
   rpc ListSubscriptions(NameSearch)         returns (types.RepositoryList)  {};
 
   // Add a submission to the db.
-  rpc PutSubmission(types.Submission) returns (types.Submission) {};
+  rpc PutSubmission(types.Submission)           returns (types.Submission) {};
+  // Look up a submission by ID
+  rpc GetSubmission(types.IntID)                returns (types.Submission) {};
+  // Obtain the tasks for a submission
+  rpc GetSubmissionTasks(SubmissionQuery)       returns (types.TaskList) {};
+  // List the submissions with pagination
+  rpc ListSubmissions(RepositoryFilterRequest)  returns (types.SubmissionList) {};
 
   // Add a task to the db.
   rpc PutTask(types.Task)                                     returns (types.Task)            {}; 
@@ -139,6 +145,19 @@ service Data {
   rpc AddCapability(CapabilityRequest)    returns (google.protobuf.Empty) {};
   // Removes the capability from the user
   rpc RemoveCapability(CapabilityRequest) returns (google.protobuf.Empty) {};
+}
+
+message RepositoryFilterRequest {
+  string  repository  = 1; // Parent or Fork
+  string  sha         = 2;
+  int64   page        = 3;
+  int64   perPage     = 4;
+}
+
+message SubmissionQuery {
+  types.Submission submission = 1; // the submission
+  int64            page       = 2; // what page to fetch
+  int64            perPage    = 3; // how many per-page
 }
 
 message Capabilities {

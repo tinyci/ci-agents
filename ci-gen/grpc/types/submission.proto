@@ -16,3 +16,7 @@ message Submission {
   types.User                user      = 4; // User who submitted it
   google.protobuf.Timestamp createdAt = 5; // When it was submitted
 }
+
+message SubmissionList {
+  repeated Submission submissions = 1;
+}
