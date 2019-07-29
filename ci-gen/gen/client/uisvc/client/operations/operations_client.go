@@ -1315,6 +1315,67 @@ func (c *Client) GetSubmissions(ctx context.Context, page int64, perPage int64, 
 
 }
 
+// GetSubmissionsCount count submisssions
+func (c *Client) GetSubmissionsCount(ctx context.Context, repository string, sha string) (int64, *errors.Error) {
+	route := "/submissions/count"
+
+	tmp := *c.url
+	u := &tmp
+	u.Path += route
+
+	m := map[string]interface{}{}
+	m["repository"] = repository
+
+	m["sha"] = sha
+
+	if len(m) > 0 {
+		q := u.Query()
+
+		for key, value := range m {
+			q.Add(key, fmt.Sprintf("%v", value))
+		}
+
+		u.RawQuery = q.Encode()
+	}
+
+	var body []byte
+
+	req, err := http.NewRequest("GET", u.String(), bytes.NewBuffer(body))
+	if err != nil {
+		return 0, errors.New(err)
+	}
+
+	req.Header.Add("Authorization", c.token)
+
+	resp, err := c.client.Do(req.WithContext(ctx))
+	if err != nil {
+		return 0, errors.New(err)
+	}
+
+	if resp.StatusCode == 500 {
+		origErr := &errors.Error{}
+		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
+			return 0, errors.New(err)
+		}
+		if origErr == nil {
+			panic("Cannot return 500 without error")
+		}
+
+		return 0, origErr
+	}
+
+	defer resp.Body.Close()
+
+	var result int64
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return 0, errors.New(err)
+	}
+
+	return result, nil
+
+}
+
 // GetSubmit perform a manual submission to tiny c i
 func (c *Client) GetSubmit(ctx context.Context, all bool, repository string, sha string) *errors.Error {
 	route := "/submit"

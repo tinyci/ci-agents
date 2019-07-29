@@ -56,7 +56,7 @@ func (ds *DataServer) PutSubmission(ctx context.Context, sub *types.Submission) 
 }
 
 // ListSubmissions lists the submissions with optional repository and ref filtering.
-func (ds *DataServer) ListSubmissions(ctx context.Context, req *data.RepositoryFilterRequest) (*types.SubmissionList, error) {
+func (ds *DataServer) ListSubmissions(ctx context.Context, req *data.RepositoryFilterRequestWithPagination) (*types.SubmissionList, error) {
 	list, err := ds.H.Model.SubmissionList(req.Page, req.PerPage, req.Repository, req.Sha)
 	if err != nil {
 		return nil, err.ToGRPC(codes.FailedPrecondition)
@@ -69,4 +69,14 @@ func (ds *DataServer) ListSubmissions(ctx context.Context, req *data.RepositoryF
 	}
 
 	return newList, nil
+}
+
+// CountSubmissions returns a count of all submissions that match the filter.
+func (ds *DataServer) CountSubmissions(ctx context.Context, req *data.RepositoryFilterRequest) (*data.Count, error) {
+	count, err := ds.H.Model.SubmissionCount(req.Repository, req.Sha)
+	if err != nil {
+		return nil, err.ToGRPC(codes.FailedPrecondition)
+	}
+
+	return &data.Count{Count: count}, nil
 }

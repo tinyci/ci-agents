@@ -3,6 +3,7 @@ package model
 import (
 	"time"
 
+	"github.com/jinzhu/gorm"
 	gtypes "github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/types"
@@ -135,33 +136,64 @@ func (m *Model) SubmissionList(page, perPage int64, repository, sha string) ([]*
 		return nil, err
 	}
 
-	obj := m.Offset(page * perPage).Limit(perPage).Order("submissions.id DESC")
+	obj, err := m.submissionListQuery(repository, sha)
+	if err != nil {
+		return nil, err
+	}
+
+	obj = obj.Offset(page * perPage).Limit(perPage)
+	return subs, m.WrapError(obj.Find(&subs), "listing submissions")
+}
+
+// SubmissionCount counts the number of submissions with an optional repo/sha filter
+func (m *Model) SubmissionCount(repository, sha string) (int64, *errors.Error) {
+	var count int64
+
+	obj, err := m.submissionListQuery(repository, sha)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, m.WrapError(obj.Model(&Submission{}).Count(&count), "listing submissions")
+}
+
+func (m *Model) submissionListQuery(repository, sha string) (*gorm.DB, *errors.Error) {
+	obj := m.Order("submissions.id DESC").
+		Joins("inner join refs on refs.id = submissions.base_ref_id").
+		Joins("inner join repositories on repositories.id = refs.repository_id")
+
+	var (
+		repo *Repository
+		ref  *Ref
+	)
 
 	if repository != "" {
-		repo, err := m.GetRepositoryByName(repository)
+		var err *errors.Error
+		repo, err = m.GetRepositoryByName(repository)
 		if err != nil {
 			return nil, err
 		}
 
-		var ref *Ref
-
 		if sha != "" {
-			var err *errors.Error
 			ref, err = m.GetRefByNameAndSHA(repository, sha)
 			if err != nil {
 				return nil, err
 			}
 		}
-
-		return m.SubmissionListForRepository(repo, ref, page, perPage)
 	}
 
-	return subs, m.WrapError(obj.Find(&subs), "listing submissions")
+	if ref != nil {
+		obj = obj.Where("submissions.base_ref_id = ?", ref.ID)
+	} else if repo != nil {
+		obj = obj.Where("repositories.id = ?", repo.ID)
+	}
+
+	return obj, nil
 }
 
 // SubmissionListForRepository returns a list of submissions with pagination. If ref
 // is non-nil, it will isolate to the ref only and ignore the repo.
-func (m *Model) SubmissionListForRepository(repo *Repository, ref *Ref, page, perPage int64) ([]*Submission, *errors.Error) {
+func (m *Model) SubmissionListForRepository(repo, sha string, page, perPage int64) ([]*Submission, *errors.Error) {
 	// FIXME this should probably be two independent calls with a query builder or something
 	subs := []*Submission{}
 
@@ -170,18 +202,12 @@ func (m *Model) SubmissionListForRepository(repo *Repository, ref *Ref, page, pe
 		return nil, err
 	}
 
-	obj := m.Offset(page * perPage).
-		Limit(perPage).
-		Order("submissions.id DESC").
-		Joins("inner join refs on refs.id = submissions.base_ref_id").
-		Joins("inner join repositories on repositories.id = refs.repository_id")
-
-	if ref != nil {
-		obj = obj.Where("submissions.base_ref_id = ?", ref.ID)
-	} else {
-		obj = obj.Where("repositories.id = ?", repo.ID)
+	obj, err := m.submissionListQuery(repo, sha)
+	if err != nil {
+		return nil, err
 	}
 
+	obj = obj.Offset(page * perPage).Limit(perPage)
 	return subs, m.WrapError(obj.Find(&subs), "listing submissions for repository")
 }
 

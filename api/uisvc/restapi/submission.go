@@ -63,3 +63,13 @@ func ListSubmissions(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors
 
 	return list, 200, nil
 }
+
+// CountSubmissions counts the submissions with optional repository/sha filtering.
+func CountSubmissions(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+	count, err := h.Clients.Data.CountSubmissions(ctx.GetString("repository"), ctx.GetString("sha"))
+	if err != nil {
+		return nil, 500, err
+	}
+
+	return count, 200, nil
+}

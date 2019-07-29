@@ -195,12 +195,14 @@ func (ms *modelSuite) TestSubmissionEntries(c *check.C) {
 				c.Assert(len(s), check.Not(check.Equals), 0)
 				c.Assert(len(s), check.Equals, len(subs))
 
-				repo, err := ms.model.GetRepositoryByName(parent)
-				c.Assert(err, check.IsNil)
-				s, err = ms.model.SubmissionListForRepository(repo, nil, 0, 100)
+				s, err = ms.model.SubmissionListForRepository(parent, "", 0, 100)
 				c.Assert(err, check.IsNil)
 				c.Assert(len(s), check.Not(check.Equals), 0)
 				c.Assert(len(s), check.Equals, len(subs))
+
+				count, err := ms.model.SubmissionCount(parent, "")
+				c.Assert(err, check.IsNil, check.Commentf("%v", parent))
+				c.Assert(count, check.Equals, int64(len(subs)))
 			}
 
 			card = map[string][]*types.Submission{}
@@ -215,14 +217,19 @@ func (ms *modelSuite) TestSubmissionEntries(c *check.C) {
 				c.Assert(len(s), check.Not(check.Equals), 0)
 				c.Assert(len(s), check.Equals, len(subs))
 
-				ref, err := ms.model.GetRefByNameAndSHA(subs[0].Parent, subs[0].BaseSHA)
-				c.Assert(err, check.IsNil)
-
-				s, err = ms.model.SubmissionListForRepository(ref.Repository, ref, 0, 100)
+				s, err = ms.model.SubmissionListForRepository(subs[0].Parent, subs[0].BaseSHA, 0, 100)
 				c.Assert(err, check.IsNil)
 				c.Assert(len(s), check.Not(check.Equals), 0)
 				c.Assert(len(s), check.Equals, len(subs))
+
+				count, err := ms.model.SubmissionCount(subs[0].Parent, subs[0].BaseSHA)
+				c.Assert(err, check.IsNil)
+				c.Assert(count, check.Equals, int64(1))
 			}
+
+			count, err := ms.model.SubmissionCount("", "")
+			c.Assert(err, check.IsNil)
+			c.Assert(count, check.Equals, int64(len(subs)))
 		}
 	}
 }

@@ -268,6 +268,16 @@
         done();
       });
     });
+    describe('submissionsCountGet', function() {
+      it('should call submissionsCountGet successfully', function(done) {
+        //uncomment below and update the code to test submissionsCountGet
+        //instance.submissionsCountGet(function(error) {
+        //  if (error) throw error;
+        //expect().to.be();
+        //});
+        done();
+      });
+    });
     describe('submissionsGet', function() {
       it('should call submissionsGet successfully', function(done) {
         //uncomment below and update the code to test submissionsGet

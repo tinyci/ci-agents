@@ -26,6 +26,7 @@ Method | HTTP request | Description
 [**runsGet**](DefaultApi.md#runsGet) | **GET** /runs | Obtain the run list for the user
 [**submissionIdGet**](DefaultApi.md#submissionIdGet) | **GET** /submission/{id} | Get a submission by ID
 [**submissionIdTasksGet**](DefaultApi.md#submissionIdTasksGet) | **GET** /submission/{id}/tasks | Get submission tasks by ID
+[**submissionsCountGet**](DefaultApi.md#submissionsCountGet) | **GET** /submissions/count | Count submisssions
 [**submissionsGet**](DefaultApi.md#submissionsGet) | **GET** /submissions | List submisssions
 [**submitGet**](DefaultApi.md#submitGet) | **GET** /submit | Perform a manual submission to tinyCI
 [**tasksCancelIdPost**](DefaultApi.md#tasksCancelIdPost) | **POST** /tasks/cancel/{id} | Cancel by Task ID
@@ -1236,6 +1237,66 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**[Task]**](Task.md)
+
+### Authorization
+
+[session](../README.md#session), [token](../README.md#token)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: */*
+
+
+## submissionsCountGet
+
+> Number submissionsCountGet(opts)
+
+Count submisssions
+
+Retrieve a count of Submissions that match the filter.
+
+### Example
+
+```javascript
+import Uisvc from 'uisvc';
+let defaultClient = Uisvc.ApiClient.instance;
+// Configure API key authorization: session
+let session = defaultClient.authentications['session'];
+session.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//session.apiKeyPrefix = 'Token';
+// Configure API key authorization: token
+let token = defaultClient.authentications['token'];
+token.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//token.apiKeyPrefix = 'Token';
+
+let apiInstance = new Uisvc.DefaultApi();
+let opts = {
+  'repository': "repository_example", // String | the repository owner/repo to be viewed.
+  'sha': "sha_example" // String | the sha or branch to be viewed.
+};
+apiInstance.submissionsCountGet(opts, (error, data, response) => {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+});
+```
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **repository** | **String**| the repository owner/repo to be viewed. | [optional] 
+ **sha** | **String**| the sha or branch to be viewed. | [optional] 
+
+### Return type
+
+**Number**
 
 ### Authorization
 

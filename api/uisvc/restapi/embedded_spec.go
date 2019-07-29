@@ -875,6 +875,48 @@ func init() {
         }
       }
     },
+    "/submissions/count": {
+      "get": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Retrieve a count of Submissions that match the filter.",
+        "summary": "Count submisssions",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "the repository owner/repo to be viewed.",
+            "name": "repository",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the sha or branch to be viewed.",
+            "name": "sha",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "../models.yml#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/submit": {
       "get": {
         "security": [
@@ -2123,6 +2165,48 @@ func init() {
             "description": "OK",
             "schema": {
               "$ref": "#/definitions/modelSubmissionList"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/submissions/count": {
+      "get": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Retrieve a count of Submissions that match the filter.",
+        "summary": "Count submisssions",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "the repository owner/repo to be viewed.",
+            "name": "repository",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the sha or branch to be viewed.",
+            "name": "sha",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "integer"
             }
           },
           "500": {
