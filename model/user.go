@@ -73,7 +73,7 @@ type User struct {
 	LoginToken       []byte        `json:"-"`
 
 	TokenJSON []byte               `gorm:"column:token;not null" json:"-"`
-	Token     *topTypes.OAuthToken `json:"token,omitempty"`
+	Token     *topTypes.OAuthToken `json:"-"`
 }
 
 // SetToken sets the token's byte stream, and encrypts it.
