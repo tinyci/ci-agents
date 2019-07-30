@@ -312,6 +312,8 @@ definitions:
       created_at:
         type: string
         format: date-time
+      tasks_count:
+        type: integer
   ModelSubmissionList:
     type: array
     items:

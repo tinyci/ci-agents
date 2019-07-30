@@ -10,11 +10,12 @@ import "github.com/tinyci/ci-agents/ci-gen/grpc/types/ref.proto";
 import "github.com/tinyci/ci-agents/ci-gen/grpc/types/user.proto";
 
 message Submission {
-  int64                     id        = 1; // ID of the submission
-  types.Ref                 headRef   = 2; // Head git ref of the submission
-  types.Ref                 baseRef   = 3; // Base git ref of the submission
-  types.User                user      = 4; // User who submitted it
-  google.protobuf.Timestamp createdAt = 5; // When it was submitted
+  int64                     id          = 1; // ID of the submission
+  types.Ref                 headRef     = 2; // Head git ref of the submission
+  types.Ref                 baseRef     = 3; // Base git ref of the submission
+  types.User                user        = 4; // User who submitted it
+  google.protobuf.Timestamp createdAt   = 5; // When it was submitted
+  int64                     tasksCount  = 6; // The number of tasks in this submission
 }
 
 message SubmissionList {

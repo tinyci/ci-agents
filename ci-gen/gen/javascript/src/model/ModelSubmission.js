@@ -64,6 +64,9 @@ class ModelSubmission {
             if (data.hasOwnProperty('created_at')) {
                 obj['created_at'] = ApiClient.convertToType(data['created_at'], 'Date');
             }
+            if (data.hasOwnProperty('tasks_count')) {
+                obj['tasks_count'] = ApiClient.convertToType(data['tasks_count'], 'Number');
+            }
         }
         return obj;
     }
@@ -95,6 +98,11 @@ ModelSubmission.prototype['base_ref'] = undefined;
  * @member {Date} created_at
  */
 ModelSubmission.prototype['created_at'] = undefined;
+
+/**
+ * @member {Number} tasks_count
+ */
+ModelSubmission.prototype['tasks_count'] = undefined;
 
 
 

@@ -26,7 +26,9 @@ type Submission struct {
 	BaseRef   *Ref  `gorm:"association_autoupdate:false,column:base_ref_id" json:"base_ref"`
 	BaseRefID int64 `json:"-"`
 
-	CreatedAt time.Time
+	TasksCount int64 `json:"tasks_count" gorm:"-"`
+
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // ToProto converts the submissions to the protobuf version
@@ -45,11 +47,12 @@ func (s *Submission) ToProto() *gtypes.Submission {
 	}
 
 	return &gtypes.Submission{
-		Id:        s.ID,
-		BaseRef:   s.BaseRef.ToProto(),
-		HeadRef:   hr,
-		User:      pu,
-		CreatedAt: MakeTimestamp(&s.CreatedAt),
+		Id:         s.ID,
+		BaseRef:    s.BaseRef.ToProto(),
+		HeadRef:    hr,
+		User:       pu,
+		TasksCount: s.TasksCount,
+		CreatedAt:  MakeTimestamp(&s.CreatedAt),
 	}
 }
 
@@ -81,10 +84,11 @@ func NewSubmissionFromProto(gt *gtypes.Submission) (*Submission, *errors.Error) 
 	}
 
 	return &Submission{
-		ID:      gt.Id,
-		User:    u,
-		BaseRef: baseref,
-		HeadRef: headref,
+		ID:         gt.Id,
+		User:       u,
+		BaseRef:    baseref,
+		HeadRef:    headref,
+		TasksCount: gt.TasksCount,
 	}, nil
 }
 
@@ -142,7 +146,11 @@ func (m *Model) SubmissionList(page, perPage int64, repository, sha string) ([]*
 	}
 
 	obj = obj.Offset(page * perPage).Limit(perPage)
-	return subs, m.WrapError(obj.Find(&subs), "listing submissions")
+	if err := m.WrapError(obj.Find(&subs), "listing submissions"); err != nil {
+		return nil, err
+	}
+
+	return subs, m.assignSubmissionTaskCounts(subs)
 }
 
 // SubmissionCount counts the number of submissions with an optional repo/sha filter
@@ -158,37 +166,50 @@ func (m *Model) SubmissionCount(repository, sha string) (int64, *errors.Error) {
 }
 
 func (m *Model) submissionListQuery(repository, sha string) (*gorm.DB, *errors.Error) {
-	obj := m.Order("submissions.id DESC").
-		Joins("inner join refs on refs.id = submissions.base_ref_id").
-		Joins("inner join repositories on repositories.id = refs.repository_id")
+	obj := m.Group("submissions.id").Order("submissions.id DESC").
+		Joins("inner join refs on refs.id = submissions.base_ref_id or refs.id = submissions.head_ref_id")
 
-	var (
-		repo *Repository
-		ref  *Ref
-	)
-
-	if repository != "" {
-		var err *errors.Error
-		repo, err = m.GetRepositoryByName(repository)
+	if repository != "" && sha != "" {
+		ref, err := m.GetRefByNameAndSHA(repository, sha)
 		if err != nil {
 			return nil, err
 		}
-
-		if sha != "" {
-			ref, err = m.GetRefByNameAndSHA(repository, sha)
-			if err != nil {
-				return nil, err
-			}
+		obj = obj.Where("submissions.base_ref_id = ? or submissions.head_ref_id = ?", ref.ID, ref.ID)
+	} else if repository != "" {
+		var err *errors.Error
+		repo, err := m.GetRepositoryByName(repository)
+		if err != nil {
+			return nil, err
 		}
-	}
-
-	if ref != nil {
-		obj = obj.Where("submissions.base_ref_id = ?", ref.ID)
-	} else if repo != nil {
-		obj = obj.Where("repositories.id = ?", repo.ID)
+		obj = obj.Where("refs.repository_id = ?", repo.ID)
 	}
 
 	return obj, nil
+}
+
+func (m *Model) assignSubmissionTaskCounts(subs []*Submission) *errors.Error {
+	idmap := map[int64]*Submission{}
+	ids := []int64{}
+	for _, sub := range subs {
+		idmap[sub.ID] = sub
+		ids = append(ids, sub.ID)
+	}
+
+	rows, err := m.Raw("select distinct submission_id, count(*) from tasks where submission_id in (?) group by submission_id", ids).Rows()
+	if err != nil {
+		return errors.New(err)
+	}
+
+	for rows.Next() {
+		var id, count int64
+		if err := rows.Scan(&id, &count); err != nil {
+			return errors.New(err)
+		}
+
+		idmap[id].TasksCount = count
+	}
+
+	return nil
 }
 
 // SubmissionListForRepository returns a list of submissions with pagination. If ref
@@ -208,24 +229,32 @@ func (m *Model) SubmissionListForRepository(repo, sha string, page, perPage int6
 	}
 
 	obj = obj.Offset(page * perPage).Limit(perPage)
-	return subs, m.WrapError(obj.Find(&subs), "listing submissions for repository")
+	if err := m.WrapError(obj.Find(&subs), "listing submissions for repository"); err != nil {
+		return nil, err
+	}
+
+	return subs, m.assignSubmissionTaskCounts(subs)
+}
+
+func (m *Model) submissionTasksQuery(sub *Submission) *gorm.DB {
+	return m.Order("tasks.id DESC").
+		Joins("inner join submissions on tasks.submission_id = submissions.id").
+		Where("submissions.id = ?", sub.ID)
 }
 
 // TasksForSubmission returns all the tasks for a given submission.
 func (m *Model) TasksForSubmission(sub *Submission, page, perPage int64) ([]*Task, *errors.Error) {
 	tasks := []*Task{}
 
-	obj := m.Offset(page*perPage).
-		Limit(perPage).
-		Order("tasks.id DESC").
-		Joins("inner join submissions on tasks.submission_id = submissions.id").
-		Where("submissions.id = ?", sub.ID)
-
+	obj := m.submissionTasksQuery(sub).Offset(page * perPage).Limit(perPage)
 	return tasks, m.WrapError(obj.Find(&tasks), "listing tasks for a submission")
 }
 
 // GetSubmissionByID returns a submission by internal identifier
 func (m *Model) GetSubmissionByID(id int64) (*Submission, *errors.Error) {
 	sub := &Submission{}
-	return sub, m.WrapError(m.Where("submissions.id = ?", id).First(sub), "getting submission by id")
+	if err := m.WrapError(m.Where("submissions.id = ?", id).First(sub), "getting submission by id"); err != nil {
+		return nil, err
+	}
+	return sub, m.assignSubmissionTaskCounts([]*Submission{sub})
 }

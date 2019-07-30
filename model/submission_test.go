@@ -215,7 +215,7 @@ func (ms *modelSuite) TestSubmissionEntries(c *check.C) {
 				s, err := ms.model.SubmissionList(0, 100, subs[0].Parent, subs[0].BaseSHA)
 				c.Assert(err, check.IsNil)
 				c.Assert(len(s), check.Not(check.Equals), 0)
-				c.Assert(len(s), check.Equals, len(subs))
+				c.Assert(len(s), check.Equals, len(subs), check.Commentf("parent: %v, sha: %v", subs[0].Parent, subs[0].BaseSHA))
 
 				s, err = ms.model.SubmissionListForRepository(subs[0].Parent, subs[0].BaseSHA, 0, 100)
 				c.Assert(err, check.IsNil)
@@ -255,6 +255,7 @@ func (ms *modelSuite) TestSubmissionTasks(c *check.C) {
 				s, err := ms.model.GetSubmissionByID(subID)
 				c.Assert(err, check.IsNil)
 				c.Assert(s.ID, check.Equals, subID)
+				c.Assert(s.TasksCount, check.Equals, int64(len(tasks)))
 
 				// reverse the list since the ordering will be returned in rev chrono order
 				t2 := []*Task{}

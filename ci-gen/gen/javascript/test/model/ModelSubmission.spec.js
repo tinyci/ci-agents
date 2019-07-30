@@ -84,6 +84,12 @@
       //expect(instance).to.be();
     });
 
+    it('should have the property tasksCount (base name: "tasks_count")', function() {
+      // uncomment below and update the code to test the property tasksCount
+      //var instane = new Uisvc.ModelSubmission();
+      //expect(instance).to.be();
+    });
+
   });
 
 }));
