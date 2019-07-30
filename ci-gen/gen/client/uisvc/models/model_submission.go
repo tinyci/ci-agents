@@ -32,6 +32,9 @@ type ModelSubmission struct {
 	// id
 	ID int64 `json:"id,omitempty"`
 
+	// tasks count
+	TasksCount int64 `json:"tasks_count,omitempty"`
+
 	// user
 	User *ModelSubmissionUser `json:"user,omitempty"`
 }

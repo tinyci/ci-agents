@@ -2708,6 +2708,9 @@ func init() {
         "id": {
           "type": "integer"
         },
+        "tasks_count": {
+          "type": "integer"
+        },
         "user": {
           "type": "object",
           "properties": {
@@ -2832,6 +2835,9 @@ func init() {
             }
           },
           "id": {
+            "type": "integer"
+          },
+          "tasks_count": {
             "type": "integer"
           },
           "user": {

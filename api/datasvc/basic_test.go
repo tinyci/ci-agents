@@ -401,6 +401,7 @@ func (ds *datasvcSuite) TestSubmissions(c *check.C) {
 		s2, err := ds.client.Client().GetSubmissionByID(s.ID)
 		c.Assert(err, check.IsNil)
 		c.Assert(s2.ID, check.Equals, s.ID)
+		c.Assert(s2.TasksCount, check.Equals, int64(1000))
 
 		for x := int64(0); x < 10; x++ {
 			tasks2, err := ds.client.Client().GetTasksForSubmission(s, x, 100)
