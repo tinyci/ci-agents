@@ -990,6 +990,49 @@ export default class DefaultApi {
     }
 
     /**
+     * Callback function to receive the result of the submissionsCountGet operation.
+     * @callback module:api/DefaultApi~submissionsCountGetCallback
+     * @param {String} error Error message, if any.
+     * @param {Number} data The data returned by the service call.
+     * @param {String} response The complete HTTP response.
+     */
+
+    /**
+     * Count submisssions
+     * Retrieve a count of Submissions that match the filter.
+     * @param {Object} opts Optional parameters
+     * @param {String} opts.repository the repository owner/repo to be viewed.
+     * @param {String} opts.sha the sha or branch to be viewed.
+     * @param {module:api/DefaultApi~submissionsCountGetCallback} callback The callback function, accepting three arguments: error, data, response
+     * data is of type: {@link Number}
+     */
+    submissionsCountGet(opts, callback) {
+      opts = opts || {};
+      let postBody = null;
+
+      let pathParams = {
+      };
+      let queryParams = {
+        'repository': opts['repository'],
+        'sha': opts['sha']
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = ['session', 'token'];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = 'Number';
+      return this.apiClient.callApi(
+        '/submissions/count', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null, callback
+      );
+    }
+
+    /**
      * Callback function to receive the result of the submissionsGet operation.
      * @callback module:api/DefaultApi~submissionsGetCallback
      * @param {String} error Error message, if any.

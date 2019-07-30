@@ -822,6 +822,32 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '../models.yml#/definitions/Error'
+  /submissions/count:
+    get:
+      security:
+        - token: []
+        - session: []
+      summary: Count submisssions
+      parameters:
+        - in: query
+          name: repository
+          description: "the repository owner/repo to be viewed."
+          type: string
+        - in: query
+          name: sha
+          description: "the sha or branch to be viewed."
+          type: string
+      description:
+        Retrieve a count of Submissions that match the filter.
+      responses:
+        200:
+          description: OK
+          schema:
+            type: integer
+        500:
+          description: Internal Server Error
+          schema:
+            $ref: '../models.yml#/definitions/Error'
   /submission/{id}:
     get:
       security:

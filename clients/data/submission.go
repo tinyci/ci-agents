@@ -52,7 +52,7 @@ func (c *Client) GetTasksForSubmission(sub *model.Submission, page, perPage int6
 // ListSubmissions lists the submissions with pagination, and an optional (just
 // pass empty strings if undesired) repository and sha filter.
 func (c *Client) ListSubmissions(page, perPage int64, repository, sha string) ([]*model.Submission, *errors.Error) {
-	list, err := c.client.ListSubmissions(context.Background(), &data.RepositoryFilterRequest{Page: page, PerPage: perPage, Repository: repository, Sha: sha})
+	list, err := c.client.ListSubmissions(context.Background(), &data.RepositoryFilterRequestWithPagination{Page: page, PerPage: perPage, Repository: repository, Sha: sha})
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -69,4 +69,15 @@ func (c *Client) ListSubmissions(page, perPage int64, repository, sha string) ([
 	}
 
 	return subs, nil
+}
+
+// CountSubmissions returns the count of all submissions that meet the optional
+// filtering requirements.
+func (c *Client) CountSubmissions(repository, sha string) (int64, *errors.Error) {
+	count, err := c.client.CountSubmissions(context.Background(), &data.RepositoryFilterRequest{Repository: repository, Sha: sha})
+	if err != nil {
+		return 0, errors.New(err)
+	}
+
+	return count.Count, nil
 }

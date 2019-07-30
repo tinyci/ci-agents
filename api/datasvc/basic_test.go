@@ -432,4 +432,22 @@ func (ds *datasvcSuite) TestSubmissions(c *check.C) {
 
 	_, err = ds.client.Client().ListSubmissions(0, 100, "a/b", "")
 	c.Assert(err, check.NotNil)
+
+	count, err := ds.client.Client().CountSubmissions("", "")
+	c.Assert(err, check.IsNil)
+	c.Assert(count, check.Equals, int64(25))
+
+	count, err = ds.client.Client().CountSubmissions(lastRepo, "")
+	c.Assert(err, check.IsNil)
+	c.Assert(count, check.Equals, int64(1))
+
+	count, err = ds.client.Client().CountSubmissions(lastRepo, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	c.Assert(err, check.IsNil)
+	c.Assert(count, check.Equals, int64(1))
+
+	_, err = ds.client.Client().CountSubmissions(lastRepo, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab")
+	c.Assert(err, check.NotNil)
+
+	_, err = ds.client.Client().CountSubmissions("a/b", "")
+	c.Assert(err, check.NotNil)
 }

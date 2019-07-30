@@ -97,13 +97,16 @@ service Data {
   rpc ListSubscriptions(NameSearch)         returns (types.RepositoryList)  {};
 
   // Add a submission to the db.
-  rpc PutSubmission(types.Submission)           returns (types.Submission) {};
+  rpc PutSubmission(types.Submission)                         returns (types.Submission) {};
   // Look up a submission by ID
-  rpc GetSubmission(types.IntID)                returns (types.Submission) {};
+  rpc GetSubmission(types.IntID)                              returns (types.Submission) {};
   // Obtain the tasks for a submission
-  rpc GetSubmissionTasks(SubmissionQuery)       returns (types.TaskList) {};
+  rpc GetSubmissionTasks(SubmissionQuery)                     returns (types.TaskList) {};
   // List the submissions with pagination
-  rpc ListSubmissions(RepositoryFilterRequest)  returns (types.SubmissionList) {};
+  rpc ListSubmissions(RepositoryFilterRequestWithPagination)  returns (types.SubmissionList) {};
+  // Count of all submissions optionally filtered by repository and sha
+  rpc CountSubmissions(RepositoryFilterRequest)               returns (Count) {};
+
 
   // Add a task to the db.
   rpc PutTask(types.Task)                                     returns (types.Task)            {}; 
@@ -148,6 +151,11 @@ service Data {
 }
 
 message RepositoryFilterRequest {
+  string  repository  = 1; // Parent or Fork
+  string  sha         = 2;
+}
+
+message RepositoryFilterRequestWithPagination {
   string  repository  = 1; // Parent or Fork
   string  sha         = 2;
   int64   page        = 3;
