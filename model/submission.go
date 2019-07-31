@@ -28,7 +28,10 @@ type Submission struct {
 
 	TasksCount int64 `json:"tasks_count" gorm:"-"`
 
-	CreatedAt time.Time `json:"created_at"`
+	Status *bool `json:"status" gorm:"-"`
+
+	CreatedAt  time.Time  `json:"created_at"`
+	FinishedAt *time.Time `json:"finished_at" gorm:"-"`
 }
 
 // ToProto converts the submissions to the protobuf version
@@ -46,6 +49,11 @@ func (s *Submission) ToProto() *gtypes.Submission {
 		hr = s.HeadRef.ToProto()
 	}
 
+	var status bool
+	if s.Status != nil {
+		status = *s.Status
+	}
+
 	return &gtypes.Submission{
 		Id:         s.ID,
 		BaseRef:    s.BaseRef.ToProto(),
@@ -53,6 +61,9 @@ func (s *Submission) ToProto() *gtypes.Submission {
 		User:       pu,
 		TasksCount: s.TasksCount,
 		CreatedAt:  MakeTimestamp(&s.CreatedAt),
+		FinishedAt: MakeTimestamp(s.FinishedAt),
+		StatusSet:  s.Status != nil,
+		Status:     status,
 	}
 }
 
@@ -83,12 +94,23 @@ func NewSubmissionFromProto(gt *gtypes.Submission) (*Submission, *errors.Error) 
 		return nil, err.Wrap("converting for use in submission")
 	}
 
+	var status *bool
+	if gt.StatusSet {
+		status = &gt.Status
+	}
+
+	created := MakeTime(gt.CreatedAt, false)
+	finished := MakeTime(gt.FinishedAt, true)
+
 	return &Submission{
 		ID:         gt.Id,
 		User:       u,
 		BaseRef:    baseref,
 		HeadRef:    headref,
 		TasksCount: gt.TasksCount,
+		CreatedAt:  *created,
+		FinishedAt: finished,
+		Status:     status,
 	}, nil
 }
 
@@ -150,7 +172,7 @@ func (m *Model) SubmissionList(page, perPage int64, repository, sha string) ([]*
 		return nil, err
 	}
 
-	return subs, m.assignSubmissionTaskCounts(subs)
+	return subs, m.assignSubmissionPostFetch(subs)
 }
 
 // SubmissionCount counts the number of submissions with an optional repo/sha filter
@@ -187,7 +209,7 @@ func (m *Model) submissionListQuery(repository, sha string) (*gorm.DB, *errors.E
 	return obj, nil
 }
 
-func (m *Model) assignSubmissionTaskCounts(subs []*Submission) *errors.Error {
+func (m *Model) assignSubmissionPostFetch(subs []*Submission) *errors.Error {
 	idmap := map[int64]*Submission{}
 	ids := []int64{}
 	for _, sub := range subs {
@@ -199,6 +221,7 @@ func (m *Model) assignSubmissionTaskCounts(subs []*Submission) *errors.Error {
 	if err != nil {
 		return errors.New(err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var id, count int64
@@ -207,6 +230,72 @@ func (m *Model) assignSubmissionTaskCounts(subs []*Submission) *errors.Error {
 		}
 
 		idmap[id].TasksCount = count
+	}
+
+	return m.populateStates(ids, idmap)
+}
+
+func (m *Model) populateStates(ids []int64, idmap map[int64]*Submission) *errors.Error {
+	rows, err := m.Raw("select submission_id, status from tasks where submission_id in (?)", ids).Rows()
+	if err != nil {
+		return errors.New(err)
+	}
+	defer rows.Close()
+
+	overallStatus := map[int64][]*bool{}
+
+	for rows.Next() {
+		var (
+			id     int64
+			status *bool
+		)
+
+		if err := rows.Scan(&id, &status); err != nil {
+			return errors.New(err)
+		}
+
+		if _, ok := overallStatus[id]; !ok {
+			overallStatus[id] = []*bool{}
+		}
+
+		overallStatus[id] = append(overallStatus[id], status)
+	}
+
+	for id, states := range overallStatus {
+		failed := false
+		unfinished := false
+		for _, status := range states {
+			if status == nil {
+				unfinished = true
+				idmap[id].Status = nil
+				break
+			}
+
+			if !*status {
+				failed = true
+			}
+		}
+
+		if !unfinished {
+			f := !failed
+			idmap[id].Status = &f
+
+			rows, err := m.Raw("select max(finished_at) from tasks where submission_id = ?", id).Rows()
+			if err != nil {
+				return errors.New(err)
+			}
+			defer rows.Close()
+
+			var t time.Time
+
+			if rows.Next() {
+				if err := rows.Scan(&t); err != nil {
+					return errors.New(err)
+				}
+
+				idmap[id].FinishedAt = &t
+			}
+		}
 	}
 
 	return nil
@@ -233,7 +322,7 @@ func (m *Model) SubmissionListForRepository(repo, sha string, page, perPage int6
 		return nil, err
 	}
 
-	return subs, m.assignSubmissionTaskCounts(subs)
+	return subs, m.assignSubmissionPostFetch(subs)
 }
 
 func (m *Model) submissionTasksQuery(sub *Submission) *gorm.DB {
@@ -260,5 +349,5 @@ func (m *Model) GetSubmissionByID(id int64) (*Submission, *errors.Error) {
 	if err := m.WrapError(m.Where("submissions.id = ?", id).First(sub), "getting submission by id"); err != nil {
 		return nil, err
 	}
-	return sub, m.assignSubmissionTaskCounts([]*Submission{sub})
+	return sub, m.assignSubmissionPostFetch([]*Submission{sub})
 }

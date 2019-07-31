@@ -312,8 +312,14 @@ definitions:
       created_at:
         type: string
         format: date-time
+      finished_at:
+        type: string
+        format: date-time
       tasks_count:
         type: integer
+      status:
+        type: boolean
+        x-nullable: true
   ModelSubmissionList:
     type: array
     items:

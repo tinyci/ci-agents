@@ -64,8 +64,14 @@ class ModelSubmission {
             if (data.hasOwnProperty('created_at')) {
                 obj['created_at'] = ApiClient.convertToType(data['created_at'], 'Date');
             }
+            if (data.hasOwnProperty('finished_at')) {
+                obj['finished_at'] = ApiClient.convertToType(data['finished_at'], 'Date');
+            }
             if (data.hasOwnProperty('tasks_count')) {
                 obj['tasks_count'] = ApiClient.convertToType(data['tasks_count'], 'Number');
+            }
+            if (data.hasOwnProperty('status')) {
+                obj['status'] = ApiClient.convertToType(data['status'], 'Boolean');
             }
         }
         return obj;
@@ -100,9 +106,19 @@ ModelSubmission.prototype['base_ref'] = undefined;
 ModelSubmission.prototype['created_at'] = undefined;
 
 /**
+ * @member {Date} finished_at
+ */
+ModelSubmission.prototype['finished_at'] = undefined;
+
+/**
  * @member {Number} tasks_count
  */
 ModelSubmission.prototype['tasks_count'] = undefined;
+
+/**
+ * @member {Boolean} status
+ */
+ModelSubmission.prototype['status'] = undefined;
 
 
 

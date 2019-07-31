@@ -26,11 +26,18 @@ type ModelSubmission struct {
 	// Format: date-time
 	CreatedAt strfmt.DateTime `json:"created_at,omitempty"`
 
+	// finished at
+	// Format: date-time
+	FinishedAt strfmt.DateTime `json:"finished_at,omitempty"`
+
 	// head ref
 	HeadRef *ModelSubmissionHeadRef `json:"head_ref,omitempty"`
 
 	// id
 	ID int64 `json:"id,omitempty"`
+
+	// status
+	Status *bool `json:"status,omitempty"`
 
 	// tasks count
 	TasksCount int64 `json:"tasks_count,omitempty"`
@@ -48,6 +55,10 @@ func (m *ModelSubmission) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateCreatedAt(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateFinishedAt(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -90,6 +101,19 @@ func (m *ModelSubmission) validateCreatedAt(formats strfmt.Registry) error {
 	}
 
 	if err := validate.FormatOf("created_at", "body", "date-time", m.CreatedAt.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *ModelSubmission) validateFinishedAt(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.FinishedAt) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("finished_at", "body", "date-time", m.FinishedAt.String(), formats); err != nil {
 		return err
 	}
 
