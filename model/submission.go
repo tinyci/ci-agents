@@ -247,7 +247,11 @@ func (m *Model) TasksForSubmission(sub *Submission, page, perPage int64) ([]*Tas
 	tasks := []*Task{}
 
 	obj := m.submissionTasksQuery(sub).Offset(page * perPage).Limit(perPage)
-	return tasks, m.WrapError(obj.Find(&tasks), "listing tasks for a submission")
+	if err := m.WrapError(obj.Find(&tasks), "listing tasks for a submission"); err != nil {
+		return nil, err
+	}
+
+	return tasks, m.assignRunCountsToTask(tasks)
 }
 
 // GetSubmissionByID returns a submission by internal identifier

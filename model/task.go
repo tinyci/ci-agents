@@ -312,6 +312,32 @@ func (m *Model) CountTasks(repository, sha string) (int64, *errors.Error) {
 	return count, nil
 }
 
+func (m *Model) assignRunCountsToTask(tasks []*Task) *errors.Error {
+	idmap := map[int64]*Task{}
+	ids := []int64{}
+
+	for _, task := range tasks {
+		idmap[task.ID] = task
+		ids = append(ids, task.ID)
+	}
+
+	rows, eErr := m.Raw("select distinct task_id, count(*) from runs where task_id in (?) group by task_id", ids).Rows()
+	if eErr != nil {
+		return errors.New(eErr)
+	}
+
+	for rows.Next() {
+		var id, count int64
+		if err := rows.Scan(&id, &count); err != nil {
+			return errors.New(err)
+		}
+
+		idmap[id].Runs = count
+	}
+
+	return nil
+}
+
 // ListTasks gathers all the tasks based on the page and perPage values. It can optionally filter by repository and SHA.
 func (m *Model) ListTasks(repository, sha string, page, perPage int64) ([]*Task, *errors.Error) {
 	page, perPage, err := utils.ScopePaginationInt(page, perPage)
@@ -331,27 +357,5 @@ func (m *Model) ListTasks(repository, sha string, page, perPage int64) ([]*Task,
 		return nil, errors.New(dbErr)
 	}
 
-	idmap := map[int64]*Task{}
-	ids := []int64{}
-
-	for _, task := range tasks {
-		idmap[task.ID] = task
-		ids = append(ids, task.ID)
-	}
-
-	rows, eErr := m.Raw("select distinct task_id, count(*) from runs where task_id in (?) group by task_id", ids).Rows()
-	if eErr != nil {
-		return nil, errors.New(eErr)
-	}
-
-	for rows.Next() {
-		var id, count int64
-		if err := rows.Scan(&id, &count); err != nil {
-			return nil, errors.New(err)
-		}
-
-		idmap[id].Runs = count
-	}
-
-	return tasks, nil
+	return tasks, m.assignRunCountsToTask(tasks)
 }
