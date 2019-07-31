@@ -73,3 +73,17 @@ func CountSubmissions(h *handlers.H, ctx *gin.Context) (interface{}, int, *error
 
 	return count, 200, nil
 }
+
+// CancelSubmission cancels a submission by ID.
+func CancelSubmission(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+	id, eErr := strconv.ParseInt(ctx.GetString("id"), 10, 64)
+	if eErr != nil {
+		return nil, 500, errors.New(eErr)
+	}
+
+	if err := h.Clients.Data.CancelSubmission(id); err != nil {
+		return nil, 500, err
+	}
+
+	return nil, 200, nil
+}

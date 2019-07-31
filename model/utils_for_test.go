@@ -86,6 +86,15 @@ func (ms *modelSuite) CreateTaskForSubmission(sub *Submission) (*Task, *errors.E
 		return nil, errors.New(err)
 	}
 
+	qi := &QueueItem{
+		Run:       run,
+		QueueName: "default",
+	}
+
+	if err := ms.model.Save(qi).Error; err != nil {
+		return nil, errors.New(err)
+	}
+
 	return run.Task, nil
 }
 

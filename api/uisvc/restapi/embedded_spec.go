@@ -768,6 +768,40 @@ func init() {
         }
       }
     },
+    "/submission/{id}/cancel": {
+      "post": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Cancel a Submission by ID; this will cancel all sub-tasks and their runs.",
+        "summary": "Cancel a submission by ID",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "The ID of the submission to cancel",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "../models.yml#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/submission/{id}/tasks": {
       "get": {
         "security": [
@@ -2059,6 +2093,40 @@ func init() {
             "schema": {
               "$ref": "#/definitions/modelSubmission"
             }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/submission/{id}/cancel": {
+      "post": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Cancel a Submission by ID; this will cancel all sub-tasks and their runs.",
+        "summary": "Cancel a submission by ID",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "The ID of the submission to cancel",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           },
           "500": {
             "description": "Internal Server Error",

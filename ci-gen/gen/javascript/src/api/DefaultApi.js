@@ -898,6 +898,48 @@ export default class DefaultApi {
     }
 
     /**
+     * Callback function to receive the result of the submissionIdCancelPost operation.
+     * @callback module:api/DefaultApi~submissionIdCancelPostCallback
+     * @param {String} error Error message, if any.
+     * @param data This operation does not return a value.
+     * @param {String} response The complete HTTP response.
+     */
+
+    /**
+     * Cancel a submission by ID
+     * Cancel a Submission by ID; this will cancel all sub-tasks and their runs.
+     * @param {Number} id The ID of the submission to cancel
+     * @param {module:api/DefaultApi~submissionIdCancelPostCallback} callback The callback function, accepting three arguments: error, data, response
+     */
+    submissionIdCancelPost(id, callback) {
+      let postBody = null;
+      // verify the required parameter 'id' is set
+      if (id === undefined || id === null) {
+        throw new Error("Missing the required parameter 'id' when calling submissionIdCancelPost");
+      }
+
+      let pathParams = {
+        'id': id
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = ['session', 'token'];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = null;
+      return this.apiClient.callApi(
+        '/submission/{id}/cancel', 'POST',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null, callback
+      );
+    }
+
+    /**
      * Callback function to receive the result of the submissionIdGet operation.
      * @callback module:api/DefaultApi~submissionIdGetCallback
      * @param {String} error Error message, if any.

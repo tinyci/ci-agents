@@ -81,3 +81,12 @@ func (c *Client) CountSubmissions(repository, sha string) (int64, *errors.Error)
 
 	return count.Count, nil
 }
+
+// CancelSubmission cancels a submission by ID.
+func (c *Client) CancelSubmission(id int64) *errors.Error {
+	if _, err := c.client.CancelSubmission(context.Background(), &types.IntID{ID: id}); err != nil {
+		return errors.New(err)
+	}
+
+	return nil
+}

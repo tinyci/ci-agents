@@ -5,6 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	gtypes "github.com/tinyci/ci-agents/ci-gen/grpc/types"
+	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
@@ -368,4 +369,26 @@ func (m *Model) GetSubmissionByID(id int64) (*Submission, *errors.Error) {
 		return nil, err
 	}
 	return sub, m.assignSubmissionPostFetch([]*Submission{sub})
+}
+
+// CancelSubmissionByID cancels all related tasks (and thusly, runs) in a submission that are outstanding.
+func (m *Model) CancelSubmissionByID(id int64, baseURL string, client github.Client) *errors.Error {
+	sub, err := m.GetSubmissionByID(id)
+	if err != nil {
+		return err
+	}
+
+	var tasks []*Task
+
+	if err := m.WrapError(m.submissionTasksQuery(sub).Find(&tasks), "canceling tasks for a submission"); err != nil {
+		return err
+	}
+
+	for _, task := range tasks {
+		if err := m.CancelTaskByID(task.ID, baseURL, client); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

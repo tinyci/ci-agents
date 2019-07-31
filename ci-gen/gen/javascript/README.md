@@ -151,6 +151,7 @@ Class | Method | HTTP request | Description
 *Uisvc.DefaultApi* | [**runRunIdGet**](docs/DefaultApi.md#runRunIdGet) | **GET** /run/{run_id} | Get a run by ID
 *Uisvc.DefaultApi* | [**runsCountGet**](docs/DefaultApi.md#runsCountGet) | **GET** /runs/count | Count the runs
 *Uisvc.DefaultApi* | [**runsGet**](docs/DefaultApi.md#runsGet) | **GET** /runs | Obtain the run list for the user
+*Uisvc.DefaultApi* | [**submissionIdCancelPost**](docs/DefaultApi.md#submissionIdCancelPost) | **POST** /submission/{id}/cancel | Cancel a submission by ID
 *Uisvc.DefaultApi* | [**submissionIdGet**](docs/DefaultApi.md#submissionIdGet) | **GET** /submission/{id} | Get a submission by ID
 *Uisvc.DefaultApi* | [**submissionIdTasksGet**](docs/DefaultApi.md#submissionIdTasksGet) | **GET** /submission/{id}/tasks | Get submission tasks by ID
 *Uisvc.DefaultApi* | [**submissionsCountGet**](docs/DefaultApi.md#submissionsCountGet) | **GET** /submissions/count | Count submisssions
