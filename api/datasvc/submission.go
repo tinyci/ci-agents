@@ -3,6 +3,7 @@ package datasvc
 import (
 	"context"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/errors"
@@ -79,4 +80,15 @@ func (ds *DataServer) CountSubmissions(ctx context.Context, req *data.Repository
 	}
 
 	return &data.Count{Count: count}, nil
+}
+
+// CancelSubmission cancels a submission by ID.
+func (ds *DataServer) CancelSubmission(ctx context.Context, id *types.IntID) (*empty.Empty, error) {
+	empty := &empty.Empty{}
+
+	if err := ds.H.Model.CancelSubmissionByID(id.ID, ds.H.URL, nil); err != nil {
+		return empty, err.ToGRPC(codes.FailedPrecondition)
+	}
+
+	return empty, nil
 }

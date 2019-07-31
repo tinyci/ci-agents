@@ -24,6 +24,7 @@ Method | HTTP request | Description
 [**runRunIdGet**](DefaultApi.md#runRunIdGet) | **GET** /run/{run_id} | Get a run by ID
 [**runsCountGet**](DefaultApi.md#runsCountGet) | **GET** /runs/count | Count the runs
 [**runsGet**](DefaultApi.md#runsGet) | **GET** /runs | Obtain the run list for the user
+[**submissionIdCancelPost**](DefaultApi.md#submissionIdCancelPost) | **POST** /submission/{id}/cancel | Cancel a submission by ID
 [**submissionIdGet**](DefaultApi.md#submissionIdGet) | **GET** /submission/{id} | Get a submission by ID
 [**submissionIdTasksGet**](DefaultApi.md#submissionIdTasksGet) | **GET** /submission/{id}/tasks | Get submission tasks by ID
 [**submissionsCountGet**](DefaultApi.md#submissionsCountGet) | **GET** /submissions/count | Count submisssions
@@ -1119,6 +1120,62 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**[Run]**](Run.md)
+
+### Authorization
+
+[session](../README.md#session), [token](../README.md#token)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: */*
+
+
+## submissionIdCancelPost
+
+> submissionIdCancelPost(id)
+
+Cancel a submission by ID
+
+Cancel a Submission by ID; this will cancel all sub-tasks and their runs.
+
+### Example
+
+```javascript
+import Uisvc from 'uisvc';
+let defaultClient = Uisvc.ApiClient.instance;
+// Configure API key authorization: session
+let session = defaultClient.authentications['session'];
+session.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//session.apiKeyPrefix = 'Token';
+// Configure API key authorization: token
+let token = defaultClient.authentications['token'];
+token.apiKey = 'YOUR API KEY';
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//token.apiKeyPrefix = 'Token';
+
+let apiInstance = new Uisvc.DefaultApi();
+let id = 56; // Number | The ID of the submission to cancel
+apiInstance.submissionIdCancelPost(id, (error, data, response) => {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+});
+```
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **Number**| The ID of the submission to cancel | 
+
+### Return type
+
+null (empty response body)
 
 ### Authorization
 

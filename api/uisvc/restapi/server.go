@@ -415,6 +415,18 @@ func (hc HandlerConfig) SetRoutes(h *handlers.H) {
 	)
 	addRoute(
 		h,
+		handlers.TransformSwaggerRoute("/submission/{id}/cancel"),
+		"POST",
+		&handlers.Route{
+			ParamValidator: operations.PostSubmissionIDCancelValidateURLParams,
+			Handler:        operations.PostSubmissionIDCancel,
+			Method:         "POST",
+			UseCORS:        true,
+			UseAuth:        true,
+		},
+	)
+	addRoute(
+		h,
 		handlers.TransformSwaggerRoute("/tasks/cancel/{id}"),
 		"POST",
 		&handlers.Route{

@@ -248,6 +248,16 @@
         done();
       });
     });
+    describe('submissionIdCancelPost', function() {
+      it('should call submissionIdCancelPost successfully', function(done) {
+        //uncomment below and update the code to test submissionIdCancelPost
+        //instance.submissionIdCancelPost(function(error) {
+        //  if (error) throw error;
+        //expect().to.be();
+        //});
+        done();
+      });
+    });
     describe('submissionIdGet', function() {
       it('should call submissionIdGet successfully', function(done) {
         //uncomment below and update the code to test submissionIdGet

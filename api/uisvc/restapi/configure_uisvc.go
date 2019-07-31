@@ -71,6 +71,7 @@ func (hc HandlerConfig) Configure(router handlers.Routes) *errors.Error {
 	router.SetProcessor("/submissions", "get", ListSubmissions)
 	router.SetProcessor("/submissions/count", "get", CountSubmissions)
 	router.SetProcessor("/submission/{id}", "get", GetSubmission)
+	router.SetProcessor("/submission/{id}/cancel", "post", CancelSubmission)
 	router.SetProcessor("/submission/{id}/tasks", "get", GetSubmissionTasks)
 
 	router.SetProcessor("/runs", "get", ListRuns)

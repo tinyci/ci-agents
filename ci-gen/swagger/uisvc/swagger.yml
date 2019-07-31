@@ -871,6 +871,27 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '../models.yml#/definitions/Error'
+  /submission/{id}/cancel:
+    post:
+      security:
+        - token: []
+        - session: []
+      summary: Cancel a submission by ID
+      parameters:
+        - in: path
+          name: id
+          description: The ID of the submission to cancel
+          type: integer
+          required: true
+      description:
+        Cancel a Submission by ID; this will cancel all sub-tasks and their runs.
+      responses:
+        200:
+          description: OK
+        500:
+          description: Internal Server Error
+          schema:
+            $ref: '../models.yml#/definitions/Error'
   /submission/{id}/tasks:
     get:
       security:

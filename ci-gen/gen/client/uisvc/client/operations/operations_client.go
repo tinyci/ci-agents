@@ -1976,6 +1976,64 @@ func (c *Client) PostCapabilitiesUsernameCapability(ctx context.Context, capabil
 
 }
 
+// PostSubmissionIDCancel cancel a submission by ID
+func (c *Client) PostSubmissionIDCancel(ctx context.Context, id int64) *errors.Error {
+	route := "/submission/{id}/cancel"
+	route = strings.Replace(route, "{id}", url.PathEscape(fmt.Sprintf("%v", id)), -1)
+
+	tmp := *c.url
+	u := &tmp
+	u.Path += route
+
+	m := map[string]interface{}{}
+
+	if len(m) > 0 {
+		q := u.Query()
+
+		for key, value := range m {
+			q.Add(key, fmt.Sprintf("%v", value))
+		}
+
+		u.RawQuery = q.Encode()
+	}
+
+	var body []byte
+
+	postForm := url.Values{}
+
+	body = []byte(postForm.Encode())
+
+	req, err := http.NewRequest("POST", u.String(), bytes.NewBuffer(body))
+	if err != nil {
+		return errors.New(err)
+	}
+
+	req.Header.Add("Authorization", c.token)
+
+	req.Header.Set("Content-type", "application/x-www-form-urlencoded")
+	resp, err := c.client.Do(req.WithContext(ctx))
+	if err != nil {
+		return errors.New(err)
+	}
+
+	if resp.StatusCode == 500 {
+		origErr := &errors.Error{}
+		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
+			return errors.New(err)
+		}
+		if origErr == nil {
+			panic("Cannot return 500 without error")
+		}
+
+		return origErr
+	}
+
+	defer resp.Body.Close()
+
+	return nil
+
+}
+
 // PostTasksCancelID cancel by task ID
 func (c *Client) PostTasksCancelID(ctx context.Context, id int64) *errors.Error {
 	route := "/tasks/cancel/{id}"

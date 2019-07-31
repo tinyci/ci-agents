@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	check "github.com/erikh/check"
+	"github.com/golang/mock/gomock"
+	"github.com/tinyci/ci-agents/mocks/github"
 	"github.com/tinyci/ci-agents/types"
 )
 
@@ -235,6 +237,7 @@ func (ms *modelSuite) TestSubmissionEntries(c *check.C) {
 }
 
 func (ms *modelSuite) TestSubmissionTasks(c *check.C) {
+	mock := gomock.NewController(c)
 	for success, subs := range Fixtures {
 		if success {
 			subTaskMap := map[int64][]*Task{}
@@ -264,15 +267,37 @@ func (ms *modelSuite) TestSubmissionTasks(c *check.C) {
 					t2 = append(t2, tasks[i])
 				}
 
-				tasks = t2
-
 				for i := int64(0); i < 2; i++ {
 					ts, err := ms.model.TasksForSubmission(s, i, 100)
 					c.Assert(err, check.IsNil)
 					c.Assert(len(ts), check.Equals, 100)
 
 					for x, task := range ts {
-						c.Assert(tasks[int64(x)+(i*100)].ID, check.Equals, task.ID, check.Commentf("%v", int64(x)+(i*100)))
+						c.Assert(t2[int64(x)+(i*100)].ID, check.Equals, task.ID, check.Commentf("%v", int64(x)+(i*100)))
+					}
+				}
+
+				gh := github.NewMockClient(mock)
+				for _, task := range tasks {
+					owner, repo, err := task.Parent.OwnerRepo()
+					c.Assert(err, check.IsNil)
+					count, err := ms.model.CountRunsForTask(task.ID)
+					c.Assert(err, check.IsNil)
+
+					for i := int64(0); i < count; i++ {
+						gh.EXPECT().ErrorStatus(owner, repo, "default", task.Ref.SHA, gomock.Any(), gomock.Any())
+					}
+				}
+
+				c.Assert(ms.model.CancelSubmissionByID(subID, "", gh), check.IsNil)
+
+				for i := int64(0); i < 2; i++ {
+					ts, err := ms.model.TasksForSubmission(s, i, 100)
+					c.Assert(err, check.IsNil)
+					c.Assert(len(ts), check.Equals, 100)
+
+					for _, task := range ts {
+						c.Assert(task.Canceled, check.Equals, true)
 					}
 				}
 			}
