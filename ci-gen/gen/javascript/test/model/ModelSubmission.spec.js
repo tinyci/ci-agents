@@ -84,6 +84,12 @@
       //expect(instance).to.be();
     });
 
+    it('should have the property startedAt (base name: "started_at")', function() {
+      // uncomment below and update the code to test the property startedAt
+      //var instane = new Uisvc.ModelSubmission();
+      //expect(instance).to.be();
+    });
+
     it('should have the property finishedAt (base name: "finished_at")', function() {
       // uncomment below and update the code to test the property finishedAt
       //var instane = new Uisvc.ModelSubmission();

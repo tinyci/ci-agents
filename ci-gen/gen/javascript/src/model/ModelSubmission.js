@@ -64,6 +64,9 @@ class ModelSubmission {
             if (data.hasOwnProperty('created_at')) {
                 obj['created_at'] = ApiClient.convertToType(data['created_at'], 'Date');
             }
+            if (data.hasOwnProperty('started_at')) {
+                obj['started_at'] = ApiClient.convertToType(data['started_at'], 'Date');
+            }
             if (data.hasOwnProperty('finished_at')) {
                 obj['finished_at'] = ApiClient.convertToType(data['finished_at'], 'Date');
             }
@@ -104,6 +107,11 @@ ModelSubmission.prototype['base_ref'] = undefined;
  * @member {Date} created_at
  */
 ModelSubmission.prototype['created_at'] = undefined;
+
+/**
+ * @member {Date} started_at
+ */
+ModelSubmission.prototype['started_at'] = undefined;
 
 /**
  * @member {Date} finished_at

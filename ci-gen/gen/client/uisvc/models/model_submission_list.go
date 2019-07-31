@@ -66,6 +66,10 @@ type ModelSubmissionListItems0 struct {
 	// id
 	ID int64 `json:"id,omitempty"`
 
+	// started at
+	// Format: date-time
+	StartedAt strfmt.DateTime `json:"started_at,omitempty"`
+
 	// status
 	Status *bool `json:"status,omitempty"`
 
@@ -93,6 +97,10 @@ func (m *ModelSubmissionListItems0) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateHeadRef(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateStartedAt(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -163,6 +171,19 @@ func (m *ModelSubmissionListItems0) validateHeadRef(formats strfmt.Registry) err
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *ModelSubmissionListItems0) validateStartedAt(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.StartedAt) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("started_at", "body", "date-time", m.StartedAt.String(), formats); err != nil {
+		return err
 	}
 
 	return nil
