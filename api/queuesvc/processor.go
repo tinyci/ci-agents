@@ -57,7 +57,7 @@ func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, clien
 		baseRef = headRef
 	}
 
-	sub, err := h.Clients.Data.PutSubmission(&model.Submission{User: is.User, HeadRef: baseRef, BaseRef: headRef})
+	sub, err := h.Clients.Data.PutSubmission(&model.Submission{User: is.User, HeadRef: headRef, BaseRef: baseRef})
 	if err != nil {
 		return nil, err.Wrap("couldn't convert submission")
 	}
