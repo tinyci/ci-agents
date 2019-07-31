@@ -2712,6 +2712,10 @@ func init() {
         "id": {
           "type": "integer"
         },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
         "status": {
           "type": "boolean",
           "x-nullable": true
@@ -2848,6 +2852,10 @@ func init() {
           },
           "id": {
             "type": "integer"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
           },
           "status": {
             "type": "boolean",

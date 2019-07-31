@@ -312,6 +312,9 @@ definitions:
       created_at:
         type: string
         format: date-time
+      started_at:
+        type: string
+        format: date-time
       finished_at:
         type: string
         format: date-time

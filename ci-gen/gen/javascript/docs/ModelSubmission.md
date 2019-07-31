@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **headRef** | [**Ref**](Ref.md) |  | [optional] 
 **baseRef** | [**Ref**](Ref.md) |  | [optional] 
 **createdAt** | **Date** |  | [optional] 
+**startedAt** | **Date** |  | [optional] 
 **finishedAt** | **Date** |  | [optional] 
 **tasksCount** | **Number** |  | [optional] 
 **status** | **Boolean** |  | [optional] 

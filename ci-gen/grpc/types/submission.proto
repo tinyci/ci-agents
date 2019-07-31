@@ -19,6 +19,7 @@ message Submission {
   google.protobuf.Timestamp finishedAt  = 7; // When it completed
   bool                      status      = 8; // What is the status of this submission
   bool                      statusSet   = 9; // Is the status valid? (nil internally for invalid settings, but proto doesn't like nil)
+  google.protobuf.Timestamp startedAt   = 10; // When it started
 }
 
 message SubmissionList {
