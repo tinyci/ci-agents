@@ -315,9 +315,11 @@ definitions:
       started_at:
         type: string
         format: date-time
+        x-nullable: true
       finished_at:
         type: string
         format: date-time
+        x-nullable: true
       tasks_count:
         type: integer
       status:

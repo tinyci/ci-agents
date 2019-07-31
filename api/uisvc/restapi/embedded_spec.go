@@ -2669,7 +2669,8 @@ func init() {
         },
         "finished_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "x-nullable": true
         },
         "head_ref": {
           "type": "object",
@@ -2714,7 +2715,8 @@ func init() {
         },
         "started_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "x-nullable": true
         },
         "status": {
           "type": "boolean",
@@ -2810,7 +2812,8 @@ func init() {
           },
           "finished_at": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "x-nullable": true
           },
           "head_ref": {
             "type": "object",
@@ -2855,7 +2858,8 @@ func init() {
           },
           "started_at": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "x-nullable": true
           },
           "status": {
             "type": "boolean",

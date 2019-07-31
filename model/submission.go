@@ -247,7 +247,7 @@ func (m *Model) selectOne(query string, id int64, out interface{}) *errors.Error
 	defer rows.Close()
 
 	if rows.Next() {
-		if err := rows.Scan(&out); err != nil {
+		if err := rows.Scan(out); err != nil {
 			return errors.New(err)
 		}
 	}
@@ -284,14 +284,11 @@ func (m *Model) populateStates(ids []int64, idmap map[int64]*Submission) *errors
 	for id, states := range overallStatus {
 		failed := false
 		unfinished := false
-		started := false
 		for _, status := range states {
 			if status == nil {
 				unfinished = true
 				idmap[id].Status = nil
 				break
-			} else {
-				started = true
 			}
 
 			if !*status {
@@ -303,23 +300,20 @@ func (m *Model) populateStates(ids []int64, idmap map[int64]*Submission) *errors
 			f := !failed
 			idmap[id].Status = &f
 
-			var t time.Time
+			var t *time.Time
 			if err := m.selectOne("select max(finished_at) from tasks where submission_id = ?", id, &t); err != nil {
 				return errors.New(err)
 			}
 
-			idmap[id].FinishedAt = &t
+			idmap[id].FinishedAt = t
 		}
 
-		if started {
-			var t time.Time
-			if err := m.Raw("select min(started_at) from tasks where submission_id = ?", id, &t); err != nil {
-				return errors.New(err)
-			}
-			defer rows.Close()
-
-			idmap[id].StartedAt = &t
+		var t *time.Time
+		if err := m.selectOne("select min(started_at) from tasks where submission_id = ? and started_at is not null", id, &t); err != nil {
+			return errors.New(err)
 		}
+
+		idmap[id].StartedAt = t
 	}
 
 	return nil

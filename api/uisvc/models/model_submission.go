@@ -28,7 +28,7 @@ type ModelSubmission struct {
 
 	// finished at
 	// Format: date-time
-	FinishedAt strfmt.DateTime `json:"finished_at,omitempty"`
+	FinishedAt *strfmt.DateTime `json:"finished_at,omitempty"`
 
 	// head ref
 	HeadRef *ModelSubmissionHeadRef `json:"head_ref,omitempty"`
@@ -38,7 +38,7 @@ type ModelSubmission struct {
 
 	// started at
 	// Format: date-time
-	StartedAt strfmt.DateTime `json:"started_at,omitempty"`
+	StartedAt *strfmt.DateTime `json:"started_at,omitempty"`
 
 	// status
 	Status *bool `json:"status,omitempty"`
