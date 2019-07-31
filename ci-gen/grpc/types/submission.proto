@@ -16,6 +16,9 @@ message Submission {
   types.User                user        = 4; // User who submitted it
   google.protobuf.Timestamp createdAt   = 5; // When it was submitted
   int64                     tasksCount  = 6; // The number of tasks in this submission
+  google.protobuf.Timestamp finishedAt  = 7; // When it completed
+  bool                      status      = 8; // What is the status of this submission
+  bool                      statusSet   = 9; // Is the status valid? (nil internally for invalid settings, but proto doesn't like nil)
 }
 
 message SubmissionList {

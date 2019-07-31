@@ -2667,6 +2667,10 @@ func init() {
           "type": "string",
           "format": "date-time"
         },
+        "finished_at": {
+          "type": "string",
+          "format": "date-time"
+        },
         "head_ref": {
           "type": "object",
           "properties": {
@@ -2707,6 +2711,10 @@ func init() {
         },
         "id": {
           "type": "integer"
+        },
+        "status": {
+          "type": "boolean",
+          "x-nullable": true
         },
         "tasks_count": {
           "type": "integer"
@@ -2796,6 +2804,10 @@ func init() {
             "type": "string",
             "format": "date-time"
           },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time"
+          },
           "head_ref": {
             "type": "object",
             "properties": {
@@ -2836,6 +2848,10 @@ func init() {
           },
           "id": {
             "type": "integer"
+          },
+          "status": {
+            "type": "boolean",
+            "x-nullable": true
           },
           "tasks_count": {
             "type": "integer"

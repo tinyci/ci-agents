@@ -84,8 +84,20 @@
       //expect(instance).to.be();
     });
 
+    it('should have the property finishedAt (base name: "finished_at")', function() {
+      // uncomment below and update the code to test the property finishedAt
+      //var instane = new Uisvc.ModelSubmission();
+      //expect(instance).to.be();
+    });
+
     it('should have the property tasksCount (base name: "tasks_count")', function() {
       // uncomment below and update the code to test the property tasksCount
+      //var instane = new Uisvc.ModelSubmission();
+      //expect(instance).to.be();
+    });
+
+    it('should have the property status (base name: "status")', function() {
+      // uncomment below and update the code to test the property status
       //var instane = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });

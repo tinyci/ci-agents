@@ -325,6 +325,7 @@ func (m *Model) assignRunCountsToTask(tasks []*Task) *errors.Error {
 	if eErr != nil {
 		return errors.New(eErr)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var id, count int64
