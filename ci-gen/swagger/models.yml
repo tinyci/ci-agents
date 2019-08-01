@@ -122,6 +122,9 @@ definitions:
       name:
         type: string
         example: "my-run"
+      ran_on:
+        type: string
+        x-nullable: true
       created_at:
         type: string
         format: date-time

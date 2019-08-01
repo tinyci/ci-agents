@@ -69,6 +69,7 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 		qs.H.Clients.Log.WithFields(log.FieldMap{
 			"repository": qi.Run.Task.Parent.Name,
 			"run_id":     fmt.Sprintf("%d", qi.Run.ID),
+			"ran_on":     qr.RunningOn,
 		}).Error(ctx, err)
 
 		return nil, err.ToGRPC(codes.FailedPrecondition)

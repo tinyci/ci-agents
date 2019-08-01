@@ -66,6 +66,12 @@
       //expect(instance).to.be();
     });
 
+    it('should have the property ranOn (base name: "ran_on")', function() {
+      // uncomment below and update the code to test the property ranOn
+      //var instane = new Uisvc.Run();
+      //expect(instance).to.be();
+    });
+
     it('should have the property createdAt (base name: "created_at")', function() {
       // uncomment below and update the code to test the property createdAt
       //var instane = new Uisvc.Run();

@@ -203,6 +203,7 @@ func (ms *modelSuite) TestQueueManipulation(c *check.C) {
 		c.Assert(*qi.RunningOn, check.Equals, "hostname")
 		c.Assert(qi.StartedAt, check.NotNil)
 		c.Assert(qi.Run.Task.Parent, check.NotNil) // checking the ORM works
+		c.Assert(*qi.Run.RanOn, check.Equals, "hostname")
 		firstID++
 	}
 
@@ -256,6 +257,7 @@ func (ms *modelSuite) TestQueueNamed(c *check.C) {
 		c.Assert(*qi.RunningOn, check.Equals, "hostname")
 		c.Assert(qi.StartedAt, check.NotNil)
 		c.Assert(qi.Run.Task.Parent, check.NotNil) // checking the ORM works
+		c.Assert(*qi.Run.RanOn, check.Equals, "hostname")
 	}
 
 	fmt.Println("Iterating queue took", time.Since(start))
@@ -328,6 +330,7 @@ func (ms *modelSuite) TestQueueConcurrent(c *check.C) {
 			c.Assert(*qi.RunningOn, check.Equals, "hostname")
 			c.Assert(qi.StartedAt, check.NotNil)
 			c.Assert(qi.Run.Task.Parent, check.NotNil) // checking the ORM works
+			c.Assert(*qi.Run.RanOn, check.Equals, "hostname")
 		}
 	}
 
@@ -411,6 +414,7 @@ func (ms *modelSuite) TestQueueNamedConcurrent(c *check.C) {
 			c.Assert(*qi.RunningOn, check.Equals, "hostname")
 			c.Assert(qi.StartedAt, check.NotNil)
 			c.Assert(qi.Run.Task.Parent, check.NotNil) // checking the ORM works
+			c.Assert(*qi.Run.RanOn, check.Equals, "hostname")
 		}
 	}
 

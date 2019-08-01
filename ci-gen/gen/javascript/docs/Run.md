@@ -6,6 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **settings** | [**RunSettings**](RunSettings.md) |  | [optional] 
 **name** | **String** |  | [optional] 
+**ranOn** | **String** |  | [optional] 
 **createdAt** | **Date** |  | [optional] 
 **startedAt** | **Date** |  | [optional] 
 **finishedAt** | **Date** |  | [optional] 

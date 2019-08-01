@@ -152,6 +152,7 @@ func (m *Model) NextQueueItem(runningOn string, queueName string) (*QueueItem, *
 	t := time.Now()
 	qi.StartedAt = &t
 	qi.Run.StartedAt = &t
+	qi.Run.RanOn = &runningOn
 	if qi.Run.Task.StartedAt == nil {
 		qi.Run.Task.StartedAt = &t
 		if err := m.WrapError(db.Save(qi.Run.Task), "updating task started_at"); err != nil {

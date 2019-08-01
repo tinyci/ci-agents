@@ -20,6 +20,8 @@ message Run {
   bool                      statusSet   = 7; // Is the status valid? (nil internally for invalid settings, but proto doesn't like nil)
 	types.RunSettings         settings    = 8; // The settings for the Run (image, command etc)
   types.Task                task        = 9; // Task for the Run.
+  string                    ranOn       = 10; // what host the run happened on
+  bool                      ranOnSet    = 11; // if the ranOn host was set.
 }
 
 // RunList is just an array of runs

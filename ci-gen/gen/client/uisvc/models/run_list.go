@@ -63,6 +63,9 @@ type RunListItems0 struct {
 	// name
 	Name string `json:"name,omitempty"`
 
+	// ran on
+	RanOn *string `json:"ran_on,omitempty"`
+
 	// settings
 	Settings *RunListItems0Settings `json:"settings,omitempty"`
 
