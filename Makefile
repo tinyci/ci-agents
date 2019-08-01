@@ -13,6 +13,7 @@ DEMO_DOCKER_IMAGE=tinyci-agents
 DEBUG_DOCKER_IMAGE=tinyci-agents-debug
 TEST_DOCKER_IMAGE=tinyci-agents-test
 BUILD_DOCKER_IMAGE=tinyci-build
+GO_VERSION=1.12
 
 DEBUG_PORTS= -p 3000:3000 \
 								-p 6000:6000 \
@@ -29,7 +30,7 @@ BUILD_DOCKER_RUN=\
 								-v ${PWD}/build/:/tmp/bin \
 								-w $(CONTAINER_DIR) \
 								-v ${PWD}:$(CONTAINER_DIR) \
-								golang:latest
+								golang:${GO_VERSION}
 
 TEST_DOCKER_RUN=\
 								$(DOCKER_RUN) -it \
@@ -95,7 +96,7 @@ do-build:
 
 build: distclean
 	mkdir -p build
-	docker pull golang:latest
+	docker pull golang:${GO_VERSION}
 	$(BUILD_DOCKER_RUN) make do-build
 
 distclean:
