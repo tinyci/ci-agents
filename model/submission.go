@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -386,7 +387,8 @@ func (m *Model) CancelSubmissionByID(id int64, baseURL string, client github.Cli
 
 	for _, task := range tasks {
 		if err := m.CancelTaskByID(task.ID, baseURL, client); err != nil {
-			return err
+			// we want to skip returning this error so all tasks have the chance to be canceled.
+			fmt.Println(err) // FIXME can't log here. need to fix that.
 		}
 	}
 
