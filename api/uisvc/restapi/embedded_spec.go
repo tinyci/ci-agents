@@ -3021,6 +3021,10 @@ func init() {
           "type": "string",
           "example": "my-run"
         },
+        "ran_on": {
+          "type": "string",
+          "x-nullable": true
+        },
         "settings": {
           "type": "object",
           "properties": {
@@ -3263,6 +3267,10 @@ func init() {
           "name": {
             "type": "string",
             "example": "my-run"
+          },
+          "ran_on": {
+            "type": "string",
+            "x-nullable": true
           },
           "settings": {
             "type": "object",

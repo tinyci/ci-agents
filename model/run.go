@@ -35,6 +35,7 @@ type Run struct {
 	Status     *bool      `json:"status,omitempty"`
 	Task       *Task      `gorm:"association_autoupdate:false" json:"task"`
 	TaskID     int64      `json:"-"`
+	RanOn      *string    `json:"ran_on"`
 
 	RunSettings *types.RunSettings `json:"settings"`
 }
@@ -46,6 +47,11 @@ func NewRunFromProto(r *gtypes.Run) (*Run, *errors.Error) {
 		return nil, err
 	}
 
+	var ranOn *string
+	if r.RanOnSet {
+		ranOn = &r.RanOn
+	}
+
 	return &Run{
 		ID:          r.Id,
 		Name:        r.Name,
@@ -55,6 +61,7 @@ func NewRunFromProto(r *gtypes.Run) (*Run, *errors.Error) {
 		Status:      MakeStatus(r.Status, r.StatusSet),
 		Task:        task,
 		RunSettings: types.NewRunSettingsFromProto(r.Settings),
+		RanOn:       ranOn,
 	}, nil
 }
 
@@ -64,6 +71,16 @@ func (r *Run) ToProto() *gtypes.Run {
 	if r.Status != nil {
 		status = *r.Status
 		set = true
+	}
+
+	var (
+		ranOn    string
+		ranOnSet bool
+	)
+
+	if r.RanOn != nil {
+		ranOn = *r.RanOn
+		ranOnSet = true
 	}
 
 	return &gtypes.Run{
@@ -76,6 +93,8 @@ func (r *Run) ToProto() *gtypes.Run {
 		StatusSet:  set,
 		Task:       r.Task.ToProto(),
 		Settings:   r.RunSettings.ToProto(),
+		RanOn:      ranOn,
+		RanOnSet:   ranOnSet,
 	}
 }
 

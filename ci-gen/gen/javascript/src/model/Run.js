@@ -55,6 +55,9 @@ class Run {
             if (data.hasOwnProperty('name')) {
                 obj['name'] = ApiClient.convertToType(data['name'], 'String');
             }
+            if (data.hasOwnProperty('ran_on')) {
+                obj['ran_on'] = ApiClient.convertToType(data['ran_on'], 'String');
+            }
             if (data.hasOwnProperty('created_at')) {
                 obj['created_at'] = ApiClient.convertToType(data['created_at'], 'Date');
             }
@@ -89,6 +92,11 @@ Run.prototype['settings'] = undefined;
  * @member {String} name
  */
 Run.prototype['name'] = undefined;
+
+/**
+ * @member {String} ran_on
+ */
+Run.prototype['ran_on'] = undefined;
 
 /**
  * @member {Date} created_at
