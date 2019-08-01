@@ -6,7 +6,6 @@ require (
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/erikh/check v0.0.1
 	github.com/erikh/go-transport v0.0.3
-	github.com/erikh/migrator v0.0.0-20190428125507-88eb9a06f5e8 // indirect
 	github.com/fatih/color v1.7.0
 	github.com/gin-contrib/sessions v0.0.0-20190512062852-3cb4c4f2d615
 	github.com/gin-gonic/gin v1.4.0
