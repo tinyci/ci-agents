@@ -1,18 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"os"
-	"os/signal"
-	"syscall"
 
-	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/api/datasvc"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
+	"github.com/tinyci/ci-agents/cmdlib"
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/urfave/cli"
+	"google.golang.org/grpc"
 )
 
 // Version is the version of this service.
@@ -22,69 +19,21 @@ const Version = "1.0.0"
 var TinyCIVersion = "" // to be changed by build processes
 
 func main() {
-	app := cli.NewApp()
-	app.Name = "datasvc"
-	app.Description = "datasvc is the conduit for tinyCI to talk to a data store.\n"
-	app.Action = serve
-	app.Version = fmt.Sprintf("%s (tinyCI version %s)", Version, TinyCIVersion)
-
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "config, c",
-			Usage: "Path to configuration file",
-			Value: ".config/services.yaml",
+	s := &cmdlib.GRPCServer{
+		Name:           "datasvc",
+		Description:    "datasvc is the conduit for tinyCI to talk to a data store.",
+		AppVersion:     Version,
+		TinyCIVersion:  TinyCIVersion,
+		UseDB:          true,
+		UseSessions:    true,
+		DefaultService: config.DefaultServices.Data,
+		RegisterService: func(s *grpc.Server, h *handler.H) *errors.Error {
+			data.RegisterDataServer(s, &datasvc.DataServer{H: h})
+			return nil
 		},
 	}
 
-	if err := app.Run(os.Args); err != nil {
+	if err := s.Make().Run(os.Args); err != nil {
 		errors.New(err).Exit()
 	}
-}
-
-func serve(ctx *cli.Context) error {
-	h := &handler.H{}
-	if err := config.Parse(ctx.String("config"), &h); err != nil {
-		return err
-	}
-
-	h.Name = "datasvc"
-	h.UseDB = true
-	h.UseSessions = true
-
-	cert, certErr := h.TLS.Load()
-	if certErr != nil {
-		return certErr
-	}
-
-	t, transportErr := transport.Listen(cert, "tcp", fmt.Sprintf(":%d", config.DefaultServices.Data.Port)) // FIXME parameterize
-	if transportErr != nil {
-		return transportErr
-	}
-
-	s, closer, err := h.CreateServer()
-	if err != nil {
-		return err
-	}
-
-	data.RegisterDataServer(s, &datasvc.DataServer{H: h})
-
-	finished := make(chan struct{})
-	doneChan, err := h.Boot(t, s, finished)
-	if err != nil {
-		return err
-	}
-
-	sigChan := make(chan os.Signal, 2)
-	go func() {
-		<-sigChan
-		close(doneChan)
-		<-finished
-		if closer != nil {
-			closer.Close()
-		}
-		os.Exit(0)
-	}()
-	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
-
-	select {}
 }
