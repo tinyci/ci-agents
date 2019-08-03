@@ -12,7 +12,7 @@ import (
 // MakeAssetServer makes an instance of the assetsvc on port 6000. It returns a
 // chan which can be closed to terminate it, and any boot-time errors.
 func MakeAssetServer() (*handler.H, chan struct{}, *errors.Error) {
-	t, err := transport.Listen(nil, "tcp", "localhost:6002")
+	t, err := transport.Listen(nil, "tcp", config.DefaultServices.Asset.String())
 	if err != nil {
 		return nil, nil, errors.New(err)
 	}

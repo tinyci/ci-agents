@@ -39,7 +39,7 @@ func MakeLogServer() (*handler.H, chan struct{}, *LogJournal, *errors.Error) {
 		},
 	}
 
-	t, err := transport.Listen(nil, "tcp", "localhost:6005")
+	t, err := transport.Listen(nil, "tcp", config.DefaultServices.Log.String())
 	if err != nil {
 		return nil, nil, nil, errors.New(err)
 	}

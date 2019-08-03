@@ -28,7 +28,7 @@ func MakeQueueServer() (*handler.H, chan struct{}, *errors.Error) {
 		},
 	}
 
-	t, err := transport.Listen(nil, "tcp", "localhost:6001")
+	t, err := transport.Listen(nil, "tcp", config.DefaultServices.Queue.String())
 	if err != nil {
 		return nil, nil, errors.New(err)
 	}

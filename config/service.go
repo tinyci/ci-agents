@@ -19,12 +19,12 @@ var DefaultGithubClient github.Client
 
 // TestClientConfig is a default test client configuration
 var TestClientConfig = ClientConfig{
-	Data:       "localhost:6000",
-	Queue:      "localhost:6001",
-	UI:         "http://localhost:6010",
-	Asset:      "localhost:6002",
-	Repository: "localhost:6003",
-	Log:        "localhost:6005",
+	Data:       DefaultServices.Data.String(),
+	Queue:      DefaultServices.Queue.String(),
+	UI:         DefaultServices.UI.String(),
+	Asset:      DefaultServices.Asset.String(),
+	Repository: DefaultServices.Repository.String(),
+	Log:        DefaultServices.Log.String(),
 }
 
 // ServiceConfig is the pre-normalized version of the config struct

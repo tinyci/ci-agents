@@ -7,6 +7,7 @@ import (
 
 	gh "github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/clients/queue"
+	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/mocks/github"
 	"github.com/tinyci/ci-agents/types"
@@ -21,7 +22,7 @@ type QueueClient struct {
 
 // NewQueueClient returns a new queuesvc client with window dressings for tests.
 func NewQueueClient(dc *DataClient) (*QueueClient, error) {
-	ops, err := queue.New("localhost:6001", nil, false)
+	ops, err := queue.New(config.DefaultServices.Queue.String(), nil, false)
 	return &QueueClient{client: ops, dataClient: dc}, err
 }
 

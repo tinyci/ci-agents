@@ -8,6 +8,7 @@ import (
 	check "github.com/erikh/check"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	client "github.com/tinyci/ci-agents/clients/asset"
+	"github.com/tinyci/ci-agents/config"
 )
 
 type assetsvcSuite struct {
@@ -28,7 +29,7 @@ func (as *assetsvcSuite) SetUpTest(c *check.C) {
 	as.assetsvcHandler, as.assetsvcDoneChan, err = MakeAssetServer()
 	c.Assert(err, check.IsNil)
 
-	as.assetClient, err = client.NewClient("localhost:6002", nil, false)
+	as.assetClient, err = client.NewClient(config.DefaultServices.Asset.String(), nil, false)
 	c.Assert(err, check.IsNil)
 }
 

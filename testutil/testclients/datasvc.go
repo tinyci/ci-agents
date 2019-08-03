@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/clients/data"
+	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/testutil"
@@ -19,7 +20,7 @@ type DataClient struct {
 
 // NewDataClient returns a new datasvc client with window dressings for tests.
 func NewDataClient() (*DataClient, *errors.Error) {
-	ops, err := data.New("localhost:6000", nil, false)
+	ops, err := data.New(config.DefaultServices.Data.String(), nil, false)
 	return &DataClient{client: ops}, err
 }
 

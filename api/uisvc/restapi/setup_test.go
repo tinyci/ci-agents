@@ -65,7 +65,7 @@ func (us *uisvcSuite) SetUpTest(c *check.C) {
 	us.queuesvcClient, err = testclients.NewQueueClient(us.datasvcClient)
 	c.Assert(err, check.IsNil)
 
-	us.assetsvcClient, err = asset.NewClient("localhost:6002", nil, false)
+	us.assetsvcClient, err = asset.NewClient(config.DefaultServices.Asset.String(), nil, false)
 	c.Assert(err, check.IsNil)
 
 	us.oauthDoneChan, err = testservers.BootOAuthService()
