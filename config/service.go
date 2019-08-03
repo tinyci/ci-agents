@@ -19,11 +19,12 @@ var DefaultGithubClient github.Client
 
 // TestClientConfig is a default test client configuration
 var TestClientConfig = ClientConfig{
-	Data:  "localhost:6000",
-	Queue: "localhost:6001",
-	UI:    "http://localhost:6010",
-	Asset: "localhost:6002",
-	Log:   "localhost:6005",
+	Data:       "localhost:6000",
+	Queue:      "localhost:6001",
+	UI:         "http://localhost:6010",
+	Asset:      "localhost:6002",
+	Repository: "localhost:6003",
+	Log:        "localhost:6005",
 }
 
 // ServiceConfig is the pre-normalized version of the config struct
@@ -69,11 +70,12 @@ type Clients struct {
 
 // ClientConfig configures the clients
 type ClientConfig struct {
-	Data  string `yaml:"datasvc"`
-	UI    string `yaml:"uisvc"`
-	Queue string `yaml:"queuesvc"`
-	Asset string `yaml:"assetsvc"`
-	Log   string `yaml:"logsvc"`
+	Data       string `yaml:"datasvc"`
+	UI         string `yaml:"uisvc"`
+	Queue      string `yaml:"queuesvc"`
+	Asset      string `yaml:"assetsvc"`
+	Log        string `yaml:"logsvc"`
+	Repository string `yaml:"reposvc"`
 
 	Cert CertConfig `yaml:"tls"`
 }

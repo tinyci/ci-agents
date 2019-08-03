@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package repository;
+
+option go_package = "github.com/tinyci/ci-agents/ci-gen/grpc/services/repository";
+
+import "github.com/golang/protobuf/ptypes/empty/empty.proto";
+import "github.com/tinyci/ci-agents/ci-gen/grpc/types/user.proto";
+
+service Repository {
+  // CommentError is for commenting on PRs when there is no better means of bubbling up an error.
+  rpc CommentError(CommentErrorRequest)     returns (google.protobuf.Empty) {};
+  rpc MyRepositories(types.User)            returns (RepositoryList)        {};
+  rpc GetRepository(UserWithRepo)           returns (RepositoryData)        {};
+  rpc MyLogin(String)                       returns (String)                {};
+  rpc GetFileList(RepoSHAPair)              returns (StringList)            {};
+  rpc GetSHA(RepoRefPair)                   returns (String)                {};
+  rpc GetRefs(RepoSHAPair)                  returns (StringList)            {};
+  rpc GetFile(FileRequest)                  returns (Bytes)                 {};
+  rpc GetDiffFiles(FileDiffRequest)         returns (StringList)            {};
+  rpc SetupHook(HookSetupRequest)           returns (google.protobuf.Empty) {};
+  rpc TeardownHook(HookTeardownRequest)     returns (google.protobuf.Empty) {};
+  rpc PendingStatus(StatusRequest)          returns (google.protobuf.Empty) {};
+  rpc StartedStatus(StatusRequest)          returns (google.protobuf.Empty) {};
+  rpc ErrorStatus(ErrorStatusRequest)       returns (google.protobuf.Empty) {};
+  rpc FinishedStatus(FinishedStatusRequest) returns (google.protobuf.Empty) {};
+  rpc ClearStates(RepoSHAPair)              returns (google.protobuf.Empty) {};
+}
+
+message CommentErrorRequest {
+  string  repoName  = 1;
+  int64   prID      = 2;
+  string  error     = 3;
+}
+
+message RepositoryData {
+  string name         = 1;
+  string masterBranch = 2;
+}
+
+message RepositoryList {
+  repeated RepositoryData repositories = 1;
+}
+
+message StringList {
+  repeated string list = 1;
+}
+
+message RepoRefPair {
+  string repoName = 1;
+  string refName  = 2;
+}
+
+message RepoSHAPair {
+  string repoName = 1;
+  string sha      = 2;
+}
+
+message FileRequest {
+  string repoName = 1;
+  string sha      = 2;
+  string filename = 3;
+}
+
+message FileDiffRequest {
+  string repoName = 1;
+  string base     = 2;
+  string head     = 3;
+}
+
+message HookSetupRequest {
+  string repoName   = 1;
+  string hookURL    = 2;
+  string hookSecret = 3;
+}
+
+message HookTeardownRequest {
+  string repoName = 1;
+  string hookURL  = 2;
+}
+
+message StatusRequest {
+  string repoName = 1;
+  string runName  = 2;
+  string sha      = 3;
+  string url      = 4;
+}
+
+message ErrorStatusRequest {
+  string repoName = 1; 
+  string runName  = 2;
+  string sha      = 3;
+  string url      = 4;
+  string error    = 5;
+}
+
+message FinishedStatusRequest {
+  string repoName = 1;
+  string runName  = 2;
+  string sha      = 3;
+  string url      = 4;
+  bool   status   = 5;
+  string msg      = 6;
+}
+
+message String {
+  string name = 1;
+}
+
+message Bytes {
+  bytes value = 1;
+}
+
+message UserWithRepo {
+  types.User  user      = 1;
+  string      repoName  = 2;
+}
