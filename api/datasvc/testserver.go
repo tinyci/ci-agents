@@ -29,7 +29,7 @@ func MakeDataServer() (*handler.H, chan struct{}, *errors.Error) {
 		},
 	}
 
-	t, err := transport.Listen(nil, "tcp", "localhost:6000")
+	t, err := transport.Listen(nil, "tcp", config.DefaultServices.Data.String())
 	if err != nil {
 		return nil, nil, errors.New(err)
 	}

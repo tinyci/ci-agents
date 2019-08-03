@@ -38,7 +38,7 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 		},
 	}
 
-	d, err := data.New("localhost:6000", nil, false)
+	d, err := data.New(config.DefaultServices.Data.String(), nil, false)
 	if err != nil {
 		return nil, nil, nil, nil, errors.New(err)
 	}
@@ -66,7 +66,7 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 		return nil, nil, nil, nil, err
 	}
 
-	tc, err := tinyci.New("http://localhost:6010", token, nil)
+	tc, err := tinyci.New(config.DefaultServices.UI.String(), token, nil)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -85,7 +85,7 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 		return nil, nil, nil, nil, err
 	}
 
-	utc, err := tinyci.New("http://localhost:6010", token, nil)
+	utc, err := tinyci.New(config.DefaultServices.UI.String(), token, nil)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

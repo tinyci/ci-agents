@@ -7,6 +7,7 @@ import (
 	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/clients/data"
 	"github.com/tinyci/ci-agents/clients/github"
+	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
@@ -31,7 +32,7 @@ func main() {
 		cli.StringFlag{
 			Name:  "datasvc, d",
 			Usage: "Location of datasvc",
-			Value: "localhost:6000",
+			Value: config.DefaultServices.Data.String(),
 		},
 		cli.StringFlag{
 			Name:  "cacert, ca",

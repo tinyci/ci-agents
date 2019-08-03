@@ -54,7 +54,7 @@ func serve(ctx *cli.Context) error {
 		return certErr
 	}
 
-	t, transportErr := transport.Listen(cert, "tcp", fmt.Sprintf(":%d", 6001)) // FIXME parameterize
+	t, transportErr := transport.Listen(cert, "tcp", fmt.Sprintf(":%d", config.DefaultServices.Queue.Port)) // FIXME parameterize
 	if transportErr != nil {
 		return transportErr
 	}

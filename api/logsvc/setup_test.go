@@ -7,6 +7,7 @@ import (
 	check "github.com/erikh/check"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	client "github.com/tinyci/ci-agents/clients/log"
+	"github.com/tinyci/ci-agents/config"
 )
 
 type logsvcSuite struct {
@@ -26,7 +27,7 @@ func (ls *logsvcSuite) SetUpTest(c *check.C) {
 	ls.logsvcHandler, ls.logsvcDoneChan, ls.journal, err = MakeLogServer()
 	c.Assert(err, check.IsNil)
 
-	client.ConfigureRemote("localhost:6005", nil, false)
+	client.ConfigureRemote(config.DefaultServices.Log.String(), nil, false)
 }
 
 func (ls *logsvcSuite) TearDownTest(c *check.C) {
