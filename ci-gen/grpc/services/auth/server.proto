@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/tinyci/ci-agents/ci-gen/grpc/services/auth";
+
+import "github.com/tinyci/ci-agents/ci-gen/grpc/types/user.proto";
+
+service Auth {
+  rpc OAuthChallenge(OAuthChallengeRequest) returns (types.User)  {};
+  rpc GetOAuthURL(Scopes)                   returns (String)      {};
+}
+
+message String {
+  string str = 1;
+}
+
+message Scopes {
+  repeated string list = 1;
+}
+
+message OAuthChallengeRequest {
+            string code   = 1;
+  repeated  string scopes = 2;
+}

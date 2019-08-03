@@ -12,6 +12,7 @@ type AddressMap struct {
 	UI         ServiceAddress
 	Asset      ServiceAddress
 	Repository ServiceAddress
+	Auth       ServiceAddress
 	Log        ServiceAddress
 }
 
@@ -21,6 +22,7 @@ var DefaultServices = AddressMap{
 	Queue:      ServiceAddress{Port: 6001},
 	Asset:      ServiceAddress{Port: 6002},
 	Repository: ServiceAddress{Port: 6003},
+	Auth:       ServiceAddress{Port: 6004},
 	Log:        ServiceAddress{Port: 6005},
 	UI:         ServiceAddress{Port: 6010, HTTP: true},
 }
