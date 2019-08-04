@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/tinyci/ci-agents/clients/asset"
+	"github.com/tinyci/ci-agents/clients/auth"
 	"github.com/tinyci/ci-agents/clients/data"
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/clients/log"
@@ -25,6 +26,7 @@ var TestClientConfig = ClientConfig{
 	Asset:      DefaultServices.Asset.String(),
 	Repository: DefaultServices.Repository.String(),
 	Log:        DefaultServices.Log.String(),
+	Auth:       DefaultServices.Auth.String(),
 }
 
 // ServiceConfig is the pre-normalized version of the config struct
@@ -66,6 +68,7 @@ type Clients struct {
 	Queue *queue.Client
 	Asset *asset.Client
 	Log   *log.SubLogger
+	Auth  *auth.Client
 }
 
 // ClientConfig configures the clients
@@ -76,6 +79,7 @@ type ClientConfig struct {
 	Asset      string `yaml:"assetsvc"`
 	Log        string `yaml:"logsvc"`
 	Repository string `yaml:"reposvc"`
+	Auth       string `yaml:"authsvc"`
 
 	Cert CertConfig `yaml:"tls"`
 }
@@ -103,6 +107,7 @@ func (cc *ClientConfig) Validate() *errors.Error {
 		"queueusvc": cc.Queue,
 		"logsvc":    cc.Log,
 		"assetsvc":  cc.Asset,
+		"authsvc":   cc.Auth,
 	}
 
 	for svc, u := range urlmap {
@@ -160,6 +165,14 @@ func (cc *ClientConfig) CreateClients(uc UserConfig, service string) (*Clients, 
 		clients.Asset = lc
 	}
 
+	if cc.Auth != "" {
+		ac, err := auth.NewClient(cc.Auth, clientCert, uc.EnableTracing)
+		if err != nil {
+			return nil, err
+		}
+
+		clients.Auth = ac
+	}
 	return clients, nil
 }
 
@@ -179,5 +192,9 @@ func (c *Clients) CloseClients() {
 
 	if c.Queue != nil {
 		c.Queue.Close()
+	}
+
+	if c.Auth != nil {
+		c.Auth.Close()
 	}
 }

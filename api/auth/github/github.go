@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/auth"
-	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	topTypes "github.com/tinyci/ci-agents/types"
@@ -26,17 +25,27 @@ type AuthServer struct {
 }
 
 // OAuthChallenge is a remote endpoint for performing the final steps of the oauth handshake.
-func (as *AuthServer) OAuthChallenge(ctx context.Context, ocr *auth.OAuthChallengeRequest) (*types.User, error) {
-	conf := as.H.OAuth.Config(ocr.Scopes)
+func (as *AuthServer) OAuthChallenge(ctx context.Context, ocr *auth.OAuthChallengeRequest) (*auth.OAuthInfo, error) {
+	scopes, eErr := as.H.Clients.Data.OAuthValidateState(ocr.State)
+	if eErr != nil {
+		return nil, eErr.Wrap("Locating state").ToGRPC(codes.FailedPrecondition)
+	}
+
+	conf := as.H.OAuth.Config(scopes)
 
 	tok, err := conf.Exchange(ctx, ocr.Code)
 	if err != nil {
 		switch err.(type) {
 		case *oauth2.RetrieveError:
-			return nil, errors.New(err).ToGRPC(codes.FailedPrecondition)
+			return nil, errors.New(err).Wrap("exchanging code for a token").ToGRPC(codes.FailedPrecondition)
 		default:
 			as.H.Clients.Log.Error(ctx, err)
-			return nil, ErrRedirect.ToGRPC(codes.FailedPrecondition)
+			url, err := as.makeOAuthURL(scopes)
+			if err != nil {
+				return nil, err.ToGRPC(codes.FailedPrecondition)
+			}
+
+			return &auth.OAuthInfo{Url: url, Redirect: true}, nil
 		}
 	}
 
@@ -44,7 +53,7 @@ func (as *AuthServer) OAuthChallenge(ctx context.Context, ocr *auth.OAuthChallen
 	c := github.NewClient(client)
 	u, _, err := c.Users.Get(ctx, "")
 	if err != nil {
-		return nil, errors.New(err).ToGRPC(codes.FailedPrecondition)
+		return nil, errors.New(err).Wrap("Looking up token user").ToGRPC(codes.FailedPrecondition)
 	}
 
 	user, eErr := as.H.Clients.Data.GetUser(u.GetLogin())
@@ -54,7 +63,7 @@ func (as *AuthServer) OAuthChallenge(ctx context.Context, ocr *auth.OAuthChallen
 		}
 	}
 
-	user.Token = &topTypes.OAuthToken{Token: tok.AccessToken, Scopes: ocr.Scopes, Username: u.GetLogin()}
+	user.Token = &topTypes.OAuthToken{Token: tok.AccessToken, Scopes: scopes, Username: u.GetLogin()}
 	if eErr != nil { // same check as above; to determine whether to add or patch
 		user, eErr = as.H.Clients.Data.PutUser(user)
 		if eErr != nil {
@@ -66,20 +75,29 @@ func (as *AuthServer) OAuthChallenge(ctx context.Context, ocr *auth.OAuthChallen
 		}
 	}
 
-	return user.ToProto(), nil
+	return &auth.OAuthInfo{Username: user.Username}, nil
+}
+
+func (as *AuthServer) makeOAuthURL(scopes []string) (string, *errors.Error) {
+	conf := as.H.OAuth.Config(scopes)
+	state := strings.TrimRight(base32.StdEncoding.EncodeToString(securecookie.GenerateRandomKey(64)), "=")
+
+	if err := as.H.Clients.Data.OAuthRegisterState(state, scopes); err != nil {
+		return "", err.Wrap("registering state")
+	}
+
+	return conf.AuthCodeURL(
+		state,
+		oauth2.AccessTypeOffline,
+	), nil
 }
 
 // GetOAuthURL returns the url to redirect the user to.
 func (as *AuthServer) GetOAuthURL(ctx context.Context, scopes *auth.Scopes) (*auth.String, error) {
-	conf := as.H.OAuth.Config(scopes.List)
-
-	state := strings.TrimRight(base32.StdEncoding.EncodeToString(securecookie.GenerateRandomKey(64)), "=")
-	if err := as.H.Clients.Data.OAuthRegisterState(state, scopes.List); err != nil {
+	url, err := as.makeOAuthURL(scopes.List)
+	if err != nil {
 		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
-	return &auth.String{Str: conf.AuthCodeURL(
-		state,
-		oauth2.AccessTypeOffline,
-	)}, nil
+	return &auth.String{Str: url}, nil
 }
