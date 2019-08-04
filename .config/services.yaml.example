@@ -19,6 +19,7 @@ clients:
   datasvc: 'localhost:6000'
   queuesvc: 'localhost:6001'
   assetsvc: 'localhost:6002'
+  authsvc: 'localhost:6004'
   uisvc: 'http://localhost:6010' # uisvc uses http, so urls.
 services:
   last_scanned_wait: 1h

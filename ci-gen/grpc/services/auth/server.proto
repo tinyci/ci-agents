@@ -4,10 +4,8 @@ package auth;
 
 option go_package = "github.com/tinyci/ci-agents/ci-gen/grpc/services/auth";
 
-import "github.com/tinyci/ci-agents/ci-gen/grpc/types/user.proto";
-
 service Auth {
-  rpc OAuthChallenge(OAuthChallengeRequest) returns (types.User)  {};
+  rpc OAuthChallenge(OAuthChallengeRequest) returns (OAuthInfo)  {};
   rpc GetOAuthURL(Scopes)                   returns (String)      {};
 }
 
@@ -20,6 +18,12 @@ message Scopes {
 }
 
 message OAuthChallengeRequest {
-            string code   = 1;
-  repeated  string scopes = 2;
+  string code  = 1;
+  string state = 2;
+}
+
+message OAuthInfo {
+  string username = 1;
+  string url      = 2;
+  bool   redirect = 3;
 }

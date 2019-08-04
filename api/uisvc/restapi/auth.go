@@ -1,15 +1,11 @@
 package restapi
 
 import (
-	"fmt"
-
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
-	"github.com/tinyci/ci-agents/model"
-	"github.com/tinyci/ci-agents/types"
 )
 
 // Upgrade upgrades the user's api keys.
@@ -31,7 +27,7 @@ func LoggedIn(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error)
 	_, err := h.GetGithub(ctx)
 	if err != nil {
 		var err *errors.Error
-		res, err = h.GetOAuthURL(ctx, nil)
+		res, err = h.Clients.Auth.GetOAuthURL(nil)
 		if err != nil {
 			return nil, 500, err
 		}
@@ -56,42 +52,21 @@ func Logout(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 // Login processes the oauth response and optionally redirects the user if not
 // logged in already.
 func Login(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	scopes, err := h.Clients.Data.OAuthValidateState(ctx.Query("state"))
+	oauthinfo, err := h.Clients.Auth.OAuthChallenge(ctx.Query("state"), ctx.Query("code"))
 	if err != nil {
 		return nil, 500, err
 	}
 
-	tok, username, err := h.HandleOAuth(ctx, ctx.Query("code"), scopes)
-	if err != nil {
-		switch err {
-		case handlers.ErrRedirect:
-			return nil, 302, h.OAuthRedirect(ctx, scopes)
-		default:
-			return nil, 500, err
-		}
-	}
-
-	t := &types.OAuthToken{Token: tok.AccessToken, Username: username, Scopes: scopes}
-
-	user, err := h.Clients.Data.GetUser(username)
-	if err != nil {
-		var createErr *errors.Error
-		_, createErr = h.Clients.Data.PutUser(&model.User{Username: username, Token: t})
-		if createErr != nil {
-			return nil, 500, errors.New(fmt.Sprintf("could not create (%v) or read (%v) user %s after oauth challenge", createErr, err, username))
-		}
-	} else {
-		user.Token = t
-		if err := h.Clients.Data.PatchUser(user); err != nil {
-			return nil, 500, errors.New(err).Wrapf("could not update oauth token for %s", username)
-		}
+	if oauthinfo.Redirect {
+		ctx.Redirect(302, oauthinfo.Url)
+		return nil, 302, nil
 	}
 
 	sess := sessions.Default(ctx)
-	sess.Set(handlers.SessionUsername, username)
+	sess.Set(handlers.SessionUsername, oauthinfo.Username)
 	err2 := sess.Save()
 	if err2 != nil {
-		return nil, 500, errors.New(err2).Wrapf("could not persist session for %s", username)
+		return nil, 500, errors.New(err2).Wrapf("could not persist session for %s", oauthinfo.Username)
 	}
 
 	ctx.Redirect(302, "/")

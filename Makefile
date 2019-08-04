@@ -164,12 +164,14 @@ start-services: check-service-config
 	pkill hooksvc || :
 	pkill assetsvc || :
 	pkill queuesvc || :
+	pkill github-authsvc || :
 	pkill datasvc || :
 	go install -v ./cmd/... ./api/...
 	@if [ "x${START_SERVICES}" != "x" ]; then make start-selective-services; exit 0; fi
 	logsvc &
 	assetsvc &
 	datasvc &
+	github-authsvc &
 	queuesvc &
 	uisvc-server &
 	hooksvc &

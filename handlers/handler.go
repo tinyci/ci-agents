@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"context"
-	"encoding/base32"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,7 +12,6 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/strfmt"
-	"github.com/gorilla/securecookie"
 	"github.com/opentracing-contrib/go-gin/ginhttp"
 	opentracing "github.com/opentracing/opentracing-go"
 	apiSess "github.com/tinyci/ci-agents/api/sessions"
@@ -26,9 +23,6 @@ import (
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 	"golang.org/x/net/websocket"
-	"golang.org/x/oauth2"
-
-	gh "github.com/google/go-github/github"
 )
 
 // SessionUsername is the name of the session key that contains our username value.
@@ -139,49 +133,9 @@ func (h *H) GetClient(ctx *gin.Context) (github.Client, *errors.Error) {
 	return h.GithubClient(token), nil
 }
 
-// HandleOAuth handles oauth codes, and transforming them into tokens.
-func (h *H) HandleOAuth(ctx *gin.Context, code string, scopes []string) (*oauth2.Token, string, *errors.Error) {
-	conf := h.OAuth.Config(scopes)
-
-	tok, err := conf.Exchange(context.Background(), code)
-	if err != nil {
-		switch err.(type) {
-		case *oauth2.RetrieveError:
-			return nil, "", errors.New(err)
-		default:
-			h.Clients.Log.Error(ctx.Request.Context(), err)
-			return nil, "", ErrRedirect
-		}
-	}
-
-	client := conf.Client(context.Background(), tok)
-	c := gh.NewClient(client)
-	u, _, err := c.Users.Get(context.Background(), "")
-	if err != nil {
-		return nil, "", errors.New(err)
-	}
-
-	return tok, u.GetLogin(), nil
-}
-
-// GetOAuthURL retrieves the OAuth redirection URL based on the provided requirements.
-func (h *H) GetOAuthURL(ctx *gin.Context, scopes []string) (string, *errors.Error) {
-	conf := h.OAuth.Config(scopes)
-
-	state := strings.TrimRight(base32.StdEncoding.EncodeToString(securecookie.GenerateRandomKey(64)), "=")
-	if err := h.Clients.Data.OAuthRegisterState(state, scopes); err != nil {
-		return "", err
-	}
-
-	return conf.AuthCodeURL(
-		state,
-		oauth2.AccessTypeOffline,
-	), nil
-}
-
 // OAuthRedirect redirects the user to the OAuth redirection URL.
 func (h *H) OAuthRedirect(ctx *gin.Context, scopes []string) *errors.Error {
-	url, err := h.GetOAuthURL(ctx, scopes)
+	url, err := h.Clients.Auth.GetOAuthURL(scopes)
 	if err != nil {
 		return err
 	}
