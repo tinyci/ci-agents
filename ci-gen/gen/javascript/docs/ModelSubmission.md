@@ -13,5 +13,6 @@ Name | Type | Description | Notes
 **finishedAt** | **Date** |  | [optional] 
 **tasksCount** | **Number** |  | [optional] 
 **status** | **Boolean** |  | [optional] 
+**canceled** | **Boolean** |  | [optional] 
 
 

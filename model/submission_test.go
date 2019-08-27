@@ -292,6 +292,9 @@ func (ms *modelSuite) TestSubmissionTasks(c *check.C) {
 				// checking that we can cancel submissions with canceled tasks in them
 				c.Assert(ms.model.CancelTask(tasks[0], "", gh), check.IsNil)
 				c.Assert(ms.model.CancelSubmissionByID(subID, "", gh), check.IsNil)
+				s, err = ms.model.GetSubmissionByID(subID)
+				c.Assert(err, check.IsNil)
+				c.Assert(s.Canceled, check.Equals, true)
 
 				for i := int64(0); i < 2; i++ {
 					ts, err := ms.model.TasksForSubmission(s, i, 100)

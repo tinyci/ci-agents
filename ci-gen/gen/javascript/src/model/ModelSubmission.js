@@ -76,6 +76,9 @@ class ModelSubmission {
             if (data.hasOwnProperty('status')) {
                 obj['status'] = ApiClient.convertToType(data['status'], 'Boolean');
             }
+            if (data.hasOwnProperty('canceled')) {
+                obj['canceled'] = ApiClient.convertToType(data['canceled'], 'Boolean');
+            }
         }
         return obj;
     }
@@ -127,6 +130,11 @@ ModelSubmission.prototype['tasks_count'] = undefined;
  * @member {Boolean} status
  */
 ModelSubmission.prototype['status'] = undefined;
+
+/**
+ * @member {Boolean} canceled
+ */
+ModelSubmission.prototype['canceled'] = undefined;
 
 
 
