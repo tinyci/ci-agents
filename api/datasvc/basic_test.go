@@ -402,10 +402,15 @@ func (ds *datasvcSuite) TestSubmissions(c *check.C) {
 		c.Assert(err, check.IsNil)
 		c.Assert(s2.ID, check.Equals, s.ID)
 		c.Assert(s2.TasksCount, check.Equals, int64(1000))
+		c.Assert(s2.CreatedAt.IsZero(), check.Equals, false)
 
 		for x := int64(0); x < 10; x++ {
 			tasks2, err := ds.client.Client().GetTasksForSubmission(s, x, 100)
 			c.Assert(err, check.IsNil)
+
+			for _, task := range tasks2 {
+				c.Assert(task.Submission.CreatedAt.IsZero(), check.Equals, false)
+			}
 
 			sliceTasks := tasks[x*100 : (x+1)*100]
 

@@ -9,7 +9,7 @@ import (
 	"github.com/tinyci/ci-agents/model"
 )
 
-// PutSubmission puts a submission into the datasvc
+// PutSubmission puts a submission into the datasvc. Updates the created_at time.
 func (c *Client) PutSubmission(sub *model.Submission) (*model.Submission, *errors.Error) {
 	s, err := c.client.PutSubmission(context.Background(), sub.ToProto())
 	if err != nil {

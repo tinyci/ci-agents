@@ -104,6 +104,13 @@ func NewSubmissionFromProto(gt *gtypes.Submission) (*Submission, *errors.Error) 
 	}
 
 	created := MakeTime(gt.CreatedAt, false)
+
+	if created.IsZero() {
+		// this is a new record and hasn't been updated. Bump the created_at time.
+		t := time.Now()
+		created = &t
+	}
+
 	finished := MakeTime(gt.FinishedAt, true)
 	started := MakeTime(gt.StartedAt, true)
 
