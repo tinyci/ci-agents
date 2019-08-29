@@ -52,6 +52,9 @@ type ModelSubmissionListItems0 struct {
 	// base ref
 	BaseRef *ModelSubmissionListItems0BaseRef `json:"base_ref,omitempty"`
 
+	// canceled
+	Canceled bool `json:"canceled,omitempty"`
+
 	// created at
 	// Format: date-time
 	CreatedAt strfmt.DateTime `json:"created_at,omitempty"`

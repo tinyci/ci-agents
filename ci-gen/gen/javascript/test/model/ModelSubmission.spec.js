@@ -108,6 +108,12 @@
       //expect(instance).to.be();
     });
 
+    it('should have the property canceled (base name: "canceled")', function() {
+      // uncomment below and update the code to test the property canceled
+      //var instane = new Uisvc.ModelSubmission();
+      //expect(instance).to.be();
+    });
+
   });
 
 }));

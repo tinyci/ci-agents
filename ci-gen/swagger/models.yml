@@ -328,6 +328,8 @@ definitions:
       status:
         type: boolean
         x-nullable: true
+      canceled:
+        type: boolean
   ModelSubmissionList:
     type: array
     items:

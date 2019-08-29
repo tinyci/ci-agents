@@ -2731,6 +2731,9 @@ func init() {
             }
           }
         },
+        "canceled": {
+          "type": "boolean"
+        },
         "created_at": {
           "type": "string",
           "format": "date-time"
@@ -2873,6 +2876,9 @@ func init() {
                 "type": "string"
               }
             }
+          },
+          "canceled": {
+            "type": "boolean"
           },
           "created_at": {
             "type": "string",

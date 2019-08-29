@@ -35,6 +35,8 @@ type Submission struct {
 	CreatedAt  time.Time  `json:"created_at"`
 	StartedAt  *time.Time `json:"started_at" gorm:"-"`
 	FinishedAt *time.Time `json:"finished_at" gorm:"-"`
+
+	Canceled bool `json:"canceled" gorm:"-"`
 }
 
 // ToProto converts the submissions to the protobuf version
@@ -68,6 +70,7 @@ func (s *Submission) ToProto() *gtypes.Submission {
 		FinishedAt: MakeTimestamp(s.FinishedAt),
 		StatusSet:  s.Status != nil,
 		Status:     status,
+		Canceled:   s.Canceled,
 	}
 }
 
@@ -124,6 +127,7 @@ func NewSubmissionFromProto(gt *gtypes.Submission) (*Submission, *errors.Error) 
 		FinishedAt: finished,
 		StartedAt:  started,
 		Status:     status,
+		Canceled:   gt.Canceled,
 	}, nil
 }
 
@@ -264,30 +268,47 @@ func (m *Model) selectOne(query string, id int64, out interface{}) *errors.Error
 	return nil
 }
 
-func (m *Model) populateStates(ids []int64, idmap map[int64]*Submission) *errors.Error {
-	rows, err := m.Raw("select submission_id, status from tasks where submission_id in (?)", ids).Rows()
+func (m *Model) gatherStates(ids []int64) (map[int64][]*bool, map[int64]bool, *errors.Error) {
+	rows, err := m.Raw("select submission_id, status, canceled from tasks where submission_id in (?)", ids).Rows()
 	if err != nil {
-		return errors.New(err)
+		return nil, nil, errors.New(err)
 	}
 	defer rows.Close()
 
 	overallStatus := map[int64][]*bool{}
+	submissionCanceled := map[int64]bool{}
 
 	for rows.Next() {
 		var (
-			id     int64
-			status *bool
+			id       int64
+			status   *bool
+			canceled bool
 		)
 
-		if err := rows.Scan(&id, &status); err != nil {
-			return errors.New(err)
+		if err := rows.Scan(&id, &status, &canceled); err != nil {
+			return nil, nil, errors.New(err)
 		}
 
 		if _, ok := overallStatus[id]; !ok {
 			overallStatus[id] = []*bool{}
 		}
 
+		if _, ok := submissionCanceled[id]; canceled && !ok {
+			submissionCanceled[id] = true
+		} else if !canceled && ok {
+			submissionCanceled[id] = false
+		}
+
 		overallStatus[id] = append(overallStatus[id], status)
+	}
+
+	return overallStatus, submissionCanceled, nil
+}
+
+func (m *Model) populateStates(ids []int64, idmap map[int64]*Submission) *errors.Error {
+	overallStatus, submissionCanceled, err := m.gatherStates(ids)
+	if err != nil {
+		return err
 	}
 
 	for id, states := range overallStatus {
@@ -323,6 +344,7 @@ func (m *Model) populateStates(ids []int64, idmap map[int64]*Submission) *errors
 		}
 
 		idmap[id].StartedAt = t
+		idmap[id].Canceled = submissionCanceled[id]
 	}
 
 	return nil
@@ -331,7 +353,6 @@ func (m *Model) populateStates(ids []int64, idmap map[int64]*Submission) *errors
 // SubmissionListForRepository returns a list of submissions with pagination. If ref
 // is non-nil, it will isolate to the ref only and ignore the repo.
 func (m *Model) SubmissionListForRepository(repo, sha string, page, perPage int64) ([]*Submission, *errors.Error) {
-	// FIXME this should probably be two independent calls with a query builder or something
 	subs := []*Submission{}
 
 	page, perPage, err := utils.ScopePaginationInt(page, perPage)
