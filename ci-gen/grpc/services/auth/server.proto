@@ -4,9 +4,16 @@ package auth;
 
 option go_package = "github.com/tinyci/ci-agents/ci-gen/grpc/services/auth";
 
+import "github.com/golang/protobuf/ptypes/empty/empty.proto";
+
 service Auth {
+  rpc Capabilities(google.protobuf.Empty)   returns (StringList) {};
   rpc OAuthChallenge(OAuthChallengeRequest) returns (OAuthInfo)  {};
-  rpc GetOAuthURL(Scopes)                   returns (String)      {};
+  rpc GetOAuthURL(Scopes)                   returns (String)     {};
+}
+
+message StringList {
+  repeated string list = 1;
 }
 
 message String {

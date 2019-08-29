@@ -1,9 +1,11 @@
 package auth
 
 import (
+	"context"
 	"io"
 
 	transport "github.com/erikh/go-transport"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/auth"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/utils"
@@ -46,4 +48,14 @@ func (c *Client) Close() error {
 	}
 
 	return nil
+}
+
+// Capabilities notes what types of auth this server supports.
+func (c *Client) Capabilities() ([]string, *errors.Error) {
+	caps, err := c.ac.Capabilities(context.Background(), &empty.Empty{})
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	return caps.List, nil
 }

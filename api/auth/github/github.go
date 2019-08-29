@@ -5,8 +5,10 @@ import (
 	"encoding/base32"
 	"strings"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/go-github/github"
 	"github.com/gorilla/securecookie"
+	authconsts "github.com/tinyci/ci-agents/api/auth"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/auth"
 	"github.com/tinyci/ci-agents/errors"
@@ -22,6 +24,11 @@ var ErrRedirect = errors.New("redirection")
 // AuthServer is the handle/entrypoint for all github-based authsvc implementation.
 type AuthServer struct {
 	H *handler.H
+}
+
+// Capabilities denotes what capabilities the auth server can manage.
+func (as *AuthServer) Capabilities(ctx context.Context, e *empty.Empty) (*auth.StringList, error) {
+	return &auth.StringList{List: []string{authconsts.CapabilityOAuth}}, nil
 }
 
 // OAuthChallenge is a remote endpoint for performing the final steps of the oauth handshake.
