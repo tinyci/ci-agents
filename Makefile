@@ -90,7 +90,7 @@ demo-sql-shell:
 
 do-build:
 	GOPATH=$$(mktemp -d /tmp/gopath.XXXXX) go install -v github.com/erikh/migrator
-	go install -v -ldflags "-X main.TinyCIVersion=$(VERSION)" ./cmd/... ./api/...
+	GO111MODULE=on go install -mod=vendor -v -ldflags "-X main.TinyCIVersion=$(VERSION)" ./cmd/... ./api/...
 	cp .config/services.yaml.example $${GOBIN:-${GOPATH}/bin}
 	cp -Rfp migrations $${GOBIN:-${GOPATH}/bin}
 
