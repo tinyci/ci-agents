@@ -184,11 +184,9 @@ func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .
 
   if resp.StatusCode == 500 {
     origErr := &errors.Error{}
+
     if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
       return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if .SuccessResponse }}{{ if .SuccessResponse.Schema }}{{ if .SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ .SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} errors.New(err)
-    }
-    if origErr == nil {
-      panic("Cannot return 500 without error")
     }
 
     return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if .SuccessResponse }}{{ if .SuccessResponse.Schema }}{{ if .SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ .SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} origErr

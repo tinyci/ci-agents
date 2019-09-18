@@ -108,11 +108,9 @@ func (c *Client) DeleteCapabilitiesUsernameCapability(ctx context.Context, capab
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -160,11 +158,9 @@ func (c *Client) DeleteToken(ctx context.Context) *errors.Error {
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -212,11 +208,9 @@ func (c *Client) GetErrors(ctx context.Context) ([]*models.UserError, *errors.Er
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return make([]*models.UserError, 0, 50), errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return make([]*models.UserError, 0, 50), origErr
@@ -313,11 +307,9 @@ func (c *Client) GetLoggedin(ctx context.Context) (string, *errors.Error) {
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return "", errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return "", origErr
@@ -374,11 +366,9 @@ func (c *Client) GetLogin(ctx context.Context, code string, state string) *error
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -426,11 +416,9 @@ func (c *Client) GetLoginUpgrade(ctx context.Context) *errors.Error {
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -478,11 +466,9 @@ func (c *Client) GetLogout(ctx context.Context) *errors.Error {
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -533,11 +519,9 @@ func (c *Client) GetRepositoriesCiAddOwnerRepo(ctx context.Context, owner string
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -588,11 +572,9 @@ func (c *Client) GetRepositoriesCiDelOwnerRepo(ctx context.Context, owner string
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -641,11 +623,9 @@ func (c *Client) GetRepositoriesMy(ctx context.Context, search string) (models.R
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return make(models.RepositoryList, 0, 50), errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return make(models.RepositoryList, 0, 50), origErr
@@ -699,11 +679,9 @@ func (c *Client) GetRepositoriesScan(ctx context.Context) *errors.Error {
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -754,11 +732,9 @@ func (c *Client) GetRepositoriesSubAddOwnerRepo(ctx context.Context, owner strin
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -809,11 +785,9 @@ func (c *Client) GetRepositoriesSubDelOwnerRepo(ctx context.Context, owner strin
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -862,11 +836,9 @@ func (c *Client) GetRepositoriesSubscribed(ctx context.Context, search string) (
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return make(models.RepositoryList, 0, 50), errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return make(models.RepositoryList, 0, 50), origErr
@@ -921,11 +893,9 @@ func (c *Client) GetRepositoriesVisible(ctx context.Context, search string) (mod
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return make(models.RepositoryList, 0, 50), errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return make(models.RepositoryList, 0, 50), origErr
@@ -980,11 +950,9 @@ func (c *Client) GetRunRunID(ctx context.Context, runID int64) (*models.Run, *er
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return nil, errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return nil, origErr
@@ -1045,11 +1013,9 @@ func (c *Client) GetRuns(ctx context.Context, page int64, perPage int64, reposit
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return make(models.RunList, 0, 50), errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return make(models.RunList, 0, 50), origErr
@@ -1106,11 +1072,9 @@ func (c *Client) GetRunsCount(ctx context.Context, repository string, sha string
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return 0, errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return 0, origErr
@@ -1165,11 +1129,9 @@ func (c *Client) GetSubmissionID(ctx context.Context, id int64) (*models.ModelSu
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return nil, errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return nil, origErr
@@ -1228,11 +1190,9 @@ func (c *Client) GetSubmissionIDTasks(ctx context.Context, id int64, page int64,
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return make(models.TaskList, 0, 50), errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return make(models.TaskList, 0, 50), origErr
@@ -1293,11 +1253,9 @@ func (c *Client) GetSubmissions(ctx context.Context, page int64, perPage int64, 
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return make(models.ModelSubmissionList, 0, 50), errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return make(models.ModelSubmissionList, 0, 50), origErr
@@ -1354,11 +1312,9 @@ func (c *Client) GetSubmissionsCount(ctx context.Context, repository string, sha
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return 0, errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return 0, origErr
@@ -1417,11 +1373,9 @@ func (c *Client) GetSubmit(ctx context.Context, all bool, repository string, sha
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -1476,11 +1430,9 @@ func (c *Client) GetTasks(ctx context.Context, page int64, perPage int64, reposi
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return make(models.TaskList, 0, 50), errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return make(models.TaskList, 0, 50), origErr
@@ -1537,11 +1489,9 @@ func (c *Client) GetTasksCount(ctx context.Context, repository string, sha strin
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return 0, errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return 0, origErr
@@ -1600,11 +1550,9 @@ func (c *Client) GetTasksRunsID(ctx context.Context, id int64, page int64, perPa
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return make(models.RunList, 0, 50), errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return make(models.RunList, 0, 50), origErr
@@ -1659,11 +1607,9 @@ func (c *Client) GetTasksRunsIDCount(ctx context.Context, id int64) (int64, *err
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return 0, errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return 0, origErr
@@ -1720,11 +1666,9 @@ func (c *Client) GetTasksSubscribed(ctx context.Context, page int64, perPage int
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return make(models.TaskList, 0, 50), errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return make(models.TaskList, 0, 50), origErr
@@ -1778,11 +1722,9 @@ func (c *Client) GetToken(ctx context.Context) (string, *errors.Error) {
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return "", errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return "", origErr
@@ -1836,11 +1778,9 @@ func (c *Client) GetUserProperties(ctx context.Context) (interface{}, *errors.Er
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return nil, errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return nil, origErr
@@ -1900,11 +1840,9 @@ func (c *Client) PostCancelRunID(ctx context.Context, runID int64) *errors.Error
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -1960,11 +1898,9 @@ func (c *Client) PostCapabilitiesUsernameCapability(ctx context.Context, capabil
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -2018,11 +1954,9 @@ func (c *Client) PostSubmissionIDCancel(ctx context.Context, id int64) *errors.E
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr
@@ -2076,11 +2010,9 @@ func (c *Client) PostTasksCancelID(ctx context.Context, id int64) *errors.Error 
 
 	if resp.StatusCode == 500 {
 		origErr := &errors.Error{}
+
 		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
 			return errors.New(err)
-		}
-		if origErr == nil {
-			panic("Cannot return 500 without error")
 		}
 
 		return origErr

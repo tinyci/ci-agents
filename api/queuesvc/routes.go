@@ -143,8 +143,11 @@ func (qs *QueueServer) Submit(ctx context.Context, sub *queue.Submission) (*empt
 	submissionLogger.Infof(ctx, "Putting %d queue items from submissions", len(qis))
 	if err := doSubmit(ctx, qs.H, qis); err != nil {
 		for _, qi := range qis {
-			qs.H.Clients.Data.PutStatus(qi.Run.ID, false, fmt.Sprintf("Canceled due to error: %v", err))
+			if err := qs.H.Clients.Data.PutStatus(qi.Run.ID, false, fmt.Sprintf("Canceled due to error: %v", err)); err != nil {
+				submissionLogger.Errorf(ctx, "While canceling runs: %v", err)
+			}
 		}
+
 		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 

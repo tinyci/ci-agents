@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -214,7 +215,7 @@ func Boot(t *transport.HTTP, handler *H, finished chan struct{}) (chan struct{},
 
 	var sErr error
 	s, l, sErr := t.Server(fmt.Sprintf(":%d", handler.Port), r)
-	if err != nil {
+	if sErr != nil {
 		return nil, errors.New(sErr)
 	}
 
@@ -232,7 +233,11 @@ func Boot(t *transport.HTTP, handler *H, finished chan struct{}) (chan struct{},
 		close(finished)
 	}()
 
-	go s.Serve(l)
+	go func() {
+		if err := s.Serve(l); err != nil {
+			handler.Clients.Log.Error(context.Background(), err)
+		}
+	}()
 	return doneChan, nil
 }
 

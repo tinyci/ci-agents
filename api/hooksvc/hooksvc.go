@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/google/go-github/github"
 	"github.com/google/uuid"
@@ -82,7 +83,9 @@ func (h *Handler) Init() *errors.Error {
 	}
 
 	if h.Config.LogEndpoint != "" {
-		log.ConfigureRemote(h.Config.LogEndpoint, cert, false)
+		if err := log.ConfigureRemote(h.Config.LogEndpoint, cert, false); err != nil {
+			fmt.Fprintf(os.Stderr, "Could not configure remote logger: %v\n", err)
+		}
 	}
 
 	h.logClient = log.NewWithData("hooksvc", nil)

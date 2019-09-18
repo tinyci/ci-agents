@@ -58,7 +58,8 @@ func (ws *jsonbufferSuite) TestStream(c *check.C) {
 	doneChan := make(chan struct{})
 	go func() {
 		defer close(doneChan)
-		io.Copy(w, pr)
+		_, err := io.Copy(w, pr)
+		c.Assert(err, check.IsNil)
 	}()
 
 	f, err := os.Open("testdata/chat1.json")
@@ -70,7 +71,8 @@ func (ws *jsonbufferSuite) TestStream(c *check.C) {
 	<-doneChan
 	c.Assert(err, check.IsNil)
 
-	f.Seek(0, 0)
+	_, err = f.Seek(0, 0)
+	c.Assert(err, check.IsNil)
 	content, err := ioutil.ReadAll(f)
 	c.Assert(err, check.IsNil)
 
@@ -87,7 +89,8 @@ func (ws *jsonbufferSuite) TestStream2(c *check.C) {
 	doneChan := make(chan struct{})
 	go func() {
 		defer close(doneChan)
-		io.Copy(w, pr)
+		_, err := io.Copy(w, pr)
+		c.Assert(err, check.IsNil)
 	}()
 
 	byt := bytes.Repeat([]byte{0, 1}, 1024*512)
