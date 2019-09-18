@@ -1,5 +1,5 @@
-GO_VERSION = "1.12.7"
-POSTGRES_VERSION = "9.6"
+GO_VERSION = "1.13"
+POSTGRES_VERSION = "11"
 SWAGGER_VERSION = "v0.18.0"
 PROTOC_VERSION = "3.7.1"
 
@@ -16,20 +16,20 @@ EXTRA_PACKAGES = %w[
   unzip
 ]
 
-from "ubuntu:18.04"
+from "ubuntu:19.04"
 
 run %Q[perl -i.bak -pe 's!//(security|archive).ubuntu.com!//#{getenv("APT_MIRROR").length > 0 ? getenv("APT_MIRROR") : "mirror.pnl.gov"}!g' /etc/apt/sources.list]
 
 run "apt-get update && apt-get dist-upgrade -y && apt-get install #{EXTRA_PACKAGES.join(" ")} -y"
 
 run "curl -sSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -"
-run "echo 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' | tee -a /etc/apt/sources.list.d/postgresql.list"
+run "echo 'deb http://apt.postgresql.org/pub/repos/apt/ disco-pgdg main' | tee -a /etc/apt/sources.list.d/postgresql.list"
 
 run "ln -s /usr/share/zoneinfo/Etc/UTC /etc/localtime"
 
 env GOPATH: "/go",
-    PATH: %w[
-      /usr/lib/postgresql/9.6/bin
+    PATH: %W[
+      /usr/lib/postgresql/#{POSTGRES_VERSION}/bin
       /go/bin
       /usr/local/go/bin
       /usr/local/sbin
