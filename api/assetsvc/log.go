@@ -107,9 +107,10 @@ func (as *AssetServer) attach(id int64, ag asset.Asset_GetLogServer, p string) (
 	defer func() {
 		if retErr != nil {
 			retErr = errors.New(retErr).ToGRPC(codes.FailedPrecondition)
+		} else {
+			retErr = write(ag, []byte(color.New(color.FgGreen).Sprintln("---- LOG COMPLETE ----")))
 		}
 	}()
-	defer write(ag, []byte(color.New(color.FgGreen).Sprintln("---- LOG COMPLETE ----")))
 
 	file := path.Join(p, fmt.Sprintf("%d", id))
 

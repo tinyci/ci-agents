@@ -133,7 +133,9 @@ func (cc *ClientConfig) CreateClients(uc UserConfig, service string) (*Clients, 
 	clients := &Clients{}
 
 	if cc.Log != "" {
-		log.ConfigureRemote(cc.Log, clientCert, uc.EnableTracing)
+		if err := log.ConfigureRemote(cc.Log, clientCert, uc.EnableTracing); err != nil {
+			return nil, err
+		}
 	}
 
 	clients.Log = log.New().WithService(service)

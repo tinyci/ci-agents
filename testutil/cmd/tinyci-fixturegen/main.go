@@ -172,9 +172,7 @@ func (c *cmd) mkForks(users []*model.User, parents model.RepositoryList) (map[st
 		}
 
 		if err := c.dc.Client().PutRepositories(ou.Username, ghRepos, true); err != nil {
-			if err != nil {
-				return nil, err
-			}
+			return nil, err
 		}
 
 		repo, err := c.dc.Client().GetRepository(name)

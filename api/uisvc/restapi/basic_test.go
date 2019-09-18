@@ -67,7 +67,8 @@ func (us *uisvcSuite) TestLogAttach(c *check.C) {
 	finished := make(chan struct{})
 	go func() {
 		defer close(finished)
-		io.Copy(buf, pr)
+		_, err := io.Copy(buf, pr)
+		c.Assert(err, check.IsNil)
 	}()
 
 	c.Assert(tc.LogAttach(1, pw), check.IsNil)

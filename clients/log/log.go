@@ -237,21 +237,28 @@ func (sub *SubLogger) makeMsg(level, msg string, values []interface{}) *log.LogM
 }
 
 // Logf logs a thing with formats!
-func (sub *SubLogger) Logf(ctx context.Context, level string, msg string, values []interface{}, localLog func(string, ...interface{})) *errors.Error {
+func (sub *SubLogger) Logf(ctx context.Context, level string, msg string, values []interface{}, localLog func(string, ...interface{})) {
 	if RemoteClient != nil {
-		_, err := RemoteClient.client.Put(ctx, sub.makeMsg(level, msg, values), grpc.WaitForReady(true))
-		return errors.New(err)
+		made := sub.makeMsg(level, msg, values)
+		if _, err := RemoteClient.client.Put(ctx, made, grpc.WaitForReady(true)); err != nil {
+			localLog(err.Error())
+			localLog(made.String())
+			return
+		}
 	}
 
 	localLog(msg, values...)
-	return nil
 }
 
 // Log logs a thing
-func (sub *SubLogger) Log(ctx context.Context, level string, msg interface{}, localLog func(...interface{})) *errors.Error {
+func (sub *SubLogger) Log(ctx context.Context, level string, msg interface{}, localLog func(...interface{})) {
 	if RemoteClient != nil {
-		_, err := RemoteClient.client.Put(ctx, sub.makeMsg(level, fmt.Sprintf("%v", msg), nil), grpc.WaitForReady(true))
-		return errors.New(err)
+		made := sub.makeMsg(level, fmt.Sprintf("%v", msg), nil)
+		if _, err := RemoteClient.client.Put(ctx, made, grpc.WaitForReady(true)); err != nil {
+			localLog(err)
+			localLog(made.String())
+			return
+		}
 	}
 
 	switch msg := msg.(type) {
@@ -262,42 +269,34 @@ func (sub *SubLogger) Log(ctx context.Context, level string, msg interface{}, lo
 	default:
 		localLog(msg)
 	}
-
-	return nil
 }
 
 // Info prints an info message
-func (sub *SubLogger) Info(ctx context.Context, msg interface{}) error {
+func (sub *SubLogger) Info(ctx context.Context, msg interface{}) {
 	sub.Log(ctx, LevelInfo, msg, logrus.WithFields(sub.Fields.ToLogrus()).Info)
-	return nil
 }
 
 // Infof is the format-capable version of Info
-func (sub *SubLogger) Infof(ctx context.Context, msg string, values ...interface{}) error {
+func (sub *SubLogger) Infof(ctx context.Context, msg string, values ...interface{}) {
 	sub.Logf(ctx, LevelInfo, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Infof)
-	return nil
 }
 
 // Error prints an error message
-func (sub *SubLogger) Error(ctx context.Context, msg interface{}) error {
+func (sub *SubLogger) Error(ctx context.Context, msg interface{}) {
 	sub.Log(ctx, LevelError, msg, logrus.WithFields(sub.Fields.ToLogrus()).Error)
-	return nil
 }
 
 // Errorf is the format-capable version of Error
-func (sub *SubLogger) Errorf(ctx context.Context, msg string, values ...interface{}) error {
+func (sub *SubLogger) Errorf(ctx context.Context, msg string, values ...interface{}) {
 	sub.Logf(ctx, LevelError, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Errorf)
-	return nil
 }
 
 // Debug prints a debug message
-func (sub *SubLogger) Debug(ctx context.Context, msg interface{}) error {
+func (sub *SubLogger) Debug(ctx context.Context, msg interface{}) {
 	sub.Log(ctx, LevelDebug, msg, logrus.WithFields(sub.Fields.ToLogrus()).Debug)
-	return nil
 }
 
 // Debugf is the format-capable version of Debug
-func (sub *SubLogger) Debugf(ctx context.Context, msg string, values ...interface{}) error {
+func (sub *SubLogger) Debugf(ctx context.Context, msg string, values ...interface{}) {
 	sub.Logf(ctx, LevelDebug, msg, values, logrus.WithFields(sub.Fields.ToLogrus()).Debugf)
-	return nil
 }

@@ -27,7 +27,7 @@ func (ls *logsvcSuite) SetUpTest(c *check.C) {
 	ls.logsvcHandler, ls.logsvcDoneChan, ls.journal, err = MakeLogServer()
 	c.Assert(err, check.IsNil)
 
-	client.ConfigureRemote(config.DefaultServices.Log.String(), nil, false)
+	c.Assert(client.ConfigureRemote(config.DefaultServices.Log.String(), nil, false), check.IsNil)
 }
 
 func (ls *logsvcSuite) TearDownTest(c *check.C) {

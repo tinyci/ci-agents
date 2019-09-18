@@ -177,7 +177,7 @@ func (ms *modelSuite) TestUserSubscriptions(c *check.C) {
 		repos = append(repos, repo)
 	}
 
-	ms.model.AddSubscriptionsForUser(u, repos)
+	c.Assert(ms.model.AddSubscriptionsForUser(u, repos), check.IsNil)
 	c.Assert(ms.model.Save(u).Error, check.IsNil)
 
 	u2 := &User{}

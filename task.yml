@@ -8,9 +8,7 @@ default_image: tinyci/ci-agents:09.18.2019
 runs:
   dist:
     command: [ "make", "do-build" ]
-  checks:
-    command: [ "env", "bash", "checks.sh" ]
-  staticcheck:
-    command: [ "make", "staticcheck" ]
+  golangci-lint:
+    command: [ "make", "golangci-lint" ]
   vendor-clean:
     command: [ "bash", "-c", "make vendor && git diff --stat --exit-code" ]

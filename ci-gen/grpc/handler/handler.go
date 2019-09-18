@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"io"
 	"net"
 
@@ -60,7 +61,11 @@ func (h *H) Boot(t net.Listener, s *grpc.Server, finished chan struct{}) (chan s
 	doneChan := make(chan struct{})
 
 	go func(t net.Listener, s *grpc.Server) {
-		go s.Serve(t)
+		go func() {
+			if err := s.Serve(t); err != nil {
+				h.Clients.Log.Error(context.Background(), err)
+			}
+		}()
 
 		<-doneChan
 		t.Close()

@@ -129,7 +129,9 @@ func (h *Handler) isValidSignature(body []byte, secret, signature string) bool {
 	}
 
 	mac := hmac.New(sha1.New, []byte(secret))
-	mac.Write(body)
+	if _, err := mac.Write(body); err != nil {
+		return false
+	}
 	actual := mac.Sum(nil)
 
 	expected, err := hex.DecodeString(signature[5:])

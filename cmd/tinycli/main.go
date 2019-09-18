@@ -404,7 +404,9 @@ func tasks(ctx *cli.Context) error {
 	}
 
 	w := stdTabWriter()
-	w.Write([]byte("TASK ID\tREPOSITORY\tREF\tSHA\tPATH\tRUN/FIN/TOT\tSTATE\tDURATION\n"))
+	if _, err := w.Write([]byte("TASK ID\tREPOSITORY\tREF\tSHA\tPATH\tRUN/FIN/TOT\tSTATE\tDURATION\n")); err != nil {
+		return err
+	}
 
 	for _, task := range tasks {
 		statusStr := mkTaskStatus(task)
@@ -431,7 +433,9 @@ func tasks(ctx *cli.Context) error {
 			path = "*root*"
 		}
 
-		w.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d/%d/%d\t%s\t%s\n", task.ID, task.Ref.Repository.Name, refName, sha, path, runningCount, finishedCount, totalCount, statusStr, duration)))
+		if _, err := w.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d/%d/%d\t%s\t%s\n", task.ID, task.Ref.Repository.Name, refName, sha, path, runningCount, finishedCount, totalCount, statusStr, duration))); err != nil {
+			return err
+		}
 	}
 	w.Flush()
 
@@ -450,7 +454,9 @@ func runs(ctx *cli.Context) error {
 	}
 
 	w := stdTabWriter()
-	w.Write([]byte("RUN ID\tREPOSITORY\tREF\tSHA\tRUN\tTASK ID\tSTATE\tDURATION\n"))
+	if _, err := w.Write([]byte("RUN ID\tREPOSITORY\tREF\tSHA\tRUN\tTASK ID\tSTATE\tDURATION\n")); err != nil {
+		return err
+	}
 	for _, run := range runs {
 		statusStr := "queued"
 		if run.Task.Canceled {
@@ -475,7 +481,9 @@ func runs(ctx *cli.Context) error {
 		refName := run.Task.Ref.RefName
 		sha := run.Task.Ref.SHA[:12]
 
-		w.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d\t%s\t%s\n", run.ID, run.Task.Ref.Repository.Name, refName, sha, run.Name, run.Task.ID, statusStr, duration)))
+		if _, err := w.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d\t%s\t%s\n", run.ID, run.Task.Ref.Repository.Name, refName, sha, run.Name, run.Task.ID, statusStr, duration))); err != nil {
+			return err
+		}
 	}
 	w.Flush()
 
