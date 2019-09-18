@@ -2,6 +2,8 @@
 
 set -e
 
+POSTGRES_VERSION=11
+
 cat welcome.ans
 
 teardown() {
@@ -14,12 +16,12 @@ trap teardown INT TERM
 [ -f /var/ca/localhost-server.pem ] || mkcert --ecdsa --cert-file /var/ca/localhost-server.pem --key-file /var/ca/localhost-server.key localhost 127.0.0.1 ::1
 [ -f /var/ca/localhost-client.pem ] || mkcert --client --ecdsa --cert-file /var/ca/localhost-client.pem --key-file /var/ca/localhost-client.key localhost 127.0.0.1 ::1
 
-if [[ ! -d /var/lib/postgresql/9.6/main ]] || [[ ! -z "${CREATE_DB}" ]]
+if [[ ! -d /var/lib/postgresql/${POSTGRES_VERSION}/main ]] || [[ ! -z "${CREATE_DB}" ]]
 then
-  rm -rf /var/lib/postgresql/9.6/main
-  mkdir -p /var/lib/postgresql/9.6/main
-  chown postgres:postgres /var/lib/postgresql/9.6/main
-  su postgres -c "/usr/lib/postgresql/9.6/bin/initdb -D /var/lib/postgresql/9.6/main"
+  rm -rf /var/lib/postgresql/${POSTGRES_VERSION}/main
+  mkdir -p /var/lib/postgresql/${POSTGRES_VERSION}/main
+  chown postgres:postgres /var/lib/postgresql/${POSTGRES_VERSION}/main
+  su postgres -c "/usr/lib/postgresql/${POSTGRES_VERSION}/bin/initdb -D /var/lib/postgresql/${POSTGRES_VERSION}/main"
 
   service postgresql start
 
