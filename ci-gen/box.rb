@@ -1,4 +1,4 @@
-GO_VERSION = "1.12.7"
+GO_VERSION = "1.13"
 SWAGGER_VERSION = "v0.18.0"
 PROTOC_VERSION = "3.7.1"
 
@@ -15,7 +15,15 @@ EXTRA_PACKAGES = %w[
   unzip
 ]
 
-from "ubuntu:18.04"
+from "ubuntu:19.04"
+
+after do
+  if getenv("PACKAGE_FOR_CI") != ""
+    run "apt-get clean"
+    run "rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache"
+    flatten
+  end
+end
 
 run %Q[perl -i.bak -pe 's!//(security|archive).ubuntu.com!//#{getenv("APT_MIRROR").length > 0 ? getenv("APT_MIRROR") : "mirror.pnl.gov"}!g' /etc/apt/sources.list]
 
@@ -25,7 +33,6 @@ run "ln -s /usr/share/zoneinfo/Etc/UTC /etc/localtime"
 
 env GOPATH: "/go",
     PATH: %w[
-      /usr/lib/postgresql/9.6/bin
       /go/bin
       /usr/local/go/bin
       /usr/local/sbin
@@ -49,5 +56,5 @@ run "go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc"
 protoc_fn = "protoc-#{PROTOC_VERSION}-linux-x86_64.zip"
 
 run "wget https://github.com/protocolbuffers/protobuf/releases/download/v#{PROTOC_VERSION}/#{protoc_fn}"
-run "unzip '#{protoc_fn}' -d /usr"
+run "unzip '#{protoc_fn}' -d /usr && rm -f '#{protoc_fn}'"
 run "curl -sSL 'https://github.com/go-swagger/go-swagger/releases/download/#{SWAGGER_VERSION}/swagger_linux_amd64' >/go/bin/swagger && chmod +x /go/bin/swagger"

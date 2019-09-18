@@ -18,6 +18,9 @@ get-box:
 build-gen-image: get-box
 	box -t $(DOCKER_IMAGE) box.rb
 
+tag-gen-image: get-box
+	PACKAGE_FOR_CI=1 TESTING=1 box -n -t tinyci/ci-gen:$(shell date '+%m.%d.%Y') box.rb
+
 gen: gen-javascript build-gen-image
 	$(DOCKER_RUN) -u $$(id -u):$$(id -g) $(DOCKER_CONTAINER_DIR) $(DOCKER_IMAGE) bash ci-gen/gen.sh
 
