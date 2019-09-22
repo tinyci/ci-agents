@@ -35,9 +35,12 @@ func (us *retrySuite) TestHTTP(c *check.C) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	_, err := NewHTTP(s.Client()).Do(ctx, req)
+	resp, err := NewHTTP(s.Client()).Do(ctx, req)
 	c.Assert(err, check.NotNil)
 	c.Assert(err, check.Equals, context.DeadlineExceeded)
+	if resp != nil {
+		resp.Body.Close()
+	}
 
 	bh.count = 0
 
@@ -47,9 +50,12 @@ func (us *retrySuite) TestHTTP(c *check.C) {
 		cancel()
 	}()
 
-	_, err = NewHTTP(s.Client()).Do(ctx, req)
+	resp, err = NewHTTP(s.Client()).Do(ctx, req)
 	c.Assert(err, check.NotNil)
 	c.Assert(err, check.Equals, context.Canceled)
+	if resp != nil {
+		resp.Body.Close()
+	}
 
 	bh.count = 0
 	bh.succeedNext = true
@@ -58,8 +64,9 @@ func (us *retrySuite) TestHTTP(c *check.C) {
 	c.Assert(reqErr, check.IsNil)
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	_, err = NewHTTP(s.Client()).Do(ctx, req)
+	resp, err = NewHTTP(s.Client()).Do(ctx, req)
 	c.Assert(err, check.IsNil)
+	defer resp.Body.Close()
 	c.Assert(bh.count, check.Equals, 1)
 
 	bh.count = 0
@@ -69,8 +76,11 @@ func (us *retrySuite) TestHTTP(c *check.C) {
 		time.Sleep(time.Second)
 		cancel()
 	}()
-	_, err = NewHTTPWithInterval(s.Client(), 100*time.Millisecond).Do(ctx, req)
+	resp, err = NewHTTPWithInterval(s.Client(), 100*time.Millisecond).Do(ctx, req)
 	c.Assert(err, check.Equals, context.Canceled)
+	if resp != nil {
+		resp.Body.Close()
+	}
 	c.Assert(bh.count, check.Equals, 11)
 
 	bh.count = 0
@@ -82,7 +92,8 @@ func (us *retrySuite) TestHTTP(c *check.C) {
 		bh.mutex.Unlock()
 	}()
 
-	_, err = NewHTTP(s.Client()).Do(context.Background(), req)
+	resp, err = NewHTTP(s.Client()).Do(context.Background(), req)
 	c.Assert(err, check.IsNil)
+	defer resp.Body.Close()
 	c.Assert(bh.count, check.Equals, 2)
 }
