@@ -45,20 +45,26 @@ func (us *utilsSuite) TestRetryRequest(c *check.C) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	_, err = RetryRequest(ctx, s.Client(), req, nil)
+	resp, err := RetryRequest(ctx, s.Client(), req, nil)
 	c.Assert(err, check.NotNil)
 	c.Assert(err, check.Equals, context.DeadlineExceeded)
+	if resp != nil {
+		resp.Body.Close()
+	}
 	c.Assert(bh.count, check.Equals, 4)
 
 	bh.count = 0
 
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	_, err = RetryRequest(ctx, s.Client(), req, errChan)
+	resp, err = RetryRequest(ctx, s.Client(), req, errChan)
 	c.Assert(err, check.NotNil)
 	c.Assert(err, check.Equals, context.DeadlineExceeded)
 	c.Assert(bh.count, check.Equals, 4)
 	c.Assert(<-errChan, check.Equals, context.DeadlineExceeded)
+	if resp != nil {
+		resp.Body.Close()
+	}
 
 	bh.count = 0
 
@@ -68,20 +74,26 @@ func (us *utilsSuite) TestRetryRequest(c *check.C) {
 		cancel()
 	}()
 
-	_, err = RetryRequest(ctx, s.Client(), req, nil)
+	resp, err = RetryRequest(ctx, s.Client(), req, nil)
 	c.Assert(err, check.NotNil)
 	c.Assert(err, check.Equals, context.Canceled)
 	c.Assert(bh.count, check.Equals, 3)
+	if resp != nil {
+		resp.Body.Close()
+	}
 
 	bh.count = 0
 	bh.succeedNext = true
 
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	_, err = RetryRequest(ctx, s.Client(), req, errChan)
+	resp, err = RetryRequest(ctx, s.Client(), req, errChan)
 	c.Assert(err, check.IsNil)
 	c.Assert(bh.count, check.Equals, 1)
 	c.Assert(<-errChan, check.IsNil) // empty response for async calls
+	if resp != nil {
+		resp.Body.Close()
+	}
 
 	bh.count = 0
 	go func() {
@@ -93,8 +105,11 @@ func (us *utilsSuite) TestRetryRequest(c *check.C) {
 
 	ctx, cancel = context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer cancel()
-	_, err = RetryRequest(ctx, s.Client(), req, errChan)
+	resp, err = RetryRequest(ctx, s.Client(), req, errChan)
 	c.Assert(err, check.IsNil)
 	c.Assert(bh.count, check.Equals, 1)
 	c.Assert(<-errChan, check.IsNil) // empty response for async calls
+	if resp != nil {
+		resp.Body.Close()
+	}
 }

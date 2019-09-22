@@ -188,7 +188,7 @@ wait:
 
 golangci-lint:
 	go get github.com/golangci/golangci-lint/...
-	golangci-lint run -E misspell -E gocyclo -E deadcode -e '^$$'
+	golangci-lint run
 
 gen: mockgen
 	cd ci-gen && make gen	
