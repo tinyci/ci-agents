@@ -157,7 +157,7 @@ You can also specify the TINYCLI_CONFIG environment variable.
 		},
 		{
 			Name:        "submit",
-			ShortName:   "s",
+			ShortName:   "sub",
 			Description: "Submit a job to tinyCI",
 			Usage:       "Submit a job to tinyCI",
 			ArgsUsage:   "[parent or fork repository] [sha]",
@@ -166,6 +166,31 @@ You can also specify the TINYCLI_CONFIG environment variable.
 				cli.BoolFlag{
 					Name:  "all, a",
 					Usage: "For a test of all task dirs, not just diff-affected ones",
+				},
+			},
+		},
+		{
+			Name:        "submissions",
+			ShortName:   "s",
+			Description: "List Submissions",
+			Usage:       "List Submissions",
+			Action:      submissions,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "repository, r",
+					Usage: "Repository name for filtering runs",
+				},
+				cli.StringFlag{
+					Name:  "ref, n",
+					Usage: "Ref/SHA name for filtering runs. Repository is required if SHA provided, otherwise it is ignored",
+				},
+				cli.Int64Flag{
+					Name:  "page, p",
+					Usage: "The page of runs to access",
+				},
+				cli.Int64Flag{
+					Name:  "count, c",
+					Usage: "The amount of runs to show",
 				},
 			},
 		},
@@ -363,6 +388,27 @@ func mkTaskStatus(task *model.Task) string {
 	return statusStr
 }
 
+func mkSubRunCounts(client *tinyci.Client, sub *model.Submission) (int64, int64, int64, error) {
+	tasks, err := client.TasksForSubmission(sub)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+
+	var runningCount, finishedCount, totalCount int64
+
+	for _, task := range tasks {
+		running, finished, total, err := mkTaskRunCounts(client, task)
+		if err != nil {
+			return 0, 0, 0, err
+		}
+		runningCount += running
+		finishedCount += finished
+		totalCount += total
+	}
+
+	return runningCount, finishedCount, totalCount, nil
+}
+
 func mkTaskRunCounts(client *tinyci.Client, task *model.Task) (int64, int64, int64, error) {
 	totalCount, err := client.RunsForTaskCount(task.ID)
 	if err != nil {
@@ -390,6 +436,62 @@ func mkTaskRunCounts(client *tinyci.Client, task *model.Task) (int64, int64, int
 	}
 
 	return runningCount, finishedCount, totalCount, nil
+}
+
+func submissions(ctx *cli.Context) error {
+	client, err := loadConfig(ctx)
+	if err != nil {
+		return err
+	}
+
+	subs, err := client.Submissions(ctx.String("repository"), ctx.String("ref"), ctx.Int64("page"), ctx.Int64("count"))
+	if err != nil {
+		return err
+	}
+
+	w := stdTabWriter()
+	if _, err := w.Write([]byte("SUB ID\tREPOSITORY\tREF\tSHA\tRUN/FIN/TOT\tSTATE\tDURATION\n")); err != nil {
+		return err
+	}
+
+	for _, sub := range subs {
+		running, finished, total, err := mkSubRunCounts(client, sub)
+		if err != nil {
+			return err
+		}
+
+		status := "created"
+		duration := time.Since(sub.CreatedAt)
+
+		if sub.Status != nil {
+			if *sub.Status {
+				status = "success"
+			} else {
+				status = "failed"
+			}
+
+			duration = (*sub.FinishedAt).Sub(*sub.StartedAt)
+		} else if sub.StartedAt != nil {
+			status = "started"
+			duration = time.Since(*sub.StartedAt)
+		}
+
+		_, eErr := fmt.Fprintf(w,
+			"%d\t%s\t%s\t%s\t%d/%d/%d\t%v\t%v\n",
+			sub.ID,
+			sub.HeadRef.Repository.Name,
+			strings.TrimPrefix(sub.HeadRef.RefName, "heads/"),
+			sub.HeadRef.SHA[:12],
+			running, finished, total,
+			status,
+			duration,
+		)
+		if eErr != nil {
+			return eErr
+		}
+	}
+
+	return w.Flush()
 }
 
 func tasks(ctx *cli.Context) error {
