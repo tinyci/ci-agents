@@ -12,4 +12,4 @@ dependencies:
   - model
 runs:
   main:
-    command: [ "go", "test", "-race", "-v", "./types", "-check.v" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "./types", "-check.v" ]

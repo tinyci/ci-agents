@@ -9,4 +9,4 @@ dependencies:
   - api/uisvc
 runs:
   main:
-    command: [ "go", "test", "-race", "-v", "./clients/jsonbuffer", "-check.v" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "./clients/jsonbuffer", "-check.v" ]

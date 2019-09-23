@@ -7,4 +7,4 @@ mountpoint: "/go/src/github.com/tinyci/ci-agents"
 default_image: tinyci/ci-agents:09.18.2019
 runs:
   main:
-    command: [ "go", "test", "-race", "-v", "./errors", "-check.v" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "./errors", "-check.v" ]
