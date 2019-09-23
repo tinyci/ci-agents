@@ -229,3 +229,45 @@ func (c *Client) VisibleRepos(search string) ([]*model.Repository, *errors.Error
 	newRepos := model.RepositoryList{}
 	return newRepos, utils.JSONIO(repos, newRepos)
 }
+
+// Submissions returns a list of submissions, paginated and optionally filtered by repository and SHA.
+func (c *Client) Submissions(repository, sha string, page, perPage int64) ([]*model.Submission, *errors.Error) {
+	subs, err := c.client.GetSubmissions(context.Background(), page, perPage, repository, sha)
+	if err != nil {
+		return nil, err
+	}
+
+	newSubs := []*model.Submission{}
+	return newSubs, utils.JSONIO(subs, &newSubs)
+}
+
+// TasksForSubmission returns the tasks for the given submission.
+func (c *Client) TasksForSubmission(sub *model.Submission) ([]*model.Task, *errors.Error) {
+	perPage := int64(20)
+	page := int64(0)
+
+	totalTasks := []*model.Task{}
+
+	for {
+		tasks, err := c.client.GetSubmissionIDTasks(context.Background(), sub.ID, page, perPage)
+		if err != nil {
+			return nil, err
+		}
+
+		jsonTasks := []*model.Task{}
+
+		if err := utils.JSONIO(tasks, &jsonTasks); err != nil {
+			return nil, err
+		}
+
+		totalTasks = append(totalTasks, jsonTasks...)
+
+		if len(tasks) == 0 {
+			break
+		}
+
+		page++
+	}
+
+	return totalTasks, nil
+}
