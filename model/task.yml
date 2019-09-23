@@ -12,26 +12,26 @@ dependencies:
   - types
 runs:
   queue:
-    command: [ "go", "test", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestQueue(?:Manipulation|Concurrent)$" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestQueue(?:Manipulation|Concurrent)$" ]
   queue_named:
-    command: [ "go", "test", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestQueueNamed$" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestQueueNamed$" ]
   queue_named_concurrent:
-    command: [ "go", "test", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestQueueNamedConcurrent$" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestQueueNamedConcurrent$" ]
   task_list_basic:
-    command: [ "go", "test", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestTaskList$" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestTaskList$" ]
   task_list_sha:
-    command: [ "go", "test", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestTaskListSHAList$" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestTaskListSHAList$" ]
   task_list_parents:
-    command: [ "go", "test", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestTaskListParents$" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestTaskListParents$" ]
   task_list_forks:
-    command: [ "go", "test", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestTaskListForks$" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestTaskListForks$" ]
   runs_for_task:
-    command: [ "go", "test", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestRunsForTask$" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "^TestRunsForTask$" ]
   cancellations-by-run:
-    command: [ "go", "test", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "CancellationByRun" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "CancellationByRun" ]
   cancellations-by-ref:
-    command: [ "go", "test", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "CancellationByRef" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "CancellationByRef" ]
   cancellations-by-task:
-    command: [ "go", "test", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "CancellationByTask" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "CancellationByTask" ]
   others:
-    command: [ "bash", "-c", "set -e; for i in $((go test -v ./model -check.v -check.testlist || exit 1) | grep -vE 'Cancellation|Queue|RunsForTask|TaskList' | tail -n +2 | head -n -1); do go test -race -timeout 30m -v ./model -check.v -check.f ^$i\\$; done"]
+    command: [ "bash", "-c", "set -e; for i in $((go test -mod=vendor -v ./model -check.v -check.testlist || exit 1) | grep -vE 'Cancellation|Queue|RunsForTask|TaskList' | tail -n +2 | head -n -1); do go test -mod=vendor -race -timeout 30m -v ./model -check.v -check.f ^$i\\$; done"]

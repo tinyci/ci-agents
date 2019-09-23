@@ -9,4 +9,4 @@ dependencies:
   - api/datasvc
 runs:
   main:
-    command: [ "go", "test", "-race", "-v", "./api/queuesvc", "-check.vv" ]
+    command: [ "go", "test", "-mod=vendor", "-race", "-v", "./api/queuesvc", "-check.vv" ]
