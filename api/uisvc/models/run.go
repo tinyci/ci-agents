@@ -244,9 +244,6 @@ type RunTask struct {
 	// path
 	Path string `json:"path,omitempty"`
 
-	// pull request id
-	PullRequestID int64 `json:"pull_request_id,omitempty"`
-
 	// ref
 	Ref *RunTaskRef `json:"ref,omitempty"`
 

@@ -29,11 +29,11 @@ func (qs *queuesvcSuite) TestBadYAML(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	sub := &types.Submission{
-		Parent:      "erikh/foobar",
-		Fork:        "erikh/foobar2",
-		HeadSHA:     "be3d26c478991039e951097f2c99f56b55396940",
-		BaseSHA:     "be3d26c478991039e951097f2c99f56b55396941",
-		PullRequest: 10,
+		Parent:   "erikh/foobar",
+		Fork:     "erikh/foobar2",
+		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
+		BaseSHA:  "be3d26c478991039e951097f2c99f56b55396941",
+		TicketID: 10,
 	}
 
 	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false, ""), check.IsNil)
@@ -55,7 +55,7 @@ func (qs *queuesvcSuite) TestBadYAML(c *check.C) {
 	qs.getMock().GetDiffFiles(sub.Parent, sub.BaseSHA, sub.HeadSHA).Return([]string{"task.yml"}, nil)
 	qs.getMock().GetFileList(sub.Fork, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar", "bar/task.yml", "bar/quux"}, nil)
 	qs.getMock().GetRepository(sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
-	qs.getMock().CommentError(sub.Parent, sub.PullRequest, gomock.Any()).Return(nil)
+	qs.getMock().CommentError(sub.Parent, sub.TicketID, gomock.Any()).Return(nil)
 
 	qs.getMock().GetFile(sub.Fork, sub.HeadSHA, "task.yml").Return(taskBytes, nil)
 
@@ -114,11 +114,11 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
 
 	sub := &types.Submission{
-		Parent:      "erikh/foobar",
-		Fork:        "erikh/foobar2",
-		HeadSHA:     "be3d26c478991039e951097f2c99f56b55396940",
-		BaseSHA:     "be3d26c478991039e951097f2c99f56b55396941",
-		PullRequest: 10,
+		Parent:   "erikh/foobar",
+		Fork:     "erikh/foobar2",
+		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
+		BaseSHA:  "be3d26c478991039e951097f2c99f56b55396941",
+		TicketID: 10,
 	}
 
 	msub := &types.Submission{
@@ -159,11 +159,11 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	}
 
 	sub = &types.Submission{
-		Parent:      "erikh/foobar",
-		Fork:        "erikh/foobar2",
-		HeadSHA:     "be3d26c478991039e951097f2c99f56b55396942", // note the different sha is a disambiguator here.
-		BaseSHA:     "be3d26c478991039e951097f2c99f56b55396941",
-		PullRequest: 10,
+		Parent:   "erikh/foobar",
+		Fork:     "erikh/foobar2",
+		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396942", // note the different sha is a disambiguator here.
+		BaseSHA:  "be3d26c478991039e951097f2c99f56b55396941",
+		TicketID: 10,
 	}
 
 	qs.getMock().GetSHA(sub.Fork, "heads/foobar").Return("be3d26c478991039e951097f2c99f56b55396942", nil) // also here
@@ -214,11 +214,11 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
 
 	sub := &types.Submission{
-		Parent:      "erikh/foobar",
-		Fork:        "erikh/foobar2",
-		HeadSHA:     "be3d26c478991039e951097f2c99f56b55396940",
-		BaseSHA:     "be3d26c478991039e951097f2c99f56b55396941",
-		PullRequest: 10,
+		Parent:   "erikh/foobar",
+		Fork:     "erikh/foobar2",
+		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
+		BaseSHA:  "be3d26c478991039e951097f2c99f56b55396941",
+		TicketID: 10,
 	}
 
 	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
@@ -231,11 +231,11 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 	c.Assert(len(runs), check.Equals, 10)
 
 	sub = &types.Submission{
-		Parent:      path.Join(testutil.RandString(8), testutil.RandString(8)),
-		Fork:        path.Join(testutil.RandString(8), testutil.RandString(8)),
-		HeadSHA:     "be3d26c478991039e951097f2c99f56b55396940",
-		BaseSHA:     "be3d26c478991039e951097f2c99f56b55396941",
-		PullRequest: 10,
+		Parent:   path.Join(testutil.RandString(8), testutil.RandString(8)),
+		Fork:     path.Join(testutil.RandString(8), testutil.RandString(8)),
+		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
+		BaseSHA:  "be3d26c478991039e951097f2c99f56b55396941",
+		TicketID: 10,
 	}
 
 	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
@@ -253,11 +253,11 @@ func (qs *queuesvcSuite) TestSubmission(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	sub := &types.Submission{
-		Parent:      "erikh/foobar",
-		Fork:        "erikh/foobar2",
-		HeadSHA:     "be3d26c478991039e951097f2c99f56b55396940",
-		BaseSHA:     "be3d26c478991039e951097f2c99f56b55396941",
-		PullRequest: 10,
+		Parent:   "erikh/foobar",
+		Fork:     "erikh/foobar2",
+		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
+		BaseSHA:  "be3d26c478991039e951097f2c99f56b55396941",
+		TicketID: 10,
 	}
 
 	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false, ""), check.IsNil)
@@ -320,11 +320,11 @@ func (qs *queuesvcSuite) TestDependencies(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	sub := &types.Submission{
-		Parent:      "erikh/foobar",
-		Fork:        "erikh/foobar2",
-		HeadSHA:     "be3d26c478991039e951097f2c99f56b55396940",
-		BaseSHA:     "be3d26c478991039e951097f2c99f56b55396941",
-		PullRequest: 10,
+		Parent:   "erikh/foobar",
+		Fork:     "erikh/foobar2",
+		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
+		BaseSHA:  "be3d26c478991039e951097f2c99f56b55396941",
+		TicketID: 10,
 	}
 
 	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false, ""), check.IsNil)
@@ -382,11 +382,11 @@ func (qs *queuesvcSuite) TestBasic(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	sub := &types.Submission{
-		Parent:      "erikh/foobar",
-		Fork:        "erikh/foobar2",
-		HeadSHA:     "be3d26c478991039e951097f2c99f56b55396940",
-		BaseSHA:     "be3d26c478991039e951097f2c99f56b55396941",
-		PullRequest: 10,
+		Parent:   "erikh/foobar",
+		Fork:     "erikh/foobar2",
+		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
+		BaseSHA:  "be3d26c478991039e951097f2c99f56b55396941",
+		TicketID: 10,
 	}
 
 	_, _, _, err = ManageRepositories(qs.queueHandler, sub)

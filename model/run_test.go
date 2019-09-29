@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	check "github.com/erikh/check"
 	"github.com/tinyci/ci-agents/types"
 )
@@ -18,7 +20,14 @@ func (ms *modelSuite) TestRunValidate(c *check.C) {
 		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
+	baseref := &Ref{
+		Repository: parent,
+		RefName:    "refs/heads/master",
+		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	}
+
 	c.Assert(ms.model.Save(ref).Error, check.IsNil)
+	c.Assert(ms.model.Save(baseref).Error, check.IsNil)
 
 	ts := &types.TaskSettings{
 		Mountpoint: "/tmp",
@@ -30,12 +39,20 @@ func (ms *modelSuite) TestRunValidate(c *check.C) {
 		},
 	}
 
+	sub := &Submission{
+		HeadRef:   ref,
+		BaseRef:   baseref,
+		CreatedAt: time.Now(),
+		TicketID:  10,
+	}
+	c.Assert(ms.model.Save(sub).Error, check.IsNil)
+
 	task := &Task{
-		TaskSettings:  ts,
-		Parent:        parent,
-		Ref:           ref,
-		BaseSHA:       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-		PullRequestID: 10,
+		TaskSettings: ts,
+		Parent:       parent,
+		Ref:          ref,
+		BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		Submission:   sub,
 	}
 
 	c.Assert(ms.model.Save(task).Error, check.IsNil)
@@ -74,11 +91,11 @@ func (ms *modelSuite) TestRunValidate(c *check.C) {
 	c.Assert(r.ID, check.Equals, r2.ID)
 	c.Assert(r2.RunSettings, check.NotNil)
 
-	runs, err := ms.model.RunsForPR(parent.Name, 10)
+	runs, err := ms.model.RunsForTicket(parent.Name, 10)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 1)
 
-	runs, err = ms.model.RunsForPR(parent.Name, 11)
+	runs, err = ms.model.RunsForTicket(parent.Name, 11)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 0)
 }

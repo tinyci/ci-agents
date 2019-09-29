@@ -79,6 +79,9 @@ class ModelSubmission {
             if (data.hasOwnProperty('canceled')) {
                 obj['canceled'] = ApiClient.convertToType(data['canceled'], 'Boolean');
             }
+            if (data.hasOwnProperty('ticket_id')) {
+                obj['ticket_id'] = ApiClient.convertToType(data['ticket_id'], 'Number');
+            }
         }
         return obj;
     }
@@ -135,6 +138,11 @@ ModelSubmission.prototype['status'] = undefined;
  * @member {Boolean} canceled
  */
 ModelSubmission.prototype['canceled'] = undefined;
+
+/**
+ * @member {Number} ticket_id
+ */
+ModelSubmission.prototype['ticket_id'] = undefined;
 
 
 

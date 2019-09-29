@@ -57,7 +57,7 @@ func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, clien
 		baseRef = headRef
 	}
 
-	sub, err := h.Clients.Data.PutSubmission(&model.Submission{User: is.User, HeadRef: headRef, BaseRef: baseRef})
+	sub, err := h.Clients.Data.PutSubmission(&model.Submission{TicketID: is.Sub.TicketID, User: is.User, HeadRef: headRef, BaseRef: baseRef})
 	if err != nil {
 		return nil, err.Wrap("couldn't convert submission")
 	}
@@ -76,8 +76,8 @@ func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, clien
 
 		ts, err := types.NewTaskSettings(content, false, is.RepoConfig)
 		if err != nil {
-			if is.Sub.PullRequest != 0 {
-				if cerr := client.CommentError(is.Sub.Parent, is.Sub.PullRequest, err.Wrap("tinyCI had an error processing your pull request")); cerr != nil {
+			if is.Sub.TicketID != 0 {
+				if cerr := client.CommentError(is.Sub.Parent, is.Sub.TicketID, err.Wrap("tinyCI had an error processing your pull request")); cerr != nil {
 					return nil, cerr
 				}
 			}
@@ -86,14 +86,13 @@ func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, clien
 		}
 
 		task := &model.Task{
-			Parent:        is.ParentRepo,
-			BaseSHA:       is.Sub.BaseSHA,
-			PullRequestID: is.Sub.PullRequest,
-			Ref:           is.Ref,
-			Path:          dir,
-			TaskSettings:  ts,
-			CreatedAt:     time.Now(),
-			Submission:    sub,
+			Parent:       is.ParentRepo,
+			BaseSHA:      is.Sub.BaseSHA,
+			Ref:          is.Ref,
+			Path:         dir,
+			TaskSettings: ts,
+			CreatedAt:    time.Now(),
+			Submission:   sub,
 		}
 
 		tasks[dir] = task

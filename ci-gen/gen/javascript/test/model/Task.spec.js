@@ -84,12 +84,6 @@
       //expect(instance).to.be();
     });
 
-    it('should have the property pullRequestId (base name: "pull_request_id")', function() {
-      // uncomment below and update the code to test the property pullRequestId
-      //var instane = new Uisvc.Task();
-      //expect(instance).to.be();
-    });
-
     it('should have the property canceled (base name: "canceled")', function() {
       // uncomment below and update the code to test the property canceled
       //var instane = new Uisvc.Task();

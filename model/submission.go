@@ -37,6 +37,8 @@ type Submission struct {
 	FinishedAt *time.Time `json:"finished_at" gorm:"-"`
 
 	Canceled bool `json:"canceled" gorm:"-"`
+
+	TicketID int64 `json:"ticket_id"`
 }
 
 // ToProto converts the submissions to the protobuf version
@@ -71,6 +73,7 @@ func (s *Submission) ToProto() *gtypes.Submission {
 		StatusSet:  s.Status != nil,
 		Status:     status,
 		Canceled:   s.Canceled,
+		TicketID:   s.TicketID,
 	}
 }
 

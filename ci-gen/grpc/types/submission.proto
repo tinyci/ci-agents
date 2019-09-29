@@ -21,6 +21,7 @@ message Submission {
   bool                      statusSet   = 9; // Is the status valid? (nil internally for invalid settings, but proto doesn't like nil)
   google.protobuf.Timestamp startedAt   = 10; // When it started
   bool                      canceled    = 11; // If the whole submission was canceled
+  int64                     ticketID    = 12; // ID of the corresponding ticket in source control
 }
 
 message SubmissionList {

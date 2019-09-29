@@ -270,17 +270,16 @@ func (c *cmd) mkTask(sub *model.Submission) (*model.Task, *errors.Error) {
 	}
 
 	task := &model.Task{
-		Path:          c.getString(),
-		Parent:        sub.BaseRef.Repository,
-		Ref:           sub.HeadRef,
-		BaseSHA:       sub.BaseRef.SHA,
-		PullRequestID: rand.Int63n(9000),
-		CreatedAt:     createdAt,
-		FinishedAt:    finishedAt,
-		StartedAt:     startedAt,
-		Status:        status,
-		TaskSettings:  ts,
-		Submission:    sub,
+		Path:         c.getString(),
+		Parent:       sub.BaseRef.Repository,
+		Ref:          sub.HeadRef,
+		BaseSHA:      sub.BaseRef.SHA,
+		CreatedAt:    createdAt,
+		FinishedAt:   finishedAt,
+		StartedAt:    startedAt,
+		Status:       status,
+		TaskSettings: ts,
+		Submission:   sub,
 	}
 
 	return c.dc.Client().PutTask(task)
