@@ -46,7 +46,7 @@ func getLogger(sub *types.Submission, h *handler.H) *log.SubLogger {
 	return h.Clients.Log
 }
 
-func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, client github.Client, is *InternalSubmission) (map[string]*model.Task, *errors.Error) {
+func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, client github.Client, is *InternalSubmission) (map[string]*model.Task, []string, *errors.Error) {
 	taskDirTime := time.Now()
 	defer getLogger(is.Sub, h).Infof(ctx, "Computing task dirs took %v", time.Since(taskDirTime))
 
@@ -59,7 +59,7 @@ func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, clien
 
 	sub, err := h.Clients.Data.PutSubmission(&model.Submission{TicketID: is.Sub.TicketID, User: is.User, HeadRef: headRef, BaseRef: baseRef})
 	if err != nil {
-		return nil, err.Wrap("couldn't convert submission")
+		return nil, nil, err.Wrap("couldn't convert submission")
 	}
 
 	tasks := map[string]*model.Task{}
@@ -71,18 +71,18 @@ func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, clien
 		// FIXME move this string.
 		content, err := client.GetFile(is.Sub.Fork, is.Sub.HeadSHA, path.Join(dir, "task.yml"))
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		ts, err := types.NewTaskSettings(content, false, is.RepoConfig)
 		if err != nil {
 			if is.Sub.TicketID != 0 {
 				if cerr := client.CommentError(is.Sub.Parent, is.Sub.TicketID, err.Wrap("tinyCI had an error processing your pull request")); cerr != nil {
-					return nil, cerr
+					return nil, nil, cerr
 				}
 			}
 
-			return nil, err
+			return nil, nil, err
 		}
 
 		task := &model.Task{
@@ -105,12 +105,23 @@ func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, clien
 		}
 	}
 
-	return tasks, nil
+	return tasks, taskdirs, nil
 }
 
 func makeQueueItemsFromTask(h *handler.H, client github.Client, is *InternalSubmission, dir string, task *model.Task) ([]*model.QueueItem, *errors.Error) {
 	qis := []*model.QueueItem{}
-	for name, run := range task.TaskSettings.Runs {
+
+	names := []string{}
+
+	for name := range task.TaskSettings.Runs {
+		names = append(names, name)
+	}
+
+	sort.Strings(names)
+
+	for _, name := range names {
+		rs := task.TaskSettings.Runs[name]
+
 		dirStr := dir
 
 		if dir == "." || dir == "" {
@@ -119,7 +130,7 @@ func makeQueueItemsFromTask(h *handler.H, client github.Client, is *InternalSubm
 
 		run := &model.Run{
 			Name:        strings.Join([]string{dirStr, name}, ":"),
-			RunSettings: run,
+			RunSettings: rs,
 			Task:        task,
 			CreatedAt:   time.Now(),
 		}
@@ -166,15 +177,19 @@ func GenerateQueueItems(ctx context.Context, h *handler.H, client github.Client,
 		taskdirs = append(taskdirs, dir)
 	}
 
-	tasks, err := computeTaskDirs(ctx, h, taskdirs, client, is)
+	tasks, taskdirs, err := computeTaskDirs(ctx, h, taskdirs, client, is)
 	if err != nil {
 		return nil, err.Wrap("computing task dirs")
 	}
 
+	sort.Strings(taskdirs)
+
 	queueCreateTime := time.Now()
 	getLogger(is.Sub, h).Info(ctx, "Generating Queue Items")
 
-	for dir, task := range tasks {
+	for _, dir := range taskdirs { // for ordering
+		task := tasks[dir]
+
 		if err := task.Validate(); err != nil {
 			// an error here merely means the task is invalid (probably because it
 			// has no runs and is only dependencies). otherwise, we can continue
