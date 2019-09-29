@@ -18,3 +18,5 @@ linters:
     - misspell                                                                                                                                                                                                                                 
 issues:
   exclude-use-default: false
+run:
+  deadline: 5m
