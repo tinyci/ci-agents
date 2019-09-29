@@ -112,7 +112,7 @@ demo: build-demo-image
 	$(DEMO_DOCKER_RUN) make start-services
 
 clean-demo: build-demo-image
-	$(DOCKER_RUN) --entrypoint /bin/bash -v ${PWD}/.ca:/var/ca -v ${PWD}/.logs:/var/tinyci/logs -v ${PWD}/.db:/var/lib/postgresql $(DEMO_DOCKER_IMAGE) -c "rm -rf /var/lib/postgresql/9.6; rm -rf /var/tinyci/logs/*; rm -rf /var/ca/*"
+	$(DOCKER_RUN) --entrypoint /bin/bash -v ${PWD}/.ca:/var/ca -v ${PWD}/.logs:/var/tinyci/logs -v ${PWD}/.db:/var/lib/postgresql $(DEMO_DOCKER_IMAGE) -c "rm -rf /var/lib/postgresql/11; rm -rf /var/tinyci/logs/*; rm -rf /var/ca/*"
 
 build-demo-image: get-box
 	box -t $(DEMO_DOCKER_IMAGE) $(STD_BOXFILE)
