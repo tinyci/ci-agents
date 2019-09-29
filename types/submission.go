@@ -11,7 +11,7 @@ type Submission struct {
 	Fork        string `json:"fork"`
 	HeadSHA     string `json:"head_sha"`
 	BaseSHA     string `json:"base_sha"`
-	PullRequest int64  `json:"pull_request"`
+	TicketID    int64  `json:"ticket_id"`
 	SubmittedBy string `json:"submitted_by"`
 	All         bool   `json:"all"`
 

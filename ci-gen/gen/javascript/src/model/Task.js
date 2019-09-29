@@ -65,9 +65,6 @@ class Task {
             if (data.hasOwnProperty('base_sha')) {
                 obj['base_sha'] = ApiClient.convertToType(data['base_sha'], 'String');
             }
-            if (data.hasOwnProperty('pull_request_id')) {
-                obj['pull_request_id'] = ApiClient.convertToType(data['pull_request_id'], 'Number');
-            }
             if (data.hasOwnProperty('canceled')) {
                 obj['canceled'] = ApiClient.convertToType(data['canceled'], 'Boolean');
             }
@@ -120,11 +117,6 @@ Task.prototype['ref'] = undefined;
  * @member {String} base_sha
  */
 Task.prototype['base_sha'] = undefined;
-
-/**
- * @member {Number} pull_request_id
- */
-Task.prototype['pull_request_id'] = undefined;
 
 /**
  * @member {Boolean} canceled

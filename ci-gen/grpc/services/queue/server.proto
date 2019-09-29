@@ -29,7 +29,7 @@ message Submission {
   string  headsha       = 3; // HEAD SHA -- usually the head of the fork
   string  basesha       = 4; // Base SHA -- usually the head of the parent
   string  submitted_by  = 5; // Who submitted this?
-  int64   pull_request  = 6; // PullRequest ID if available -- not set during manual submissions
+  int64   ticketID      = 6; // PullRequest ID if available -- not set during manual submissions
   bool    all           = 7; // Test all instead of using diff selection; this is a flag in the UI and can also be triggered by tinycli. It is not used in github hooks except for pushes to master.
   bool    manual        = 8; // Flag set if this was a manual submission. Typically managed by the uisvc.
 }

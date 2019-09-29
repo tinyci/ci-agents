@@ -19,7 +19,7 @@ func (c *Client) Submit(ctx context.Context, sub *types.Submission) *errors.Erro
 		All:         sub.All,
 		SubmittedBy: sub.SubmittedBy,
 		Manual:      sub.Manual,
-		PullRequest: sub.PullRequest,
+		TicketID:    sub.TicketID,
 	}, grpc.WaitForReady(true))
 	return errors.New(err)
 }

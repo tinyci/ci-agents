@@ -9,7 +9,6 @@ Name | Type | Description | Notes
 **parent** | [**Repository**](Repository.md) |  | [optional] 
 **ref** | [**Ref**](Ref.md) |  | [optional] 
 **baseSha** | **String** |  | [optional] 
-**pullRequestId** | **Number** |  | [optional] 
 **canceled** | **Boolean** |  | [optional] 
 **finishedAt** | **Date** |  | [optional] 
 **startedAt** | **Date** |  | [optional] 

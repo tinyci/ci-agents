@@ -120,7 +120,7 @@ func (qs *QueueServer) Submit(ctx context.Context, sub *queue.Submission) (*empt
 		Fork:        sub.Fork,
 		HeadSHA:     sub.Headsha,
 		BaseSHA:     sub.Basesha,
-		PullRequest: sub.PullRequest,
+		TicketID:    sub.TicketID,
 		SubmittedBy: sub.SubmittedBy,
 		All:         sub.All,
 		Manual:      sub.Manual,

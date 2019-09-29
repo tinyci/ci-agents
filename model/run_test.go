@@ -31,11 +31,10 @@ func (ms *modelSuite) TestRunValidate(c *check.C) {
 	}
 
 	task := &Task{
-		TaskSettings:  ts,
-		Parent:        parent,
-		Ref:           ref,
-		BaseSHA:       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-		PullRequestID: 10,
+		TaskSettings: ts,
+		Parent:       parent,
+		Ref:          ref,
+		BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
 	c.Assert(ms.model.Save(task).Error, check.IsNil)

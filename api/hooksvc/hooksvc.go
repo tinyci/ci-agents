@@ -134,11 +134,11 @@ func (h *Handler) prDispatch(obj interface{}) (*types.Submission, error) {
 	switch action {
 	case actionOpened, actionSynchronize:
 		return &types.Submission{
-			Parent:      pr.PullRequest.Base.Repo.GetFullName(),
-			Fork:        pr.PullRequest.Head.Repo.GetFullName(),
-			HeadSHA:     pr.PullRequest.Head.GetSHA(),
-			BaseSHA:     pr.PullRequest.Base.GetSHA(),
-			PullRequest: int64(pr.PullRequest.GetNumber()),
+			Parent:   pr.PullRequest.Base.Repo.GetFullName(),
+			Fork:     pr.PullRequest.Head.Repo.GetFullName(),
+			HeadSHA:  pr.PullRequest.Head.GetSHA(),
+			BaseSHA:  pr.PullRequest.Base.GetSHA(),
+			TicketID: int64(pr.PullRequest.GetNumber()),
 		}, nil
 	case actionClosed:
 		return nil, &ErrCancelPR{Repository: pr.PullRequest.Base.Repo.GetFullName(), PRID: int64(pr.PullRequest.GetNumber())}

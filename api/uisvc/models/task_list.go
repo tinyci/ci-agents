@@ -72,9 +72,6 @@ type TaskListItems0 struct {
 	// path
 	Path string `json:"path,omitempty"`
 
-	// pull request id
-	PullRequestID int64 `json:"pull_request_id,omitempty"`
-
 	// ref
 	Ref *TaskListItems0Ref `json:"ref,omitempty"`
 

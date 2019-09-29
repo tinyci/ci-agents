@@ -187,8 +187,6 @@ definitions:
         $ref: '#/definitions/Ref'
       base_sha:
         type: string
-      pull_request_id:
-        type: integer
       canceled:
         type: boolean
       finished_at:
@@ -270,7 +268,7 @@ definitions:
         type: string 
       base_sha:
         type: string 
-      pull_request:
+      ticket_id:
         type: integer 
       submitted_by:
         type: string
@@ -330,6 +328,8 @@ definitions:
         x-nullable: true
       canceled:
         type: boolean
+      ticket_id:
+        type: integer
   ModelSubmissionList:
     type: array
     items:

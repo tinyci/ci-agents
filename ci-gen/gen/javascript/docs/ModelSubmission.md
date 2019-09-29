@@ -14,5 +14,6 @@ Name | Type | Description | Notes
 **tasksCount** | **Number** |  | [optional] 
 **status** | **Boolean** |  | [optional] 
 **canceled** | **Boolean** |  | [optional] 
+**ticketId** | **Number** |  | [optional] 
 
 

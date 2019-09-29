@@ -2796,6 +2796,9 @@ func init() {
         "tasks_count": {
           "type": "integer"
         },
+        "ticket_id": {
+          "type": "integer"
+        },
         "user": {
           "type": "object",
           "properties": {
@@ -2940,6 +2943,9 @@ func init() {
             "x-nullable": true
           },
           "tasks_count": {
+            "type": "integer"
+          },
+          "ticket_id": {
             "type": "integer"
           },
           "user": {
@@ -3114,9 +3120,6 @@ func init() {
             },
             "path": {
               "type": "string"
-            },
-            "pull_request_id": {
-              "type": "integer"
             },
             "ref": {
               "type": "object",
@@ -3362,9 +3365,6 @@ func init() {
               "path": {
                 "type": "string"
               },
-              "pull_request_id": {
-                "type": "integer"
-              },
               "ref": {
                 "type": "object",
                 "properties": {
@@ -3550,9 +3550,6 @@ func init() {
           },
           "path": {
             "type": "string"
-          },
-          "pull_request_id": {
-            "type": "integer"
           },
           "ref": {
             "type": "object",

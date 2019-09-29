@@ -28,8 +28,7 @@ type Task struct {
 	Ref   *Ref  `json:"ref" gorm:"association_autoupdate:false"`
 	RefID int64 `json:"-"`
 
-	BaseSHA       string `json:"base_sha"`
-	PullRequestID int64  `json:"pull_request_id,omitempty"`
+	BaseSHA string `json:"base_sha"`
 
 	Canceled   bool       `json:"canceled"`
 	FinishedAt *time.Time `json:"finished_at,omitempty"`
@@ -66,20 +65,19 @@ func NewTaskFromProto(gt *gtypes.Task) (*Task, *errors.Error) {
 	}
 
 	return &Task{
-		ID:            gt.Id,
-		Parent:        parent,
-		Ref:           ref,
-		Path:          gt.Path,
-		BaseSHA:       gt.BaseSHA,
-		PullRequestID: gt.PullRequestID,
-		Canceled:      gt.Canceled,
-		FinishedAt:    MakeTime(gt.FinishedAt, true),
-		StartedAt:     MakeTime(gt.StartedAt, true),
-		CreatedAt:     *MakeTime(gt.CreatedAt, false),
-		Status:        MakeStatus(gt.Status, gt.StatusSet),
-		TaskSettings:  types.NewTaskSettingsFromProto(gt.Settings),
-		Runs:          gt.Runs,
-		Submission:    sub,
+		ID:           gt.Id,
+		Parent:       parent,
+		Ref:          ref,
+		Path:         gt.Path,
+		BaseSHA:      gt.BaseSHA,
+		Canceled:     gt.Canceled,
+		FinishedAt:   MakeTime(gt.FinishedAt, true),
+		StartedAt:    MakeTime(gt.StartedAt, true),
+		CreatedAt:    *MakeTime(gt.CreatedAt, false),
+		Status:       MakeStatus(gt.Status, gt.StatusSet),
+		TaskSettings: types.NewTaskSettingsFromProto(gt.Settings),
+		Runs:         gt.Runs,
+		Submission:   sub,
 	}, nil
 }
 
@@ -98,21 +96,20 @@ func (t *Task) ToProto() *gtypes.Task {
 	}
 
 	return &gtypes.Task{
-		Id:            t.ID,
-		Parent:        t.Parent.ToProto(),
-		Ref:           t.Ref.ToProto(),
-		BaseSHA:       t.BaseSHA,
-		Path:          t.Path,
-		PullRequestID: t.PullRequestID,
-		Canceled:      t.Canceled,
-		FinishedAt:    MakeTimestamp(t.FinishedAt),
-		StartedAt:     MakeTimestamp(t.StartedAt),
-		CreatedAt:     MakeTimestamp(&t.CreatedAt),
-		Status:        status,
-		StatusSet:     set,
-		Settings:      t.TaskSettings.ToProto(),
-		Runs:          t.Runs,
-		Submission:    sub,
+		Id:         t.ID,
+		Parent:     t.Parent.ToProto(),
+		Ref:        t.Ref.ToProto(),
+		BaseSHA:    t.BaseSHA,
+		Path:       t.Path,
+		Canceled:   t.Canceled,
+		FinishedAt: MakeTimestamp(t.FinishedAt),
+		StartedAt:  MakeTimestamp(t.StartedAt),
+		CreatedAt:  MakeTimestamp(&t.CreatedAt),
+		Status:     status,
+		StatusSet:  set,
+		Settings:   t.TaskSettings.ToProto(),
+		Runs:       t.Runs,
+		Submission: sub,
 	}
 }
 
