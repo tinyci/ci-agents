@@ -350,15 +350,16 @@ func (m *Model) RunTotalCountForRepositoryAndSHA(repo *Repository, sha string) (
 	)
 }
 
-// RunsForPR retrieves all the runs that belong to a repository's PR.
-func (m *Model) RunsForPR(repoName string, prID int) ([]*Run, *errors.Error) {
+// RunsForTicket all the runs that belong to a repository's PR.
+func (m *Model) RunsForTicket(repoName string, ticketID int) ([]*Run, *errors.Error) {
 	ret := []*Run{}
 
 	return ret, m.WrapError(
 		m.Table("runs").
 			Joins("inner join tasks on runs.task_id = tasks.id").
 			Joins("inner join repositories on tasks.parent_id = repositories.id").
-			Where("tasks.pull_request_id = ? and repositories.name = ?", prID, repoName).Find(&ret),
+			Joins("inner join submissions on submissions.id = tasks.submission_id").
+			Where("submissions.ticket_id = ? and repositories.name = ?", ticketID, repoName).Find(&ret),
 		"retrieving runs for a pull request id",
 	)
 }
