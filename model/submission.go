@@ -131,6 +131,7 @@ func NewSubmissionFromProto(gt *gtypes.Submission) (*Submission, *errors.Error) 
 		StartedAt:  started,
 		Status:     status,
 		Canceled:   gt.Canceled,
+		TicketID:   gt.TicketID,
 	}, nil
 }
 
