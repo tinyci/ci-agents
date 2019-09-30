@@ -133,7 +133,7 @@ tag-test-image: get-box
 	PACKAGE_FOR_CI=1 TESTING=1 box -n -t tinyci/ci-agents:$(shell date '+%m.%d.%Y') $(STD_BOXFILE)
 
 update-task-ymls:
-	sed -i -e 's!^default_image: tinyci/ci-agents:.*$$!default_image: tinyci/ci-agents:$(shell date '+%m.%d.%Y')!g' task.yml */**/task.yml
+	sed -i -e 's!^default_image: tinyci/ci-agents:.*$$!default_image: tinyci/ci-agents:$(shell date '+%m.%d.%Y')!g' task.yml **/task.yml
 
 get-box:
 	@if [ ! -f "$(shell which box)" ]; \
