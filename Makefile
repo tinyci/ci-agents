@@ -172,7 +172,7 @@ start-services: check-service-config
 	pkill queuesvc || :
 	pkill github-authsvc || :
 	pkill datasvc || :
-	go install -v ./cmd/... ./api/...
+	go install -mod=vendor -v ./cmd/... ./api/...
 	@if [ "x${START_SERVICES}" != "x" ]; then make start-selective-services; exit 0; fi
 	logsvc &
 	assetsvc &
