@@ -33,7 +33,7 @@ else
 fi
 
 sleep 1
-bash -c '/go/bin/migrator -u tinyci -p tinyci migrations/tinyci'
+bash -c '/go/bin/migrator -q -u tinyci -p tinyci migrations/tinyci'
 
 if [ -z "${TESTING}" ]
 then
