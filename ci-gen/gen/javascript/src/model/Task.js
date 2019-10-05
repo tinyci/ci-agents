@@ -12,6 +12,7 @@
  */
 
 import ApiClient from '../ApiClient';
+import ModelSubmission from './ModelSubmission';
 import Ref from './Ref';
 import Repository from './Repository';
 import TaskSettings from './TaskSettings';
@@ -86,6 +87,9 @@ class Task {
             if (data.hasOwnProperty('runs')) {
                 obj['runs'] = ApiClient.convertToType(data['runs'], 'Number');
             }
+            if (data.hasOwnProperty('submission')) {
+                obj['submission'] = ModelSubmission.constructFromObject(data['submission']);
+            }
         }
         return obj;
     }
@@ -152,6 +156,11 @@ Task.prototype['id'] = undefined;
  * @member {Number} runs
  */
 Task.prototype['runs'] = undefined;
+
+/**
+ * @member {module:model/ModelSubmission} submission
+ */
+Task.prototype['submission'] = undefined;
 
 
 

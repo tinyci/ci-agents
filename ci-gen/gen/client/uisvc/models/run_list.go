@@ -291,6 +291,9 @@ type RunListItems0Task struct {
 
 	// status
 	Status *bool `json:"status,omitempty"`
+
+	// submission
+	Submission *RunListItems0TaskSubmission `json:"submission,omitempty"`
 }
 
 // Validate validates this run list items0 task
@@ -318,6 +321,10 @@ func (m *RunListItems0Task) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateStartedAt(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSubmission(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -415,6 +422,24 @@ func (m *RunListItems0Task) validateStartedAt(formats strfmt.Registry) error {
 
 	if err := validate.FormatOf("task"+"."+"started_at", "body", "date-time", m.StartedAt.String(), formats); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *RunListItems0Task) validateSubmission(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Submission) { // not required
+		return nil
+	}
+
+	if m.Submission != nil {
+		if err := m.Submission.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("task" + "." + "submission")
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -787,6 +812,550 @@ func (m *RunListItems0TaskSettingsRunsAnon) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *RunListItems0TaskSettingsRunsAnon) UnmarshalBinary(b []byte) error {
 	var res RunListItems0TaskSettingsRunsAnon
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// RunListItems0TaskSubmission run list items0 task submission
+// swagger:model RunListItems0TaskSubmission
+type RunListItems0TaskSubmission struct {
+
+	// base ref
+	BaseRef *RunListItems0TaskSubmissionBaseRef `json:"base_ref,omitempty"`
+
+	// canceled
+	Canceled bool `json:"canceled,omitempty"`
+
+	// created at
+	// Format: date-time
+	CreatedAt strfmt.DateTime `json:"created_at,omitempty"`
+
+	// finished at
+	// Format: date-time
+	FinishedAt *strfmt.DateTime `json:"finished_at,omitempty"`
+
+	// head ref
+	HeadRef *RunListItems0TaskSubmissionHeadRef `json:"head_ref,omitempty"`
+
+	// id
+	ID int64 `json:"id,omitempty"`
+
+	// runs count
+	RunsCount int64 `json:"runs_count,omitempty"`
+
+	// started at
+	// Format: date-time
+	StartedAt *strfmt.DateTime `json:"started_at,omitempty"`
+
+	// status
+	Status *bool `json:"status,omitempty"`
+
+	// tasks count
+	TasksCount int64 `json:"tasks_count,omitempty"`
+
+	// ticket id
+	TicketID int64 `json:"ticket_id,omitempty"`
+
+	// user
+	User *RunListItems0TaskSubmissionUser `json:"user,omitempty"`
+}
+
+// Validate validates this run list items0 task submission
+func (m *RunListItems0TaskSubmission) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateBaseRef(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateCreatedAt(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateFinishedAt(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateHeadRef(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateStartedAt(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateUser(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *RunListItems0TaskSubmission) validateBaseRef(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.BaseRef) { // not required
+		return nil
+	}
+
+	if m.BaseRef != nil {
+		if err := m.BaseRef.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("task" + "." + "submission" + "." + "base_ref")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *RunListItems0TaskSubmission) validateCreatedAt(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.CreatedAt) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("task"+"."+"submission"+"."+"created_at", "body", "date-time", m.CreatedAt.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *RunListItems0TaskSubmission) validateFinishedAt(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.FinishedAt) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("task"+"."+"submission"+"."+"finished_at", "body", "date-time", m.FinishedAt.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *RunListItems0TaskSubmission) validateHeadRef(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.HeadRef) { // not required
+		return nil
+	}
+
+	if m.HeadRef != nil {
+		if err := m.HeadRef.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("task" + "." + "submission" + "." + "head_ref")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *RunListItems0TaskSubmission) validateStartedAt(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.StartedAt) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("task"+"."+"submission"+"."+"started_at", "body", "date-time", m.StartedAt.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *RunListItems0TaskSubmission) validateUser(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.User) { // not required
+		return nil
+	}
+
+	if m.User != nil {
+		if err := m.User.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("task" + "." + "submission" + "." + "user")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *RunListItems0TaskSubmission) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *RunListItems0TaskSubmission) UnmarshalBinary(b []byte) error {
+	var res RunListItems0TaskSubmission
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// RunListItems0TaskSubmissionBaseRef run list items0 task submission base ref
+// swagger:model RunListItems0TaskSubmissionBaseRef
+type RunListItems0TaskSubmissionBaseRef struct {
+
+	// id
+	ID int64 `json:"id,omitempty"`
+
+	// ref name
+	RefName string `json:"ref_name,omitempty"`
+
+	// repository
+	Repository *RunListItems0TaskSubmissionBaseRefRepository `json:"repository,omitempty"`
+
+	// sha
+	Sha string `json:"sha,omitempty"`
+}
+
+// Validate validates this run list items0 task submission base ref
+func (m *RunListItems0TaskSubmissionBaseRef) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateRepository(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *RunListItems0TaskSubmissionBaseRef) validateRepository(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Repository) { // not required
+		return nil
+	}
+
+	if m.Repository != nil {
+		if err := m.Repository.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("task" + "." + "submission" + "." + "base_ref" + "." + "repository")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *RunListItems0TaskSubmissionBaseRef) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *RunListItems0TaskSubmissionBaseRef) UnmarshalBinary(b []byte) error {
+	var res RunListItems0TaskSubmissionBaseRef
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// RunListItems0TaskSubmissionBaseRefRepository run list items0 task submission base ref repository
+// swagger:model RunListItems0TaskSubmissionBaseRefRepository
+type RunListItems0TaskSubmissionBaseRefRepository struct {
+
+	// auto created
+	AutoCreated bool `json:"auto_created,omitempty"`
+
+	// disabled
+	Disabled bool `json:"disabled,omitempty"`
+
+	// github
+	Github interface{} `json:"github,omitempty"`
+
+	// id
+	ID int64 `json:"id,omitempty"`
+
+	// name
+	Name string `json:"name,omitempty"`
+
+	// private
+	Private bool `json:"private,omitempty"`
+}
+
+// Validate validates this run list items0 task submission base ref repository
+func (m *RunListItems0TaskSubmissionBaseRefRepository) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *RunListItems0TaskSubmissionBaseRefRepository) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *RunListItems0TaskSubmissionBaseRefRepository) UnmarshalBinary(b []byte) error {
+	var res RunListItems0TaskSubmissionBaseRefRepository
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// RunListItems0TaskSubmissionHeadRef run list items0 task submission head ref
+// swagger:model RunListItems0TaskSubmissionHeadRef
+type RunListItems0TaskSubmissionHeadRef struct {
+
+	// id
+	ID int64 `json:"id,omitempty"`
+
+	// ref name
+	RefName string `json:"ref_name,omitempty"`
+
+	// repository
+	Repository *RunListItems0TaskSubmissionHeadRefRepository `json:"repository,omitempty"`
+
+	// sha
+	Sha string `json:"sha,omitempty"`
+}
+
+// Validate validates this run list items0 task submission head ref
+func (m *RunListItems0TaskSubmissionHeadRef) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateRepository(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *RunListItems0TaskSubmissionHeadRef) validateRepository(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Repository) { // not required
+		return nil
+	}
+
+	if m.Repository != nil {
+		if err := m.Repository.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("task" + "." + "submission" + "." + "head_ref" + "." + "repository")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *RunListItems0TaskSubmissionHeadRef) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *RunListItems0TaskSubmissionHeadRef) UnmarshalBinary(b []byte) error {
+	var res RunListItems0TaskSubmissionHeadRef
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// RunListItems0TaskSubmissionHeadRefRepository run list items0 task submission head ref repository
+// swagger:model RunListItems0TaskSubmissionHeadRefRepository
+type RunListItems0TaskSubmissionHeadRefRepository struct {
+
+	// auto created
+	AutoCreated bool `json:"auto_created,omitempty"`
+
+	// disabled
+	Disabled bool `json:"disabled,omitempty"`
+
+	// github
+	Github interface{} `json:"github,omitempty"`
+
+	// id
+	ID int64 `json:"id,omitempty"`
+
+	// name
+	Name string `json:"name,omitempty"`
+
+	// private
+	Private bool `json:"private,omitempty"`
+}
+
+// Validate validates this run list items0 task submission head ref repository
+func (m *RunListItems0TaskSubmissionHeadRefRepository) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *RunListItems0TaskSubmissionHeadRefRepository) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *RunListItems0TaskSubmissionHeadRefRepository) UnmarshalBinary(b []byte) error {
+	var res RunListItems0TaskSubmissionHeadRefRepository
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// RunListItems0TaskSubmissionUser run list items0 task submission user
+// swagger:model RunListItems0TaskSubmissionUser
+type RunListItems0TaskSubmissionUser struct {
+
+	// errors
+	Errors []*RunListItems0TaskSubmissionUserErrorsItems0 `json:"errors"`
+
+	// id
+	ID int64 `json:"id,omitempty"`
+
+	// last scanned repos
+	// Format: date-time
+	LastScannedRepos *strfmt.DateTime `json:"last_scanned_repos,omitempty"`
+
+	// token
+	Token interface{} `json:"token,omitempty"`
+
+	// username
+	Username string `json:"username,omitempty"`
+}
+
+// Validate validates this run list items0 task submission user
+func (m *RunListItems0TaskSubmissionUser) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateErrors(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateLastScannedRepos(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *RunListItems0TaskSubmissionUser) validateErrors(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Errors) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.Errors); i++ {
+		if swag.IsZero(m.Errors[i]) { // not required
+			continue
+		}
+
+		if m.Errors[i] != nil {
+			if err := m.Errors[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("task" + "." + "submission" + "." + "user" + "." + "errors" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *RunListItems0TaskSubmissionUser) validateLastScannedRepos(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.LastScannedRepos) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("task"+"."+"submission"+"."+"user"+"."+"last_scanned_repos", "body", "date-time", m.LastScannedRepos.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *RunListItems0TaskSubmissionUser) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *RunListItems0TaskSubmissionUser) UnmarshalBinary(b []byte) error {
+	var res RunListItems0TaskSubmissionUser
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// RunListItems0TaskSubmissionUserErrorsItems0 run list items0 task submission user errors items0
+// swagger:model RunListItems0TaskSubmissionUserErrorsItems0
+type RunListItems0TaskSubmissionUserErrorsItems0 struct {
+
+	// error
+	Error string `json:"error,omitempty"`
+
+	// id
+	ID int64 `json:"id,omitempty"`
+}
+
+// Validate validates this run list items0 task submission user errors items0
+func (m *RunListItems0TaskSubmissionUserErrorsItems0) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *RunListItems0TaskSubmissionUserErrorsItems0) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *RunListItems0TaskSubmissionUserErrorsItems0) UnmarshalBinary(b []byte) error {
+	var res RunListItems0TaskSubmissionUserErrorsItems0
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

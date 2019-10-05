@@ -126,6 +126,12 @@
       //expect(instance).to.be();
     });
 
+    it('should have the property submission (base name: "submission")', function() {
+      // uncomment below and update the code to test the property submission
+      //var instane = new Uisvc.Task();
+      //expect(instance).to.be();
+    });
+
   });
 
 }));
