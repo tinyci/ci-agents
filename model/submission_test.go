@@ -278,16 +278,21 @@ func (ms *modelSuite) TestSubmissionTasks(c *check.C) {
 				}
 
 				gh := github.NewMockClient(mock)
+				var runCount int64
 				for _, task := range tasks {
 					owner, repo, err := task.Parent.OwnerRepo()
 					c.Assert(err, check.IsNil)
 					count, err := ms.model.CountRunsForTask(task.ID)
 					c.Assert(err, check.IsNil)
 
+					runCount += count
+
 					for i := int64(0); i < count; i++ {
 						gh.EXPECT().ErrorStatus(owner, repo, "default", task.Ref.SHA, gomock.Any(), gomock.Any())
 					}
 				}
+
+				c.Assert(s.RunsCount, check.Equals, runCount)
 
 				// checking that we can cancel submissions with canceled tasks in them
 				c.Assert(ms.model.CancelTask(tasks[0], "", gh), check.IsNil)

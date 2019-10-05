@@ -29,6 +29,7 @@ type Submission struct {
 	BaseRefID int64 `json:"-"`
 
 	TasksCount int64 `json:"tasks_count" gorm:"-"`
+	RunsCount  int64 `json:"runs_count" gorm:"-"`
 
 	Status *bool `json:"status" gorm:"-"`
 
@@ -67,6 +68,7 @@ func (s *Submission) ToProto() *gtypes.Submission {
 		HeadRef:    hr,
 		User:       pu,
 		TasksCount: s.TasksCount,
+		RunsCount:  s.RunsCount,
 		CreatedAt:  MakeTimestamp(&s.CreatedAt),
 		StartedAt:  MakeTimestamp(s.StartedAt),
 		FinishedAt: MakeTimestamp(s.FinishedAt),
@@ -126,6 +128,7 @@ func NewSubmissionFromProto(gt *gtypes.Submission) (*Submission, *errors.Error) 
 		BaseRef:    baseref,
 		HeadRef:    headref,
 		TasksCount: gt.TasksCount,
+		RunsCount:  gt.RunsCount,
 		CreatedAt:  *created,
 		FinishedAt: finished,
 		StartedAt:  started,
@@ -230,6 +233,27 @@ func (m *Model) submissionListQuery(repository, sha string) (*gorm.DB, *errors.E
 	return obj, nil
 }
 
+func (m *Model) assignCountFromQuery(query string, ids []int64) (map[int64]int64, *errors.Error) {
+	idmap := map[int64]int64{}
+
+	rows, err := m.Raw(query, ids).Rows()
+	if err != nil {
+		return nil, errors.New(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id, count int64
+		if err := rows.Scan(&id, &count); err != nil {
+			return nil, errors.New(err)
+		}
+
+		idmap[id] = count
+	}
+
+	return idmap, nil
+}
+
 func (m *Model) assignSubmissionPostFetch(subs []*Submission) *errors.Error {
 	idmap := map[int64]*Submission{}
 	ids := []int64{}
@@ -238,19 +262,35 @@ func (m *Model) assignSubmissionPostFetch(subs []*Submission) *errors.Error {
 		ids = append(ids, sub.ID)
 	}
 
-	rows, err := m.Raw("select distinct submission_id, count(*) from tasks where submission_id in (?) group by submission_id", ids).Rows()
+	idmap2, err := m.assignCountFromQuery(`
+		select 
+		distinct submission_id, count(*) 
+		from tasks 
+		where submission_id in (?) 
+		group by submission_id
+	`, ids)
 	if err != nil {
-		return errors.New(err)
+		return err
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var id, count int64
-		if err := rows.Scan(&id, &count); err != nil {
-			return errors.New(err)
-		}
-
+	for id, count := range idmap2 {
 		idmap[id].TasksCount = count
+	}
+
+	idmap2, err = m.assignCountFromQuery(`
+		select 
+		distinct tasks.submission_id, count(*) 
+		from runs
+			inner join tasks on tasks.id = runs.task_id
+		where tasks.submission_id in (?) 
+		group by tasks.submission_id
+	`, ids)
+	if err != nil {
+		return err
+	}
+
+	for id, count := range idmap2 {
+		idmap[id].RunsCount = count
 	}
 
 	return m.populateStates(ids, idmap)
