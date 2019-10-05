@@ -69,6 +69,9 @@ type ModelSubmissionListItems0 struct {
 	// id
 	ID int64 `json:"id,omitempty"`
 
+	// runs count
+	RunsCount int64 `json:"runs_count,omitempty"`
+
 	// started at
 	// Format: date-time
 	StartedAt *strfmt.DateTime `json:"started_at,omitempty"`

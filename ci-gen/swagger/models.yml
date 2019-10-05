@@ -323,6 +323,8 @@ definitions:
         x-nullable: true
       tasks_count:
         type: integer
+      runs_count:
+        type: integer
       status:
         type: boolean
         x-nullable: true

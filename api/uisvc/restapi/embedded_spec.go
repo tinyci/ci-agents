@@ -2784,6 +2784,9 @@ func init() {
         "id": {
           "type": "integer"
         },
+        "runs_count": {
+          "type": "integer"
+        },
         "started_at": {
           "type": "string",
           "format": "date-time",
@@ -2931,6 +2934,9 @@ func init() {
             }
           },
           "id": {
+            "type": "integer"
+          },
+          "runs_count": {
             "type": "integer"
           },
           "started_at": {

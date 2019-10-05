@@ -73,6 +73,9 @@ class ModelSubmission {
             if (data.hasOwnProperty('tasks_count')) {
                 obj['tasks_count'] = ApiClient.convertToType(data['tasks_count'], 'Number');
             }
+            if (data.hasOwnProperty('runs_count')) {
+                obj['runs_count'] = ApiClient.convertToType(data['runs_count'], 'Number');
+            }
             if (data.hasOwnProperty('status')) {
                 obj['status'] = ApiClient.convertToType(data['status'], 'Boolean');
             }
@@ -128,6 +131,11 @@ ModelSubmission.prototype['finished_at'] = undefined;
  * @member {Number} tasks_count
  */
 ModelSubmission.prototype['tasks_count'] = undefined;
+
+/**
+ * @member {Number} runs_count
+ */
+ModelSubmission.prototype['runs_count'] = undefined;
 
 /**
  * @member {Boolean} status

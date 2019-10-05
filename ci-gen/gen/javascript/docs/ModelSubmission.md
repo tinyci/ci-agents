@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **startedAt** | **Date** |  | [optional] 
 **finishedAt** | **Date** |  | [optional] 
 **tasksCount** | **Number** |  | [optional] 
+**runsCount** | **Number** |  | [optional] 
 **status** | **Boolean** |  | [optional] 
 **canceled** | **Boolean** |  | [optional] 
 **ticketId** | **Number** |  | [optional] 

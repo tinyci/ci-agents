@@ -22,6 +22,7 @@ message Submission {
   google.protobuf.Timestamp startedAt   = 10; // When it started
   bool                      canceled    = 11; // If the whole submission was canceled
   int64                     ticketID    = 12; // ID of the corresponding ticket in source control
+  int64                     runsCount   = 13; // The number of runs in this submission
 }
 
 message SubmissionList {
