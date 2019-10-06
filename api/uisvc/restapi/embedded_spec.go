@@ -2784,6 +2784,9 @@ func init() {
         "id": {
           "type": "integer"
         },
+        "runs_count": {
+          "type": "integer"
+        },
         "started_at": {
           "type": "string",
           "format": "date-time",
@@ -2931,6 +2934,9 @@ func init() {
             }
           },
           "id": {
+            "type": "integer"
+          },
+          "runs_count": {
             "type": "integer"
           },
           "started_at": {
@@ -3251,6 +3257,156 @@ func init() {
             "status": {
               "type": "boolean",
               "x-nullable": true
+            },
+            "submission": {
+              "type": "object",
+              "properties": {
+                "base_ref": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "ref_name": {
+                      "type": "string"
+                    },
+                    "repository": {
+                      "type": "object",
+                      "properties": {
+                        "auto_created": {
+                          "type": "boolean"
+                        },
+                        "disabled": {
+                          "type": "boolean"
+                        },
+                        "github": {
+                          "type": "object",
+                          "additionalProperties": true
+                        },
+                        "id": {
+                          "type": "integer"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "private": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "sha": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "canceled": {
+                  "type": "boolean"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "finished_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "x-nullable": true
+                },
+                "head_ref": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "ref_name": {
+                      "type": "string"
+                    },
+                    "repository": {
+                      "type": "object",
+                      "properties": {
+                        "auto_created": {
+                          "type": "boolean"
+                        },
+                        "disabled": {
+                          "type": "boolean"
+                        },
+                        "github": {
+                          "type": "object",
+                          "additionalProperties": true
+                        },
+                        "id": {
+                          "type": "integer"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "private": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "sha": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "id": {
+                  "type": "integer"
+                },
+                "runs_count": {
+                  "type": "integer"
+                },
+                "started_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "x-nullable": true
+                },
+                "status": {
+                  "type": "boolean",
+                  "x-nullable": true
+                },
+                "tasks_count": {
+                  "type": "integer"
+                },
+                "ticket_id": {
+                  "type": "integer"
+                },
+                "user": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "error": {
+                            "type": "string",
+                            "example": "achtung, baby!"
+                          },
+                          "id": {
+                            "type": "integer",
+                            "example": 1
+                          }
+                        }
+                      }
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "last_scanned_repos": {
+                      "type": "string",
+                      "format": "date-time",
+                      "x-nullable": true
+                    },
+                    "token": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "username": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -3495,6 +3651,156 @@ func init() {
               "status": {
                 "type": "boolean",
                 "x-nullable": true
+              },
+              "submission": {
+                "type": "object",
+                "properties": {
+                  "base_ref": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "ref_name": {
+                        "type": "string"
+                      },
+                      "repository": {
+                        "type": "object",
+                        "properties": {
+                          "auto_created": {
+                            "type": "boolean"
+                          },
+                          "disabled": {
+                            "type": "boolean"
+                          },
+                          "github": {
+                            "type": "object",
+                            "additionalProperties": true
+                          },
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "private": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      "sha": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "canceled": {
+                    "type": "boolean"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "finished_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "x-nullable": true
+                  },
+                  "head_ref": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "ref_name": {
+                        "type": "string"
+                      },
+                      "repository": {
+                        "type": "object",
+                        "properties": {
+                          "auto_created": {
+                            "type": "boolean"
+                          },
+                          "disabled": {
+                            "type": "boolean"
+                          },
+                          "github": {
+                            "type": "object",
+                            "additionalProperties": true
+                          },
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "private": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      "sha": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "id": {
+                    "type": "integer"
+                  },
+                  "runs_count": {
+                    "type": "integer"
+                  },
+                  "started_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "x-nullable": true
+                  },
+                  "status": {
+                    "type": "boolean",
+                    "x-nullable": true
+                  },
+                  "tasks_count": {
+                    "type": "integer"
+                  },
+                  "ticket_id": {
+                    "type": "integer"
+                  },
+                  "user": {
+                    "type": "object",
+                    "properties": {
+                      "errors": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "error": {
+                              "type": "string",
+                              "example": "achtung, baby!"
+                            },
+                            "id": {
+                              "type": "integer",
+                              "example": 1
+                            }
+                          }
+                        }
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "last_scanned_repos": {
+                        "type": "string",
+                        "format": "date-time",
+                        "x-nullable": true
+                      },
+                      "token": {
+                        "type": "object",
+                        "additionalProperties": true
+                      },
+                      "username": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -3681,6 +3987,156 @@ func init() {
           "status": {
             "type": "boolean",
             "x-nullable": true
+          },
+          "submission": {
+            "type": "object",
+            "properties": {
+              "base_ref": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "ref_name": {
+                    "type": "string"
+                  },
+                  "repository": {
+                    "type": "object",
+                    "properties": {
+                      "auto_created": {
+                        "type": "boolean"
+                      },
+                      "disabled": {
+                        "type": "boolean"
+                      },
+                      "github": {
+                        "type": "object",
+                        "additionalProperties": true
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "private": {
+                        "type": "boolean"
+                      }
+                    }
+                  },
+                  "sha": {
+                    "type": "string"
+                  }
+                }
+              },
+              "canceled": {
+                "type": "boolean"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "finished_at": {
+                "type": "string",
+                "format": "date-time",
+                "x-nullable": true
+              },
+              "head_ref": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "ref_name": {
+                    "type": "string"
+                  },
+                  "repository": {
+                    "type": "object",
+                    "properties": {
+                      "auto_created": {
+                        "type": "boolean"
+                      },
+                      "disabled": {
+                        "type": "boolean"
+                      },
+                      "github": {
+                        "type": "object",
+                        "additionalProperties": true
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "private": {
+                        "type": "boolean"
+                      }
+                    }
+                  },
+                  "sha": {
+                    "type": "string"
+                  }
+                }
+              },
+              "id": {
+                "type": "integer"
+              },
+              "runs_count": {
+                "type": "integer"
+              },
+              "started_at": {
+                "type": "string",
+                "format": "date-time",
+                "x-nullable": true
+              },
+              "status": {
+                "type": "boolean",
+                "x-nullable": true
+              },
+              "tasks_count": {
+                "type": "integer"
+              },
+              "ticket_id": {
+                "type": "integer"
+              },
+              "user": {
+                "type": "object",
+                "properties": {
+                  "errors": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "achtung, baby!"
+                        },
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        }
+                      }
+                    }
+                  },
+                  "id": {
+                    "type": "integer"
+                  },
+                  "last_scanned_repos": {
+                    "type": "string",
+                    "format": "date-time",
+                    "x-nullable": true
+                  },
+                  "token": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "username": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
           }
         }
       }

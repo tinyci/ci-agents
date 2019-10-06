@@ -16,5 +16,6 @@ Name | Type | Description | Notes
 **status** | **Boolean** |  | [optional] 
 **id** | **Number** |  | [optional] 
 **runs** | **Number** |  | [optional] 
+**submission** | [**ModelSubmission**](ModelSubmission.md) |  | [optional] 
 
 

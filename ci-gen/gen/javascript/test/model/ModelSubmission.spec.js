@@ -102,6 +102,12 @@
       //expect(instance).to.be();
     });
 
+    it('should have the property runsCount (base name: "runs_count")', function() {
+      // uncomment below and update the code to test the property runsCount
+      //var instane = new Uisvc.ModelSubmission();
+      //expect(instance).to.be();
+    });
+
     it('should have the property status (base name: "status")', function() {
       // uncomment below and update the code to test the property status
       //var instane = new Uisvc.ModelSubmission();
