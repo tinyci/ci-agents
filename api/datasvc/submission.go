@@ -21,6 +21,27 @@ func (ds *DataServer) GetSubmission(ctx context.Context, id *types.IntID) (*type
 	return s.ToProto(), nil
 }
 
+// GetSubmissionRuns returns the runs associated with the provided submission.
+func (ds *DataServer) GetSubmissionRuns(ctx context.Context, sub *data.SubmissionQuery) (*types.RunList, error) {
+	protoSub, err := model.NewSubmissionFromProto(sub.Submission)
+	if err != nil {
+		return nil, err.ToGRPC(codes.FailedPrecondition)
+	}
+
+	runs, err := ds.H.Model.RunsForSubmission(protoSub, sub.Page, sub.PerPage)
+	if err != nil {
+		return nil, err.ToGRPC(codes.FailedPrecondition)
+	}
+
+	rl := &types.RunList{}
+
+	for _, run := range runs {
+		rl.List = append(rl.List, run.ToProto())
+	}
+
+	return rl, nil
+}
+
 // GetSubmissionTasks returns the tasks associated with the provided submission.
 func (ds *DataServer) GetSubmissionTasks(ctx context.Context, sub *data.SubmissionQuery) (*types.TaskList, error) {
 	protoSub, err := model.NewSubmissionFromProto(sub.Submission)

@@ -102,6 +102,8 @@ service Data {
   rpc GetSubmission(types.IntID)                              returns (types.Submission)      {};
   // Obtain the tasks for a submission
   rpc GetSubmissionTasks(SubmissionQuery)                     returns (types.TaskList)        {};
+  // Obtain the runs for a submission
+  rpc GetSubmissionRuns(SubmissionQuery)                      returns (types.RunList)        {};
   // List the submissions with pagination
   rpc ListSubmissions(RepositoryFilterRequestWithPagination)  returns (types.SubmissionList)  {};
   // Count of all submissions optionally filtered by repository and sha

@@ -24,6 +24,31 @@ func GetSubmission(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.E
 	return sub, 200, nil
 }
 
+// GetSubmissionRuns retrieves a submission's runs from the submission id
+func GetSubmissionRuns(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+	id, eErr := strconv.ParseInt(ctx.GetString("id"), 10, 64)
+	if eErr != nil {
+		return nil, 500, errors.New(eErr)
+	}
+
+	sub, err := h.Clients.Data.GetSubmissionByID(id)
+	if err != nil {
+		return nil, 500, err
+	}
+
+	page, perPage, err := utils.ScopePagination(ctx.GetString("page"), ctx.GetString("perPage"))
+	if err != nil {
+		return nil, 500, err
+	}
+
+	runs, err := h.Clients.Data.GetRunsForSubmission(sub, page, perPage)
+	if err != nil {
+		return nil, 500, err
+	}
+
+	return runs, 200, nil
+}
+
 // GetSubmissionTasks retrieves a submission's task from the submission id
 func GetSubmissionTasks(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	id, eErr := strconv.ParseInt(ctx.GetString("id"), 10, 64)

@@ -802,6 +802,57 @@ func init() {
         }
       }
     },
+    "/submission/{id}/runs": {
+      "get": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Retrieve a Submission's runs by ID; this will return the list of runs with pagination.",
+        "summary": "Get submission runs by ID",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "The ID of the submission to retrieve",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "default": 0,
+            "description": "pagination control: what page to retrieve in the query.",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 100,
+            "description": "pagination control: how many items counts as a page.",
+            "name": "perPage",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "../models.yml#/definitions/RunList"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "../models.yml#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/submission/{id}/tasks": {
       "get": {
         "security": [
@@ -2127,6 +2178,57 @@ func init() {
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/submission/{id}/runs": {
+      "get": {
+        "security": [
+          {
+            "token": []
+          },
+          {
+            "session": []
+          }
+        ],
+        "description": "Retrieve a Submission's runs by ID; this will return the list of runs with pagination.",
+        "summary": "Get submission runs by ID",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "The ID of the submission to retrieve",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "default": 0,
+            "description": "pagination control: what page to retrieve in the query.",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 100,
+            "description": "pagination control: how many items counts as a page.",
+            "name": "perPage",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/runList"
+            }
           },
           "500": {
             "description": "Internal Server Error",

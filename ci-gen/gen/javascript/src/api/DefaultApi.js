@@ -983,6 +983,55 @@ export default class DefaultApi {
     }
 
     /**
+     * Callback function to receive the result of the submissionIdRunsGet operation.
+     * @callback module:api/DefaultApi~submissionIdRunsGetCallback
+     * @param {String} error Error message, if any.
+     * @param {Array.<module:model/Run>} data The data returned by the service call.
+     * @param {String} response The complete HTTP response.
+     */
+
+    /**
+     * Get submission runs by ID
+     * Retrieve a Submission's runs by ID; this will return the list of runs with pagination.
+     * @param {Number} id The ID of the submission to retrieve
+     * @param {Object} opts Optional parameters
+     * @param {Number} opts.page pagination control: what page to retrieve in the query. (default to 0)
+     * @param {Number} opts.perPage pagination control: how many items counts as a page. (default to 100)
+     * @param {module:api/DefaultApi~submissionIdRunsGetCallback} callback The callback function, accepting three arguments: error, data, response
+     * data is of type: {@link Array.<module:model/Run>}
+     */
+    submissionIdRunsGet(id, opts, callback) {
+      opts = opts || {};
+      let postBody = null;
+      // verify the required parameter 'id' is set
+      if (id === undefined || id === null) {
+        throw new Error("Missing the required parameter 'id' when calling submissionIdRunsGet");
+      }
+
+      let pathParams = {
+        'id': id
+      };
+      let queryParams = {
+        'page': opts['page'],
+        'perPage': opts['perPage']
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = ['session', 'token'];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = [Run];
+      return this.apiClient.callApi(
+        '/submission/{id}/runs', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null, callback
+      );
+    }
+
+    /**
      * Callback function to receive the result of the submissionIdTasksGet operation.
      * @callback module:api/DefaultApi~submissionIdTasksGetCallback
      * @param {String} error Error message, if any.

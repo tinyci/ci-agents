@@ -241,10 +241,13 @@ func (ms *modelSuite) TestSubmissionTasks(c *check.C) {
 	for success, subs := range Fixtures {
 		if success {
 			subTaskMap := map[int64][]*Task{}
+			subIDMap := map[int64]*Submission{}
 
 			for _, sub := range subs {
 				s, err := ms.CreateSubmission(sub)
 				c.Assert(err, check.IsNil)
+
+				subIDMap[s.ID] = s
 
 				for i := 0; i < 200; i++ {
 					t, err := ms.CreateTaskForSubmission(s)
@@ -279,11 +282,24 @@ func (ms *modelSuite) TestSubmissionTasks(c *check.C) {
 
 				gh := github.NewMockClient(mock)
 				var runCount int64
+				runs := []*Run{}
+
 				for _, task := range tasks {
 					owner, repo, err := task.Parent.OwnerRepo()
 					c.Assert(err, check.IsNil)
 					count, err := ms.model.CountRunsForTask(task.ID)
 					c.Assert(err, check.IsNil)
+
+					var i int64
+					for {
+						r, err := ms.model.GetRunsForTask(task.ID, i, 100)
+						c.Assert(err, check.IsNil)
+						runs = append(runs, r...)
+						if len(r) == 0 {
+							break
+						}
+						i++
+					}
 
 					runCount += count
 
@@ -293,6 +309,21 @@ func (ms *modelSuite) TestSubmissionTasks(c *check.C) {
 				}
 
 				c.Assert(s.RunsCount, check.Equals, runCount)
+
+				newRuns := []*Run{}
+				var i int64
+				for {
+					r, err := ms.model.RunsForSubmission(subIDMap[subID], i, 100)
+					c.Assert(err, check.IsNil)
+
+					newRuns = append(newRuns, r...)
+					if len(r) == 0 {
+						break
+					}
+					i++
+				}
+
+				c.Assert(runs, check.DeepEquals, newRuns)
 
 				// checking that we can cancel submissions with canceled tasks in them
 				c.Assert(ms.model.CancelTask(tasks[0], "", gh), check.IsNil)
