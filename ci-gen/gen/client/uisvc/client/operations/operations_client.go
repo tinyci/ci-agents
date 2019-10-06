@@ -1149,6 +1149,67 @@ func (c *Client) GetSubmissionID(ctx context.Context, id int64) (*models.ModelSu
 
 }
 
+// GetSubmissionIDRuns get submission runs by ID
+func (c *Client) GetSubmissionIDRuns(ctx context.Context, id int64, page int64, perPage int64) (models.RunList, *errors.Error) {
+	route := "/submission/{id}/runs"
+	route = strings.Replace(route, "{id}", url.PathEscape(fmt.Sprintf("%v", id)), -1)
+
+	tmp := *c.url
+	u := &tmp
+	u.Path += route
+
+	m := map[string]interface{}{}
+
+	m["page"] = page
+
+	m["perPage"] = perPage
+
+	if len(m) > 0 {
+		q := u.Query()
+
+		for key, value := range m {
+			q.Add(key, fmt.Sprintf("%v", value))
+		}
+
+		u.RawQuery = q.Encode()
+	}
+
+	var body []byte
+
+	req, err := http.NewRequest("GET", u.String(), bytes.NewBuffer(body))
+	if err != nil {
+		return make(models.RunList, 0, 50), errors.New(err)
+	}
+
+	req.Header.Add("Authorization", c.token)
+
+	resp, err := c.client.Do(req.WithContext(ctx))
+	if err != nil {
+		return make(models.RunList, 0, 50), errors.New(err)
+	}
+
+	if resp.StatusCode == 500 {
+		origErr := &errors.Error{}
+
+		if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
+			return make(models.RunList, 0, 50), errors.New(err)
+		}
+
+		return make(models.RunList, 0, 50), origErr
+	}
+
+	defer resp.Body.Close()
+
+	var result models.RunList
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return make(models.RunList, 0, 50), errors.New(err)
+	}
+
+	return result, nil
+
+}
+
 // GetSubmissionIDTasks get submission tasks by ID
 func (c *Client) GetSubmissionIDTasks(ctx context.Context, id int64, page int64, perPage int64) (models.TaskList, *errors.Error) {
 	route := "/submission/{id}/tasks"

@@ -29,6 +29,26 @@ func (c *Client) GetSubmissionByID(id int64) (*model.Submission, *errors.Error) 
 	return model.NewSubmissionFromProto(s)
 }
 
+// GetRunsForSubmission returns the runs for the given submission; with pagination
+func (c *Client) GetRunsForSubmission(sub *model.Submission, page, perPage int64) ([]*model.Run, *errors.Error) {
+	runs, err := c.client.GetSubmissionRuns(context.Background(), &data.SubmissionQuery{Submission: sub.ToProto(), Page: page, PerPage: perPage})
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	list := []*model.Run{}
+
+	for _, run := range runs.List {
+		r, err := model.NewRunFromProto(run)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, r)
+	}
+
+	return list, nil
+}
+
 // GetTasksForSubmission returns the tasks for the given submission; with pagination
 func (c *Client) GetTasksForSubmission(sub *model.Submission, page, perPage int64) ([]*model.Task, *errors.Error) {
 	tasks, err := c.client.GetSubmissionTasks(context.Background(), &data.SubmissionQuery{Submission: sub.ToProto(), Page: page, PerPage: perPage})

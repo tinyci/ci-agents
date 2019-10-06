@@ -423,6 +423,13 @@ func (m *Model) submissionTasksQuery(sub *Submission) *gorm.DB {
 		Where("submissions.id = ?", sub.ID)
 }
 
+func (m *Model) submissionRunsQuery(sub *Submission) *gorm.DB {
+	return m.Order("runs.id, tasks.id DESC").
+		Joins("inner join tasks on runs.task_id = tasks.id").
+		Joins("inner join submissions on tasks.submission_id = submissions.id").
+		Where("submissions.id = ?", sub.ID)
+}
+
 // TasksForSubmission returns all the tasks for a given submission.
 func (m *Model) TasksForSubmission(sub *Submission, page, perPage int64) ([]*Task, *errors.Error) {
 	tasks := []*Task{}
@@ -433,6 +440,18 @@ func (m *Model) TasksForSubmission(sub *Submission, page, perPage int64) ([]*Tas
 	}
 
 	return tasks, m.assignRunCountsToTask(tasks)
+}
+
+// RunsForSubmission returns all the runs that are associated with the given submission.
+func (m *Model) RunsForSubmission(sub *Submission, page, perPage int64) ([]*Run, *errors.Error) {
+	runs := []*Run{}
+
+	obj := m.submissionRunsQuery(sub).Offset(page * perPage).Limit(perPage)
+	if err := m.WrapError(obj.Find(&runs), "listing runs for a submission"); err != nil {
+		return nil, err
+	}
+
+	return runs, nil
 }
 
 // GetSubmissionByID returns a submission by internal identifier
