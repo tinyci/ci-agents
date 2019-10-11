@@ -15,6 +15,48 @@ var testToken = &types.OAuthToken{
 	Token: "123456",
 }
 
+func (ms *modelSuite) TestUserTokens(c *check.C) {
+	usr, err := ms.model.CreateUser("roz", testToken)
+	c.Assert(err, check.IsNil)
+	testTokenJSON, e := json.Marshal(testToken)
+	if e != nil {
+		c.Error("error while marshalling")
+	}
+
+	usrJSON, e := json.Marshal(usr)
+	if e != nil {
+		c.Error("error while marshalling")
+	}
+
+	if strings.Contains(string(usrJSON), string(testTokenJSON)) {
+		c.Error("contains TokenJSON")
+	}
+
+	typesUser := usr.ToProto()
+	usr2, err := NewUserFromProto(typesUser)
+	c.Check(err, check.IsNil)
+	usr2JSON, e := json.Marshal(usr2)
+	if e != nil {
+		c.Error("error while marshalling")
+	}
+
+	c.Check(usr2JSON, check.DeepEquals, usrJSON)
+	usrList := []*User{usr, usr2}
+	usrListJSON, e := json.Marshal(usrList)
+	if e != nil {
+		c.Error("error while marshalling")
+
+	}
+
+	usr2List, err := MakeUsers(MakeUserList(usrList))
+	c.Check(err, check.IsNil)
+	usr2ListJSON, e := json.Marshal(usr2List)
+	c.Check(usrListJSON, check.DeepEquals, usr2ListJSON)
+	if strings.Contains(string(usrListJSON), string(testTokenJSON)) {
+		c.Error("contains TokenJSON")
+	}
+}
+
 func (ms *modelSuite) TestCapabilityModification(c *check.C) {
 	caps := []Capability{CapabilityCancel, CapabilityModifyCI, CapabilityModifyUser, CapabilitySubmit}
 
