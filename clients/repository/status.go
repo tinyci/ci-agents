@@ -8,8 +8,8 @@ import (
 )
 
 // CommentError is for commenting on PRs when there is no better means of bubbling up an error.
-func (c *Client) CommentError(repoName string, prID int64, errstr string) *errors.Error {
-	_, err := c.client.CommentError(context.Background(), &repository.CommentErrorRequest{RepoName: repoName, PrID: prID, Error: errstr})
+func (c *Client) CommentError(ctx context.Context, repoName string, prID int64, errstr string) *errors.Error {
+	_, err := c.client.CommentError(ctx, &repository.CommentErrorRequest{RepoName: repoName, PrID: prID, Error: errstr})
 	if err != nil {
 		return errors.New(err)
 	}
@@ -18,8 +18,8 @@ func (c *Client) CommentError(repoName string, prID int64, errstr string) *error
 }
 
 // PendingStatus updates the status for the sha for the given repo.
-func (c *Client) PendingStatus(repoName, sha, runName, url string) *errors.Error {
-	_, err := c.client.PendingStatus(context.Background(), &repository.StatusRequest{RepoName: repoName, Sha: sha, RunName: runName, Url: url})
+func (c *Client) PendingStatus(ctx context.Context, repoName, sha, runName, url string) *errors.Error {
+	_, err := c.client.PendingStatus(ctx, &repository.StatusRequest{RepoName: repoName, Sha: sha, RunName: runName, Url: url})
 	if err != nil {
 		return errors.New(err)
 	}
@@ -28,8 +28,8 @@ func (c *Client) PendingStatus(repoName, sha, runName, url string) *errors.Error
 }
 
 // StartedStatus updates the status for the sha for the given repo.
-func (c *Client) StartedStatus(repoName, sha, runName, url string) *errors.Error {
-	_, err := c.client.StartedStatus(context.Background(), &repository.StatusRequest{RepoName: repoName, Sha: sha, RunName: runName, Url: url})
+func (c *Client) StartedStatus(ctx context.Context, repoName, sha, runName, url string) *errors.Error {
+	_, err := c.client.StartedStatus(ctx, &repository.StatusRequest{RepoName: repoName, Sha: sha, RunName: runName, Url: url})
 	if err != nil {
 		return errors.New(err)
 	}
@@ -38,8 +38,8 @@ func (c *Client) StartedStatus(repoName, sha, runName, url string) *errors.Error
 }
 
 // ErrorStatus updates the status for the sha for the given repo.
-func (c *Client) ErrorStatus(repoName, sha, runName, url string, eErr error) *errors.Error {
-	_, err := c.client.ErrorStatus(context.Background(), &repository.ErrorStatusRequest{
+func (c *Client) ErrorStatus(ctx context.Context, repoName, sha, runName, url string, eErr error) *errors.Error {
+	_, err := c.client.ErrorStatus(ctx, &repository.ErrorStatusRequest{
 		RepoName: repoName,
 		Sha:      sha,
 		RunName:  runName,
@@ -54,8 +54,8 @@ func (c *Client) ErrorStatus(repoName, sha, runName, url string, eErr error) *er
 }
 
 // FinishedStatus updates the status for the sha for the given repo.
-func (c *Client) FinishedStatus(repoName, sha, runName, url string, status bool, msg string) *errors.Error {
-	_, err := c.client.FinishedStatus(context.Background(), &repository.FinishedStatusRequest{
+func (c *Client) FinishedStatus(ctx context.Context, repoName, sha, runName, url string, status bool, msg string) *errors.Error {
+	_, err := c.client.FinishedStatus(ctx, &repository.FinishedStatusRequest{
 		RepoName: repoName,
 		Sha:      sha,
 		RunName:  runName,
@@ -72,8 +72,8 @@ func (c *Client) FinishedStatus(repoName, sha, runName, url string, status bool,
 
 // ClearStates removes all status reports from a SHA in an attempt to restart
 // the process.
-func (c *Client) ClearStates(repoName, sha string) *errors.Error {
-	_, err := c.client.ClearStates(context.Background(), &repository.RepoSHAPair{RepoName: repoName, Sha: sha})
+func (c *Client) ClearStates(ctx context.Context, repoName, sha string) *errors.Error {
+	_, err := c.client.ClearStates(ctx, &repository.RepoSHAPair{RepoName: repoName, Sha: sha})
 	if err != nil {
 		return errors.New(err)
 	}

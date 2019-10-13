@@ -10,8 +10,8 @@ import (
 )
 
 // PutSubmission puts a submission into the datasvc. Updates the created_at time.
-func (c *Client) PutSubmission(sub *model.Submission) (*model.Submission, *errors.Error) {
-	s, err := c.client.PutSubmission(context.Background(), sub.ToProto())
+func (c *Client) PutSubmission(ctx context.Context, sub *model.Submission) (*model.Submission, *errors.Error) {
+	s, err := c.client.PutSubmission(ctx, sub.ToProto())
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -20,8 +20,8 @@ func (c *Client) PutSubmission(sub *model.Submission) (*model.Submission, *error
 }
 
 // GetSubmissionByID returns the submission for the given ID.
-func (c *Client) GetSubmissionByID(id int64) (*model.Submission, *errors.Error) {
-	s, err := c.client.GetSubmission(context.Background(), &types.IntID{ID: id})
+func (c *Client) GetSubmissionByID(ctx context.Context, id int64) (*model.Submission, *errors.Error) {
+	s, err := c.client.GetSubmission(ctx, &types.IntID{ID: id})
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -30,8 +30,8 @@ func (c *Client) GetSubmissionByID(id int64) (*model.Submission, *errors.Error) 
 }
 
 // GetRunsForSubmission returns the runs for the given submission; with pagination
-func (c *Client) GetRunsForSubmission(sub *model.Submission, page, perPage int64) ([]*model.Run, *errors.Error) {
-	runs, err := c.client.GetSubmissionRuns(context.Background(), &data.SubmissionQuery{Submission: sub.ToProto(), Page: page, PerPage: perPage})
+func (c *Client) GetRunsForSubmission(ctx context.Context, sub *model.Submission, page, perPage int64) ([]*model.Run, *errors.Error) {
+	runs, err := c.client.GetSubmissionRuns(ctx, &data.SubmissionQuery{Submission: sub.ToProto(), Page: page, PerPage: perPage})
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -50,8 +50,8 @@ func (c *Client) GetRunsForSubmission(sub *model.Submission, page, perPage int64
 }
 
 // GetTasksForSubmission returns the tasks for the given submission; with pagination
-func (c *Client) GetTasksForSubmission(sub *model.Submission, page, perPage int64) ([]*model.Task, *errors.Error) {
-	tasks, err := c.client.GetSubmissionTasks(context.Background(), &data.SubmissionQuery{Submission: sub.ToProto(), Page: page, PerPage: perPage})
+func (c *Client) GetTasksForSubmission(ctx context.Context, sub *model.Submission, page, perPage int64) ([]*model.Task, *errors.Error) {
+	tasks, err := c.client.GetSubmissionTasks(ctx, &data.SubmissionQuery{Submission: sub.ToProto(), Page: page, PerPage: perPage})
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -71,8 +71,8 @@ func (c *Client) GetTasksForSubmission(sub *model.Submission, page, perPage int6
 
 // ListSubmissions lists the submissions with pagination, and an optional (just
 // pass empty strings if undesired) repository and sha filter.
-func (c *Client) ListSubmissions(page, perPage int64, repository, sha string) ([]*model.Submission, *errors.Error) {
-	list, err := c.client.ListSubmissions(context.Background(), &data.RepositoryFilterRequestWithPagination{Page: page, PerPage: perPage, Repository: repository, Sha: sha})
+func (c *Client) ListSubmissions(ctx context.Context, page, perPage int64, repository, sha string) ([]*model.Submission, *errors.Error) {
+	list, err := c.client.ListSubmissions(ctx, &data.RepositoryFilterRequestWithPagination{Page: page, PerPage: perPage, Repository: repository, Sha: sha})
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -93,8 +93,8 @@ func (c *Client) ListSubmissions(page, perPage int64, repository, sha string) ([
 
 // CountSubmissions returns the count of all submissions that meet the optional
 // filtering requirements.
-func (c *Client) CountSubmissions(repository, sha string) (int64, *errors.Error) {
-	count, err := c.client.CountSubmissions(context.Background(), &data.RepositoryFilterRequest{Repository: repository, Sha: sha})
+func (c *Client) CountSubmissions(ctx context.Context, repository, sha string) (int64, *errors.Error) {
+	count, err := c.client.CountSubmissions(ctx, &data.RepositoryFilterRequest{Repository: repository, Sha: sha})
 	if err != nil {
 		return 0, errors.New(err)
 	}
@@ -103,8 +103,8 @@ func (c *Client) CountSubmissions(repository, sha string) (int64, *errors.Error)
 }
 
 // CancelSubmission cancels a submission by ID.
-func (c *Client) CancelSubmission(id int64) *errors.Error {
-	if _, err := c.client.CancelSubmission(context.Background(), &types.IntID{ID: id}); err != nil {
+func (c *Client) CancelSubmission(ctx context.Context, id int64) *errors.Error {
+	if _, err := c.client.CancelSubmission(ctx, &types.IntID{ID: id}); err != nil {
 		return errors.New(err)
 	}
 

@@ -27,7 +27,7 @@ func LoggedIn(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error)
 	_, err := h.GetGithub(ctx)
 	if err != nil {
 		var err *errors.Error
-		res, err = h.Clients.Auth.GetOAuthURL(nil)
+		res, err = h.Clients.Auth.GetOAuthURL(ctx, nil)
 		if err != nil {
 			return nil, 500, err
 		}
@@ -52,7 +52,7 @@ func Logout(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 // Login processes the oauth response and optionally redirects the user if not
 // logged in already.
 func Login(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	oauthinfo, err := h.Clients.Auth.OAuthChallenge(ctx.Query("state"), ctx.Query("code"))
+	oauthinfo, err := h.Clients.Auth.OAuthChallenge(ctx, ctx.Query("state"), ctx.Query("code"))
 	if err != nil {
 		return nil, 500, err
 	}
@@ -81,7 +81,7 @@ func GetUserProperties(h *handlers.H, ctx *gin.Context) (interface{}, int, *erro
 		return nil, 500, err
 	}
 
-	caps, err := h.Clients.Data.GetCapabilities(user)
+	caps, err := h.Clients.Data.GetCapabilities(ctx, user)
 	if err != nil {
 		return nil, 500, err
 	}

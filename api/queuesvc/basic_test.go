@@ -19,6 +19,8 @@ import (
 	"github.com/tinyci/ci-agents/types"
 )
 
+var ctx = context.Background()
+
 func (qs *queuesvcSuite) getMock() *github.MockClientMockRecorder {
 	return config.DefaultGithubClient.(*github.MockClient).EXPECT()
 }
@@ -60,12 +62,12 @@ func (qs *queuesvcSuite) TestBadYAML(c *check.C) {
 	qs.getMock().GetFile(gomock.Any(), sub.Fork, sub.HeadSHA, "task.yml").Return(taskBytes, nil)
 
 	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
-	c.Assert(qs.datasvcClient.Client().EnableRepository("erikh", sub.Parent), check.IsNil)
+	c.Assert(qs.datasvcClient.Client().EnableRepository(ctx, "erikh", sub.Parent), check.IsNil)
 
 	qs.getMock().FinishedStatus(gomock.Any(), "erikh", "foobar", "*global*", "be3d26c478991039e951097f2c99f56b55396940", "url", false, gomock.Any()).Return(nil)
 
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.NotNil)
-	runs, err := qs.datasvcClient.Client().ListRuns("", "", 0, 100)
+	runs, err := qs.datasvcClient.Client().ListRuns(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 0)
 }
@@ -91,7 +93,7 @@ func (qs *queuesvcSuite) TestManualSubmissionOfAddedFork(c *check.C) {
 	c.Assert(qs.queuesvcClient.Client().Submit(ctx, sub), check.IsNil)
 	defer cancel()
 
-	runs, err := qs.datasvcClient.Client().ListRuns("erikh/foobar2", "", 0, 100)
+	runs, err := qs.datasvcClient.Client().ListRuns(ctx, "erikh/foobar2", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 15)
 
@@ -135,7 +137,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), msub), check.IsNil)
 
-	qis, err := qs.datasvcClient.Client().ListRuns(sub.Fork, "be3d26c478991039e951097f2c99f56b55396940", 0, 100)
+	qis, err := qs.datasvcClient.Client().ListRuns(ctx, sub.Fork, "be3d26c478991039e951097f2c99f56b55396940", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(qis), check.Equals, 10)
 	for i := len(qis) - 1; i >= 0; i-- {
@@ -173,7 +175,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), msub), check.IsNil)
 
-	qis, err = qs.datasvcClient.Client().ListRuns(sub.Fork, "be3d26c478991039e951097f2c99f56b55396942", 0, 100)
+	qis, err = qs.datasvcClient.Client().ListRuns(ctx, sub.Fork, "be3d26c478991039e951097f2c99f56b55396942", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(qis), check.Equals, 10)
 
@@ -200,7 +202,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), msub), check.IsNil)
 
-	qis, err = qs.datasvcClient.Client().ListRuns(sub.Fork, "be3d26c478991039e951097f2c99f56b55396942", 0, 100)
+	qis, err = qs.datasvcClient.Client().ListRuns(ctx, sub.Fork, "be3d26c478991039e951097f2c99f56b55396942", 0, 100)
 	c.Assert(err, check.IsNil)
 	qis2 := []*model.Run{}
 
@@ -228,7 +230,7 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
-	runs, err := qs.datasvcClient.Client().ListRuns("", "", 0, 100)
+	runs, err := qs.datasvcClient.Client().ListRuns(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 10)
 
@@ -245,7 +247,7 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
-	runs, err = qs.datasvcClient.Client().ListRuns("", "", 0, 100)
+	runs, err = qs.datasvcClient.Client().ListRuns(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 20)
 }
@@ -292,14 +294,14 @@ func (qs *queuesvcSuite) TestSubmission(c *check.C) {
 	}
 
 	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
-	c.Assert(qs.datasvcClient.Client().EnableRepository("erikh", sub.Parent), check.IsNil)
+	c.Assert(qs.datasvcClient.Client().EnableRepository(ctx, "erikh", sub.Parent), check.IsNil)
 
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
-	runs, err := qs.datasvcClient.Client().ListRuns("", "", 0, 100)
+	runs, err := qs.datasvcClient.Client().ListRuns(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 10)
 
-	tasks, err := qs.datasvcClient.Client().ListTasks("", "", 0, 100)
+	tasks, err := qs.datasvcClient.Client().ListTasks(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(tasks[0].Runs, check.Not(check.Equals), int64(0))
 	c.Assert(tasks[1].Runs, check.Not(check.Equals), int64(0))
@@ -365,14 +367,14 @@ func (qs *queuesvcSuite) TestDependencies(c *check.C) {
 	}
 
 	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
-	c.Assert(qs.datasvcClient.Client().EnableRepository("erikh", sub.Parent), check.IsNil)
+	c.Assert(qs.datasvcClient.Client().EnableRepository(ctx, "erikh", sub.Parent), check.IsNil)
 
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
-	runs, err := qs.datasvcClient.Client().ListRuns("", "", 0, 100)
+	runs, err := qs.datasvcClient.Client().ListRuns(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 6)
 
-	tasks, err := qs.datasvcClient.Client().ListTasks("", "", 0, 100)
+	tasks, err := qs.datasvcClient.Client().ListTasks(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(tasks), check.Equals, 2)
 	c.Assert(tasks[0].Runs, check.Not(check.Equals), int64(0))
@@ -397,7 +399,7 @@ func (qs *queuesvcSuite) TestBasic(c *check.C) {
 	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
 
 	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false, ""), check.IsNil)
-	c.Assert(qs.datasvcClient.Client().EnableRepository("erikh", "erikh/foobar"), check.IsNil)
+	c.Assert(qs.datasvcClient.Client().EnableRepository(ctx, "erikh", "erikh/foobar"), check.IsNil)
 
 	gomock.InOrder(
 		qs.getMock().GetRepository(gomock.Any(), "erikh/foobar2").Return(&gh.Repository{FullName: gh.String("erikh/foobar2")}, nil),

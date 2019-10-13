@@ -28,8 +28,8 @@ func makeRepoList(list *types.RepositoryList) (model.RepositoryList, *errors.Err
 }
 
 // GetRepository retrieves a repository by name.
-func (c *Client) GetRepository(name string) (*model.Repository, *errors.Error) {
-	repo, err := c.client.GetRepository(context.Background(), &data.Name{Name: name}, grpc.WaitForReady(true))
+func (c *Client) GetRepository(ctx context.Context, name string) (*model.Repository, *errors.Error) {
+	repo, err := c.client.GetRepository(ctx, &data.Name{Name: name}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -38,13 +38,13 @@ func (c *Client) GetRepository(name string) (*model.Repository, *errors.Error) {
 }
 
 // PutRepositories takes a list of github repositories and adds them to the database for the user as owner.
-func (c *Client) PutRepositories(name string, github []*github.Repository, autoCreated bool) *errors.Error {
+func (c *Client) PutRepositories(ctx context.Context, name string, github []*github.Repository, autoCreated bool) *errors.Error {
 	content, err := json.Marshal(github)
 	if err != nil {
 		return errors.New(err)
 	}
 
-	_, err = c.client.SaveRepositories(context.Background(), &data.GithubJSON{JSON: content, Username: name, AutoCreated: autoCreated}, grpc.WaitForReady(true))
+	_, err = c.client.SaveRepositories(ctx, &data.GithubJSON{JSON: content, Username: name, AutoCreated: autoCreated}, grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)
 	}
@@ -53,8 +53,8 @@ func (c *Client) PutRepositories(name string, github []*github.Repository, autoC
 }
 
 // EnableRepository enables a repository in CI for a user as owner.
-func (c *Client) EnableRepository(user, name string) *errors.Error {
-	_, err := c.client.EnableRepository(context.Background(), &data.RepoUserSelection{Username: user, RepoName: name}, grpc.WaitForReady(true))
+func (c *Client) EnableRepository(ctx context.Context, user, name string) *errors.Error {
+	_, err := c.client.EnableRepository(ctx, &data.RepoUserSelection{Username: user, RepoName: name}, grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)
 	}
@@ -63,8 +63,8 @@ func (c *Client) EnableRepository(user, name string) *errors.Error {
 }
 
 // DisableRepository disabls a repository in CI for a user as owner.
-func (c *Client) DisableRepository(user, name string) *errors.Error {
-	_, err := c.client.DisableRepository(context.Background(), &data.RepoUserSelection{Username: user, RepoName: name}, grpc.WaitForReady(true))
+func (c *Client) DisableRepository(ctx context.Context, user, name string) *errors.Error {
+	_, err := c.client.DisableRepository(ctx, &data.RepoUserSelection{Username: user, RepoName: name}, grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)
 	}
@@ -73,8 +73,8 @@ func (c *Client) DisableRepository(user, name string) *errors.Error {
 }
 
 // OwnedRepositories lists the owned repositories by the user.
-func (c *Client) OwnedRepositories(name, search string) (model.RepositoryList, *errors.Error) {
-	list, err := c.client.OwnedRepositories(context.Background(), &data.NameSearch{Name: name, Search: search}, grpc.WaitForReady(true))
+func (c *Client) OwnedRepositories(ctx context.Context, name, search string) (model.RepositoryList, *errors.Error) {
+	list, err := c.client.OwnedRepositories(ctx, &data.NameSearch{Name: name, Search: search}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -83,8 +83,8 @@ func (c *Client) OwnedRepositories(name, search string) (model.RepositoryList, *
 }
 
 // AllRepositories lists all visible repositories by the user.
-func (c *Client) AllRepositories(name, search string) (model.RepositoryList, *errors.Error) {
-	list, err := c.client.AllRepositories(context.Background(), &data.NameSearch{Name: name, Search: search}, grpc.WaitForReady(true))
+func (c *Client) AllRepositories(ctx context.Context, name, search string) (model.RepositoryList, *errors.Error) {
+	list, err := c.client.AllRepositories(ctx, &data.NameSearch{Name: name, Search: search}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -93,8 +93,8 @@ func (c *Client) AllRepositories(name, search string) (model.RepositoryList, *er
 }
 
 // PrivateRepositories lists all visible private repositories by the user.
-func (c *Client) PrivateRepositories(name, search string) (model.RepositoryList, *errors.Error) {
-	list, err := c.client.PrivateRepositories(context.Background(), &data.NameSearch{Name: name, Search: search}, grpc.WaitForReady(true))
+func (c *Client) PrivateRepositories(ctx context.Context, name, search string) (model.RepositoryList, *errors.Error) {
+	list, err := c.client.PrivateRepositories(ctx, &data.NameSearch{Name: name, Search: search}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -103,8 +103,8 @@ func (c *Client) PrivateRepositories(name, search string) (model.RepositoryList,
 }
 
 // PublicRepositories lists all owned public repositories by the user.
-func (c *Client) PublicRepositories(search string) (model.RepositoryList, *errors.Error) {
-	list, err := c.client.PublicRepositories(context.Background(), &data.Search{Search: search}, grpc.WaitForReady(true))
+func (c *Client) PublicRepositories(ctx context.Context, search string) (model.RepositoryList, *errors.Error) {
+	list, err := c.client.PublicRepositories(ctx, &data.Search{Search: search}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
 	}

@@ -10,8 +10,8 @@ import (
 
 // MyRepositories returns all the writable repositories accessible to user
 // owning the access key
-func (c *Client) MyRepositories(u *model.User) ([]*repository.RepositoryData, *errors.Error) {
-	list, err := c.client.MyRepositories(context.Background(), u.ToProto())
+func (c *Client) MyRepositories(ctx context.Context, u *model.User) ([]*repository.RepositoryData, *errors.Error) {
+	list, err := c.client.MyRepositories(ctx, u.ToProto())
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -20,8 +20,8 @@ func (c *Client) MyRepositories(u *model.User) ([]*repository.RepositoryData, *e
 }
 
 // GetRepository retrieves the github response for a given repository.
-func (c *Client) GetRepository(u *model.User, repoName string) (*repository.RepositoryData, *errors.Error) {
-	data, err := c.client.GetRepository(context.Background(), &repository.UserWithRepo{User: u.ToProto(), RepoName: repoName})
+func (c *Client) GetRepository(ctx context.Context, u *model.User, repoName string) (*repository.RepositoryData, *errors.Error) {
+	data, err := c.client.GetRepository(ctx, &repository.UserWithRepo{User: u.ToProto(), RepoName: repoName})
 	if err != nil {
 		return nil, errors.New(err)
 	}

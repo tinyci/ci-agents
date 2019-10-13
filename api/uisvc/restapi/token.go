@@ -14,7 +14,7 @@ func GetToken(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error)
 		return nil, 500, err
 	}
 
-	token, err := h.Clients.Data.GetToken(u.Username)
+	token, err := h.Clients.Data.GetToken(ctx, u.Username)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -29,7 +29,7 @@ func DeleteToken(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Err
 		return nil, 500, err
 	}
 
-	if err := h.Clients.Data.DeleteToken(u.Username); err != nil {
+	if err := h.Clients.Data.DeleteToken(ctx, u.Username); err != nil {
 		return nil, 500, err
 	}
 

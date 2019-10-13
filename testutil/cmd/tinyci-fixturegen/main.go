@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"os"
@@ -120,7 +121,7 @@ func (c *cmd) mkUsers() ([]*model.User, *errors.Error) {
 	return users, nil
 }
 
-func (c *cmd) mkParents(users []*model.User) (model.RepositoryList, *errors.Error) {
+func (c *cmd) mkParents(ctx context.Context, users []*model.User) (model.RepositoryList, *errors.Error) {
 	parents := model.RepositoryList{}
 
 	for i := rand.Intn(int(c.ctx.GlobalUint("repositories"))) + 1; i >= 0; i-- {
@@ -131,12 +132,12 @@ func (c *cmd) mkParents(users []*model.User) (model.RepositoryList, *errors.Erro
 		}
 
 		if !c.ctx.GlobalBool("disable") {
-			if err := c.dc.Client().EnableRepository(ou.Username, name); err != nil {
+			if err := c.dc.Client().EnableRepository(ctx, ou.Username, name); err != nil {
 				return nil, err
 			}
 		}
 
-		r, err := c.dc.Client().GetRepository(name)
+		r, err := c.dc.Client().GetRepository(ctx, name)
 		if err != nil {
 			return nil, err
 		}
@@ -147,7 +148,7 @@ func (c *cmd) mkParents(users []*model.User) (model.RepositoryList, *errors.Erro
 	return parents, nil
 }
 
-func (c *cmd) mkForks(users []*model.User, parents model.RepositoryList) (map[string]*model.Repository, *errors.Error) {
+func (c *cmd) mkForks(ctx context.Context, users []*model.User, parents model.RepositoryList) (map[string]*model.Repository, *errors.Error) {
 	forkParents := map[string]*model.Repository{}
 
 	for i := rand.Intn(int(c.ctx.GlobalUint("forks"))) + 1; i >= 0; i-- {
@@ -171,11 +172,11 @@ func (c *cmd) mkForks(users []*model.User, parents model.RepositoryList) (map[st
 			return nil, err
 		}
 
-		if err := c.dc.Client().PutRepositories(ou.Username, ghRepos, true); err != nil {
+		if err := c.dc.Client().PutRepositories(ctx, ou.Username, ghRepos, true); err != nil {
 			return nil, err
 		}
 
-		repo, err := c.dc.Client().GetRepository(name)
+		repo, err := c.dc.Client().GetRepository(ctx, name)
 		if err != nil {
 			return nil, err
 		}
@@ -186,7 +187,7 @@ func (c *cmd) mkForks(users []*model.User, parents model.RepositoryList) (map[st
 	return forkParents, nil
 }
 
-func (c *cmd) mkRefs(forkParents map[string]*model.Repository) ([]*model.Ref, []*model.Ref, *errors.Error) {
+func (c *cmd) mkRefs(ctx context.Context, forkParents map[string]*model.Repository) ([]*model.Ref, []*model.Ref, *errors.Error) {
 	headrefs := []*model.Ref{}
 	baserefs := []*model.Ref{}
 
@@ -200,7 +201,7 @@ func (c *cmd) mkRefs(forkParents map[string]*model.Repository) ([]*model.Ref, []
 					sha += fmt.Sprintf("%x", rune(rand.Intn(16)))
 				}
 
-				f, err := c.dc.Client().GetRepository(fork)
+				f, err := c.dc.Client().GetRepository(ctx, fork)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -211,7 +212,7 @@ func (c *cmd) mkRefs(forkParents map[string]*model.Repository) ([]*model.Ref, []
 					SHA:        sha,
 				}
 
-				ref.ID, err = c.dc.Client().PutRef(ref)
+				ref.ID, err = c.dc.Client().PutRef(ctx, ref)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -228,7 +229,7 @@ func (c *cmd) mkRefs(forkParents map[string]*model.Repository) ([]*model.Ref, []
 					SHA:        sha,
 				}
 
-				ref.ID, err = c.dc.Client().PutRef(ref)
+				ref.ID, err = c.dc.Client().PutRef(ctx, ref)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -241,7 +242,7 @@ func (c *cmd) mkRefs(forkParents map[string]*model.Repository) ([]*model.Ref, []
 	return headrefs, baserefs, nil
 }
 
-func (c *cmd) mkTask(sub *model.Submission) (*model.Task, *errors.Error) {
+func (c *cmd) mkTask(ctx context.Context, sub *model.Submission) (*model.Task, *errors.Error) {
 	started := rand.Intn(2) == 0
 	finished := started && rand.Intn(2) == 0
 
@@ -282,13 +283,13 @@ func (c *cmd) mkTask(sub *model.Submission) (*model.Task, *errors.Error) {
 		Submission:   sub,
 	}
 
-	return c.dc.Client().PutTask(task)
+	return c.dc.Client().PutTask(ctx, task)
 }
 
-func (c *cmd) mkTasks(subs []*model.Submission) *errors.Error {
+func (c *cmd) mkTasks(ctx context.Context, subs []*model.Submission) *errors.Error {
 	for _, sub := range subs {
 		for taskC := rand.Intn(int(c.ctx.GlobalUint("tasks"))) + 1; taskC >= 0; taskC-- {
-			task, err := c.mkTask(sub)
+			task, err := c.mkTask(ctx, sub)
 			if err != nil {
 				return err
 			}
@@ -307,7 +308,7 @@ func (c *cmd) mkTasks(subs []*model.Submission) *errors.Error {
 				})
 			}
 
-			if _, err := c.dc.Client().PutQueue(qis); err != nil {
+			if _, err := c.dc.Client().PutQueue(ctx, qis); err != nil {
 				return err
 			}
 		}
@@ -316,7 +317,7 @@ func (c *cmd) mkTasks(subs []*model.Submission) *errors.Error {
 	return nil
 }
 
-func (c *cmd) mkSubmissions(u *model.User, baserefs []*model.Ref, headrefs []*model.Ref) ([]*model.Submission, *errors.Error) {
+func (c *cmd) mkSubmissions(ctx context.Context, u *model.User, baserefs []*model.Ref, headrefs []*model.Ref) ([]*model.Submission, *errors.Error) {
 	if len(headrefs) != len(baserefs) {
 		return nil, errors.New("refs count is not equal")
 	}
@@ -331,7 +332,7 @@ func (c *cmd) mkSubmissions(u *model.User, baserefs []*model.Ref, headrefs []*mo
 		}
 
 		var err *errors.Error
-		sub, err = c.dc.Client().PutSubmission(sub)
+		sub, err = c.dc.Client().PutSubmission(ctx, sub)
 		if err != nil {
 			return nil, err
 		}
@@ -367,27 +368,29 @@ func generate(ctx *cli.Context) error {
 		return err
 	}
 
-	parents, err := c.mkParents(users)
+	ct := context.Background()
+
+	parents, err := c.mkParents(ct, users)
 	if err != nil {
 		return err
 	}
 
-	forkParents, err := c.mkForks(users, parents)
+	forkParents, err := c.mkForks(ct, users, parents)
 	if err != nil {
 		return err
 	}
 
-	headrefs, baserefs, err := c.mkRefs(forkParents)
+	headrefs, baserefs, err := c.mkRefs(ct, forkParents)
 	if err != nil {
 		return err
 	}
 
-	subs, err := c.mkSubmissions(users[0], headrefs, baserefs)
+	subs, err := c.mkSubmissions(ct, users[0], headrefs, baserefs)
 	if err != nil {
 		return err
 	}
 
-	if err := c.mkTasks(subs); err != nil {
+	if err := c.mkTasks(ct, subs); err != nil {
 		return err
 	}
 

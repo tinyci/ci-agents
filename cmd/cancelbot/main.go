@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -85,8 +86,10 @@ func run(ctx *cli.Context) error {
 	}
 	defer client.Close()
 
+	ct := context.Background()
+
 	for count := ctx.GlobalInt("limit"); count >= 0; count -= walkIncrement {
-		runs, err := client.ListRuns("", "", int64(count/walkIncrement), walkIncrement)
+		runs, err := client.ListRuns(ct, "", "", int64(count/walkIncrement), walkIncrement)
 		if err != nil {
 			return err
 		}
@@ -96,7 +99,7 @@ func run(ctx *cli.Context) error {
 				if ctx.GlobalBool("dry-run") {
 					logrus.Infof("Would cancel run %d, repository %v, ref %v, name %v -- %v old", run.ID, run.Task.Parent.Name, run.Task.Ref.RefName, run.Name, time.Since(run.CreatedAt))
 				} else {
-					if err := client.SetCancel(run.ID); err != nil {
+					if err := client.SetCancel(ct, run.ID); err != nil {
 						return err
 					}
 					logrus.Infof("Canceled run %d, repository %v, ref %v, name %v -- %v old", run.ID, run.Task.Parent.Name, run.Task.Ref.RefName, run.Name, time.Since(run.CreatedAt))

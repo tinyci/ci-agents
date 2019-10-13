@@ -168,7 +168,7 @@ func (h *Handler) pushGetRepo(obj interface{}) (*model.Repository, error) {
 		return nil, err
 	}
 
-	repo, err := h.dataClient.GetRepository(push.GetRepo().GetFullName())
+	repo, err := h.dataClient.GetRepository(context.Background(), push.GetRepo().GetFullName())
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +187,7 @@ func (h *Handler) prGetRepo(obj interface{}) (*model.Repository, error) {
 		return nil, err
 	}
 
-	repo, err := h.dataClient.GetRepository(pr.GetRepo().GetFullName())
+	repo, err := h.dataClient.GetRepository(context.Background(), pr.GetRepo().GetFullName())
 	if err != nil {
 		return nil, err
 	}

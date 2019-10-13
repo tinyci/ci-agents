@@ -16,7 +16,7 @@ func GetSubmission(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.E
 		return nil, 500, errors.New(eErr)
 	}
 
-	sub, err := h.Clients.Data.GetSubmissionByID(id)
+	sub, err := h.Clients.Data.GetSubmissionByID(ctx, id)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -31,7 +31,7 @@ func GetSubmissionRuns(h *handlers.H, ctx *gin.Context) (interface{}, int, *erro
 		return nil, 500, errors.New(eErr)
 	}
 
-	sub, err := h.Clients.Data.GetSubmissionByID(id)
+	sub, err := h.Clients.Data.GetSubmissionByID(ctx, id)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -41,7 +41,7 @@ func GetSubmissionRuns(h *handlers.H, ctx *gin.Context) (interface{}, int, *erro
 		return nil, 500, err
 	}
 
-	runs, err := h.Clients.Data.GetRunsForSubmission(sub, page, perPage)
+	runs, err := h.Clients.Data.GetRunsForSubmission(ctx, sub, page, perPage)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -56,7 +56,7 @@ func GetSubmissionTasks(h *handlers.H, ctx *gin.Context) (interface{}, int, *err
 		return nil, 500, errors.New(eErr)
 	}
 
-	sub, err := h.Clients.Data.GetSubmissionByID(id)
+	sub, err := h.Clients.Data.GetSubmissionByID(ctx, id)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -66,7 +66,7 @@ func GetSubmissionTasks(h *handlers.H, ctx *gin.Context) (interface{}, int, *err
 		return nil, 500, err
 	}
 
-	tasks, err := h.Clients.Data.GetTasksForSubmission(sub, page, perPage)
+	tasks, err := h.Clients.Data.GetTasksForSubmission(ctx, sub, page, perPage)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -81,7 +81,7 @@ func ListSubmissions(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors
 		return nil, 500, err
 	}
 
-	list, err := h.Clients.Data.ListSubmissions(page, perPage, ctx.GetString("repository"), ctx.GetString("sha"))
+	list, err := h.Clients.Data.ListSubmissions(ctx, page, perPage, ctx.GetString("repository"), ctx.GetString("sha"))
 	if err != nil {
 		return nil, 500, err
 	}
@@ -91,7 +91,7 @@ func ListSubmissions(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors
 
 // CountSubmissions counts the submissions with optional repository/sha filtering.
 func CountSubmissions(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	count, err := h.Clients.Data.CountSubmissions(ctx.GetString("repository"), ctx.GetString("sha"))
+	count, err := h.Clients.Data.CountSubmissions(ctx, ctx.GetString("repository"), ctx.GetString("sha"))
 	if err != nil {
 		return nil, 500, err
 	}
@@ -106,7 +106,7 @@ func CancelSubmission(h *handlers.H, ctx *gin.Context) (interface{}, int, *error
 		return nil, 500, errors.New(eErr)
 	}
 
-	if err := h.Clients.Data.CancelSubmission(id); err != nil {
+	if err := h.Clients.Data.CancelSubmission(ctx, id); err != nil {
 		return nil, 500, err
 	}
 

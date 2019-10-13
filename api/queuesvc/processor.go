@@ -57,7 +57,7 @@ func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, clien
 		baseRef = headRef
 	}
 
-	sub, err := h.Clients.Data.PutSubmission(&model.Submission{TicketID: is.Sub.TicketID, User: is.User, HeadRef: headRef, BaseRef: baseRef})
+	sub, err := h.Clients.Data.PutSubmission(ctx, &model.Submission{TicketID: is.Sub.TicketID, User: is.User, HeadRef: headRef, BaseRef: baseRef})
 	if err != nil {
 		return nil, nil, err.Wrap("couldn't convert submission")
 	}
@@ -163,7 +163,7 @@ func makeQueueItemsFromTask(ctx context.Context, h *handler.H, client github.Cli
 func GenerateQueueItems(ctx context.Context, h *handler.H, client github.Client, is *InternalSubmission) ([]*model.QueueItem, *errors.Error) {
 	qis := []*model.QueueItem{}
 
-	if err := h.Clients.Data.CancelRefByName(is.Ref.Repository.ID, is.Ref.RefName); err != nil {
+	if err := h.Clients.Data.CancelRefByName(ctx, is.Ref.Repository.ID, is.Ref.RefName); err != nil {
 		getLogger(is.Sub, h).Errorf(ctx, "Couldn't cancel ref %q repo %d; will continue anyway: %v\n", is.Ref.RefName, is.ParentRepo.ID, err)
 	}
 
@@ -197,7 +197,7 @@ func GenerateQueueItems(ctx context.Context, h *handler.H, client github.Client,
 			continue
 		}
 
-		retTask, err := h.Clients.Data.PutTask(task)
+		retTask, err := h.Clients.Data.PutTask(ctx, task)
 		if err != nil {
 			return qis, err
 		}
@@ -234,12 +234,12 @@ func ManageRefs(ctx context.Context, h *handler.H, client github.Client, repo *m
 		return nil, err
 	}
 
-	ref, err := h.Clients.Data.GetRefByNameAndSHA(repo.Name, sha)
+	ref, err := h.Clients.Data.GetRefByNameAndSHA(ctx, repo.Name, sha)
 	if err != nil {
 		if err.Contains(errors.ErrNotFound) {
 			ref = &model.Ref{Repository: repo, RefName: refName, SHA: sha}
 
-			id, err := h.Clients.Data.PutRef(ref)
+			id, err := h.Clients.Data.PutRef(ctx, ref)
 			if err != nil {
 				return nil, err
 			}
@@ -259,7 +259,7 @@ func ManageRepositories(ctx context.Context, h *handler.H, sub *types.Submission
 		return nil, nil, nil, err
 	}
 
-	parentIntRepo, eErr := h.Clients.Data.GetRepository(sub.Parent)
+	parentIntRepo, eErr := h.Clients.Data.GetRepository(ctx, sub.Parent)
 	if eErr != nil {
 		return nil, nil, nil, eErr
 	}
@@ -289,13 +289,13 @@ func ManageRepositories(ctx context.Context, h *handler.H, sub *types.Submission
 	}
 
 retry:
-	forkIntRepo, err := h.Clients.Data.GetRepository(forkRepo.GetFullName())
+	forkIntRepo, err := h.Clients.Data.GetRepository(ctx, forkRepo.GetFullName())
 	if err != nil {
 		if !err.Contains(errors.ErrNotFound) {
 			return nil, nil, nil, err
 		}
 
-		if err := h.Clients.Data.PutRepositories(repoOwner.Username, []*gh.Repository{forkRepo}, true); err != nil {
+		if err := h.Clients.Data.PutRepositories(ctx, repoOwner.Username, []*gh.Repository{forkRepo}, true); err != nil {
 			return nil, nil, nil, err
 		}
 
@@ -428,7 +428,7 @@ func resolveParentInfo(ctx context.Context, h *handler.H, sub *types.Submission)
 	// manual submission. In the uisvc, this is taken from session data -- never
 	// from foreign input so unless a foreign agent can submit directly to the
 	// queuesvc this should not be an issue.
-	user, eErr := h.Clients.Data.GetUser(sub.SubmittedBy)
+	user, eErr := h.Clients.Data.GetUser(ctx, sub.SubmittedBy)
 	if eErr != nil {
 		return nil, nil, eErr
 	}
@@ -445,7 +445,7 @@ func resolveParentInfo(ctx context.Context, h *handler.H, sub *types.Submission)
 	}
 
 	// this is ok; if modelRepo is nil then it's disabled.
-	modelRepo, err := h.Clients.Data.GetRepository(sub.Fork)
+	modelRepo, err := h.Clients.Data.GetRepository(ctx, sub.Fork)
 	enabled := err == nil && !modelRepo.Disabled
 
 	// FIXME this fork management logic should really be in the model
@@ -466,7 +466,7 @@ func resolveParentInfo(ctx context.Context, h *handler.H, sub *types.Submission)
 		ciRepo = modelRepo
 	} else {
 		var err *errors.Error
-		ciRepo, err = h.Clients.Data.GetRepository(sub.Parent)
+		ciRepo, err = h.Clients.Data.GetRepository(ctx, sub.Parent)
 		if err != nil {
 			return nil, nil, err
 		}

@@ -25,7 +25,7 @@ type QueueServer struct {
 
 // SetCancel mirrors the cancel in datasvc -- just easier to access by runners.
 func (qs *QueueServer) SetCancel(ctx context.Context, id *gtypes.IntID) (*empty.Empty, error) {
-	if err := qs.H.Clients.Data.SetCancel(id.ID); err != nil {
+	if err := qs.H.Clients.Data.SetCancel(ctx, id.ID); err != nil {
 		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
@@ -34,7 +34,7 @@ func (qs *QueueServer) SetCancel(ctx context.Context, id *gtypes.IntID) (*empty.
 
 // GetCancel mirrors the GetCancel in datasvc -- just easier to access by runners.
 func (qs *QueueServer) GetCancel(ctx context.Context, id *gtypes.IntID) (*gtypes.Status, error) {
-	state, err := qs.H.Clients.Data.GetCancel(id.ID)
+	state, err := qs.H.Clients.Data.GetCancel(ctx, id.ID)
 	if err != nil {
 		return &gtypes.Status{}, err.ToGRPC(codes.FailedPrecondition)
 	}
@@ -45,7 +45,7 @@ func (qs *QueueServer) GetCancel(ctx context.Context, id *gtypes.IntID) (*gtypes
 // PutStatus pushes the finished run's status out to github and back into the
 // datasvc.
 func (qs *QueueServer) PutStatus(ctx context.Context, status *gtypes.Status) (*empty.Empty, error) {
-	if err := qs.H.Clients.Data.PutStatus(status.Id, status.Status, status.AdditionalMessage); err != nil {
+	if err := qs.H.Clients.Data.PutStatus(ctx, status.Id, status.Status, status.AdditionalMessage); err != nil {
 		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
@@ -56,7 +56,7 @@ func (qs *QueueServer) PutStatus(ctx context.Context, status *gtypes.Status) (*e
 // returns it. If there is any failure, the queue could not be read and there
 // is a need to retry after a wait.
 func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueRequest) (*gtypes.QueueItem, error) {
-	qi, err := qs.H.Clients.Data.NextQueueItem(qr.QueueName, qr.RunningOn)
+	qi, err := qs.H.Clients.Data.NextQueueItem(ctx, qr.QueueName, qr.RunningOn)
 	if err != nil {
 		if err.Contains(errors.ErrNotFound) {
 			err.SetLog(false)
@@ -105,7 +105,7 @@ func doSubmit(ctx context.Context, h *handler.H, qis []*model.QueueItem) (retErr
 		}
 	}()
 
-	if _, err := h.Clients.Data.PutQueue(qis); err != nil {
+	if _, err := h.Clients.Data.PutQueue(ctx, qis); err != nil {
 		return err
 	}
 
@@ -143,7 +143,7 @@ func (qs *QueueServer) Submit(ctx context.Context, sub *queue.Submission) (*empt
 	submissionLogger.Infof(ctx, "Putting %d queue items from submissions", len(qis))
 	if err := doSubmit(ctx, qs.H, qis); err != nil {
 		for _, qi := range qis {
-			if err := qs.H.Clients.Data.PutStatus(qi.Run.ID, false, fmt.Sprintf("Canceled due to error: %v", err)); err != nil {
+			if err := qs.H.Clients.Data.PutStatus(ctx, qi.Run.ID, false, fmt.Sprintf("Canceled due to error: %v", err)); err != nil {
 				submissionLogger.Errorf(ctx, "While canceling runs: %v", err)
 			}
 		}

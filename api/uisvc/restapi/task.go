@@ -16,7 +16,7 @@ func ListTasks(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error
 		return nil, 500, err
 	}
 
-	tasks, err := h.Clients.Data.ListTasks(ctx.GetString("repository"), ctx.GetString("sha"), page, perPage)
+	tasks, err := h.Clients.Data.ListTasks(ctx, ctx.GetString("repository"), ctx.GetString("sha"), page, perPage)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -26,7 +26,7 @@ func ListTasks(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error
 
 // CountTasks counts the task list with the supplied repo/sha filtering.
 func CountTasks(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	count, err := h.Clients.Data.CountTasks(ctx.GetString("repository"), ctx.GetString("sha"))
+	count, err := h.Clients.Data.CountTasks(ctx, ctx.GetString("repository"), ctx.GetString("sha"))
 	if err != nil {
 		return nil, 500, err
 	}
@@ -46,7 +46,7 @@ func GetRunsForTask(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.
 		return nil, 500, err
 	}
 
-	runs, err := h.Clients.Data.GetRunsForTask(id, page, perPage)
+	runs, err := h.Clients.Data.GetRunsForTask(ctx, id, page, perPage)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -61,7 +61,7 @@ func CountRunsForTask(h *handlers.H, ctx *gin.Context) (interface{}, int, *error
 		return nil, 500, errors.New(eErr)
 	}
 
-	count, err := h.Clients.Data.CountRunsForTask(id)
+	count, err := h.Clients.Data.CountRunsForTask(ctx, id)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -82,12 +82,12 @@ func ListSubscribedTasksForUser(h *handlers.H, ctx *gin.Context) (interface{}, i
 		return nil, 500, errors.New("invalid cookie")
 	}
 
-	user, err := h.Clients.Data.GetUser(u)
+	user, err := h.Clients.Data.GetUser(ctx, u)
 	if err != nil {
 		return nil, 500, err
 	}
 
-	tasks, err := h.Clients.Data.ListSubscribedTasksForUser(user.ID, page, perPage)
+	tasks, err := h.Clients.Data.ListSubscribedTasksForUser(ctx, user.ID, page, perPage)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -102,7 +102,7 @@ func CancelTask(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Erro
 		return nil, 500, errors.New(eErr)
 	}
 
-	if err := h.Clients.Data.CancelTask(id); err != nil {
+	if err := h.Clients.Data.CancelTask(ctx, id); err != nil {
 		return nil, 500, err
 	}
 

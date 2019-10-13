@@ -1,6 +1,7 @@
 package testclients
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -48,7 +49,7 @@ func (qc *QueueClient) SetUpSubmissionRepo(name string, forkOf string) *errors.E
 		return err
 	}
 
-	if err := qc.dataClient.Client().EnableRepository(parentUser, name); err != nil {
+	if err := qc.dataClient.Client().EnableRepository(context.Background(), parentUser, name); err != nil {
 		return err
 	}
 

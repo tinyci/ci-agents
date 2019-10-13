@@ -89,11 +89,11 @@ func run(ctx *cli.Context) error {
 		Token:    tokenStruct,
 	}
 
-	if _, err := client.PutUser(u); err != nil {
+	if _, err := client.PutUser(context.Background(), u); err != nil {
 		return err
 	}
 
-	tinyCIToken, err := client.GetToken(tokenStruct.Username)
+	tinyCIToken, err := client.GetToken(context.Background(), tokenStruct.Username)
 	if err != nil {
 		return err
 	}
