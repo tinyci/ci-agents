@@ -69,7 +69,7 @@ func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, clien
 		dir := taskdirs[i]
 
 		// FIXME move this string.
-		content, err := client.GetFile(is.Sub.Fork, is.Sub.HeadSHA, path.Join(dir, "task.yml"))
+		content, err := client.GetFile(ctx, is.Sub.Fork, is.Sub.HeadSHA, path.Join(dir, "task.yml"))
 		if err != nil {
 			return nil, nil, err
 		}
@@ -77,7 +77,7 @@ func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, clien
 		ts, err := types.NewTaskSettings(content, false, is.RepoConfig)
 		if err != nil {
 			if is.Sub.TicketID != 0 {
-				if cerr := client.CommentError(is.Sub.Parent, is.Sub.TicketID, err.Wrap("tinyCI had an error processing your pull request")); cerr != nil {
+				if cerr := client.CommentError(ctx, is.Sub.Parent, is.Sub.TicketID, err.Wrap("tinyCI had an error processing your pull request")); cerr != nil {
 					return nil, nil, cerr
 				}
 			}
@@ -108,7 +108,7 @@ func computeTaskDirs(ctx context.Context, h *handler.H, taskdirs []string, clien
 	return tasks, taskdirs, nil
 }
 
-func makeQueueItemsFromTask(h *handler.H, client github.Client, is *InternalSubmission, dir string, task *model.Task) ([]*model.QueueItem, *errors.Error) {
+func makeQueueItemsFromTask(ctx context.Context, h *handler.H, client github.Client, is *InternalSubmission, dir string, task *model.Task) ([]*model.QueueItem, *errors.Error) {
 	qis := []*model.QueueItem{}
 
 	names := []string{}
@@ -148,7 +148,7 @@ func makeQueueItemsFromTask(h *handler.H, client github.Client, is *InternalSubm
 		}
 
 		go func() {
-			if err := client.PendingStatus(parts[0], parts[1], run.Name, is.Ref.SHA, h.URL); err != nil {
+			if err := client.PendingStatus(ctx, parts[0], parts[1], run.Name, is.Ref.SHA, h.URL); err != nil {
 				fmt.Println(err)
 			}
 		}()
@@ -167,7 +167,7 @@ func GenerateQueueItems(ctx context.Context, h *handler.H, client github.Client,
 		getLogger(is.Sub, h).Errorf(ctx, "Couldn't cancel ref %q repo %d; will continue anyway: %v\n", is.Ref.RefName, is.ParentRepo.ID, err)
 	}
 
-	if err := client.ClearStates(is.Sub.Parent, is.Sub.HeadSHA); err != nil {
+	if err := client.ClearStates(ctx, is.Sub.Parent, is.Sub.HeadSHA); err != nil {
 		getLogger(is.Sub, h).Errorf(ctx, "Couldn't clear states for repo %q ref %q: %v", is.Sub.Parent, is.Sub.HeadSHA, err)
 	}
 
@@ -202,7 +202,7 @@ func GenerateQueueItems(ctx context.Context, h *handler.H, client github.Client,
 			return qis, err
 		}
 
-		tmpQIs, err := makeQueueItemsFromTask(h, client, is, dir, retTask)
+		tmpQIs, err := makeQueueItemsFromTask(ctx, h, client, is, dir, retTask)
 		if err != nil {
 			return qis, err
 		}
@@ -215,8 +215,8 @@ func GenerateQueueItems(ctx context.Context, h *handler.H, client github.Client,
 }
 
 // ManageRefs gathers or creates the refs necessary to relationally work with this task.
-func ManageRefs(h *handler.H, client github.Client, repo *model.Repository, sha string) (*model.Ref, *errors.Error) {
-	refs, err := client.GetRefs(repo.Github.GetFullName(), sha)
+func ManageRefs(ctx context.Context, h *handler.H, client github.Client, repo *model.Repository, sha string) (*model.Ref, *errors.Error) {
+	refs, err := client.GetRefs(ctx, repo.Github.GetFullName(), sha)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +254,7 @@ func ManageRefs(h *handler.H, client github.Client, repo *model.Repository, sha 
 }
 
 // ManageRepositories returns the parent and fork repo after confirming with github.
-func ManageRepositories(h *handler.H, sub *types.Submission) (*model.Repository, *model.Repository, github.Client, *errors.Error) {
+func ManageRepositories(ctx context.Context, h *handler.H, sub *types.Submission) (*model.Repository, *model.Repository, github.Client, *errors.Error) {
 	if _, _, err := utils.OwnerRepo(sub.Parent); err != nil {
 		return nil, nil, nil, err
 	}
@@ -274,13 +274,13 @@ func ManageRepositories(h *handler.H, sub *types.Submission) (*model.Repository,
 	}
 	client := h.OAuth.GithubClient(repoOwner.Token)
 
-	forkRepo, err := client.GetRepository(sub.Fork)
+	forkRepo, err := client.GetRepository(ctx, sub.Fork)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	// just make sure we still have access to the parent, we won't modify it here.
-	if _, err := client.GetRepository(sub.Parent); err != nil {
+	if _, err := client.GetRepository(ctx, sub.Parent); err != nil {
 		return nil, nil, nil, err
 	}
 
@@ -306,8 +306,8 @@ retry:
 }
 
 // GetFileLists obtains file lists for the fork between the base and head shas.
-func GetFileLists(client github.Client, sub *types.Submission) (map[string]interface{}, []string, *errors.Error) {
-	diffFiles, err := client.GetDiffFiles(sub.Parent, sub.BaseSHA, sub.HeadSHA)
+func GetFileLists(ctx context.Context, client github.Client, sub *types.Submission) (map[string]interface{}, []string, *errors.Error) {
+	diffFiles, err := client.GetDiffFiles(ctx, sub.Parent, sub.BaseSHA, sub.HeadSHA)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -318,7 +318,7 @@ func GetFileLists(client github.Client, sub *types.Submission) (map[string]inter
 		dirs[path.Dir(file)] = true
 	}
 
-	allFiles, err := client.GetFileList(sub.Fork, sub.HeadSHA)
+	allFiles, err := client.GetFileList(ctx, sub.Fork, sub.HeadSHA)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -326,8 +326,8 @@ func GetFileLists(client github.Client, sub *types.Submission) (map[string]inter
 	return dirs, allFiles, nil
 }
 
-func getTaskDirs(client github.Client, sub *types.Submission, config *types.RepoConfig) (map[string]interface{}, []string, *errors.Error) {
-	dirs, allFiles, err := GetFileLists(client, sub)
+func getTaskDirs(ctx context.Context, client github.Client, sub *types.Submission, config *types.RepoConfig) (map[string]interface{}, []string, *errors.Error) {
+	dirs, allFiles, err := GetFileLists(ctx, client, sub)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -356,7 +356,7 @@ func getTaskDirs(client github.Client, sub *types.Submission, config *types.Repo
 }
 
 // PickTasks isolates the task dirs that need testing.
-func PickTasks(client github.Client, sub *types.Submission, ref *model.Ref, parent *model.Repository, config *types.RepoConfig) (map[string]bool, *errors.Error) {
+func PickTasks(ctx context.Context, client github.Client, sub *types.Submission, ref *model.Ref, parent *model.Repository, config *types.RepoConfig) (map[string]bool, *errors.Error) {
 	process := []string{}
 
 	mb := parent.Github.GetMasterBranch()
@@ -364,7 +364,7 @@ func PickTasks(client github.Client, sub *types.Submission, ref *model.Ref, pare
 		mb = defaultMasterBranch
 	}
 
-	dirs, taskdirs, err := getTaskDirs(client, sub, config)
+	dirs, taskdirs, err := getTaskDirs(ctx, client, sub, config)
 	if err != nil {
 		return nil, err
 	}
@@ -403,8 +403,8 @@ func PickTasks(client github.Client, sub *types.Submission, ref *model.Ref, pare
 }
 
 // GetRepoConfig gathers the repo configuration from the parent fork.
-func GetRepoConfig(client github.Client, sub *types.Submission) (*types.RepoConfig, *errors.Error) {
-	repo, err := client.GetRepository(sub.Parent)
+func GetRepoConfig(ctx context.Context, client github.Client, sub *types.Submission) (*types.RepoConfig, *errors.Error) {
+	repo, err := client.GetRepository(ctx, sub.Parent)
 	if err != nil {
 		return nil, err
 	}
@@ -415,7 +415,7 @@ func GetRepoConfig(client github.Client, sub *types.Submission) (*types.RepoConf
 	}
 
 	// FIXME move this string.
-	content, err := client.GetFile(sub.Parent, fmt.Sprintf("refs/%s", masterBranch), "tinyci.yml")
+	content, err := client.GetFile(ctx, sub.Parent, fmt.Sprintf("refs/%s", masterBranch), "tinyci.yml")
 	if err != nil {
 		return nil, err
 	}
@@ -439,7 +439,7 @@ func resolveParentInfo(ctx context.Context, h *handler.H, sub *types.Submission)
 	}
 
 	client := h.OAuth.GithubClient(token)
-	repo, err := client.GetRepository(sub.Fork)
+	repo, err := client.GetRepository(ctx, sub.Fork)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -477,13 +477,13 @@ func resolveParentInfo(ctx context.Context, h *handler.H, sub *types.Submission)
 	}
 
 	if len(sub.HeadSHA) != 40 {
-		sub.HeadSHA, err = client.GetSHA(sub.Fork, sub.HeadSHA)
+		sub.HeadSHA, err = client.GetSHA(ctx, sub.Fork, sub.HeadSHA)
 		if err != nil {
 			return nil, nil, err
 		}
 	}
 
-	sub.BaseSHA, err = client.GetSHA(sub.Parent, "heads/master")
+	sub.BaseSHA, err = client.GetSHA(ctx, sub.Parent, "heads/master")
 	return sub, user, err
 }
 
@@ -509,7 +509,7 @@ func Process(ctx context.Context, h *handler.H, sub *types.Submission) (retQI []
 				return
 			}
 
-			if err := client.FinishedStatus(owner, repo, "*global*", is.Ref.SHA, h.URL, false, fmt.Sprintf("failed to start job: %v", retErr)); err != nil {
+			if err := client.FinishedStatus(ctx, owner, repo, "*global*", is.Ref.SHA, h.URL, false, fmt.Sprintf("failed to start job: %v", retErr)); err != nil {
 				getLogger(sub, h).Error(ctx, err)
 			}
 		}
@@ -530,28 +530,28 @@ func Process(ctx context.Context, h *handler.H, sub *types.Submission) (retQI []
 		}
 	}
 
-	parentRepo, forkRepo, client, err := ManageRepositories(h, sub)
+	parentRepo, forkRepo, client, err := ManageRepositories(ctx, h, sub)
 	if err != nil {
 		return nil, err
 	}
 
-	modelRef, err := ManageRefs(h, client, forkRepo, sub.HeadSHA)
+	modelRef, err := ManageRefs(ctx, h, client, forkRepo, sub.HeadSHA)
 	if err != nil {
 		return nil, err
 	}
 
-	parentRef, err := ManageRefs(h, client, parentRepo, sub.BaseSHA)
+	parentRef, err := ManageRefs(ctx, h, client, parentRepo, sub.BaseSHA)
 	if err != nil {
 		return nil, err
 	}
 
-	repoConfig, err := GetRepoConfig(client, sub)
+	repoConfig, err := GetRepoConfig(ctx, client, sub)
 	if err != nil {
 		return nil, err
 	}
 
 	// fork ref, parent repo. if it's a push parent and fork will be the same so it works out.
-	processMap, err := PickTasks(client, sub, modelRef, parentRepo, repoConfig)
+	processMap, err := PickTasks(ctx, client, sub, modelRef, parentRepo, repoConfig)
 	if err != nil {
 		return nil, err
 	}

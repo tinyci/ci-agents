@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -106,7 +107,7 @@ func run(ctx *cli.Context) error {
 func inspect(token string) (*types.OAuthToken, *errors.Error) {
 	c := github.NewClientFromAccessToken(token)
 
-	login, err := c.MyLogin()
+	login, err := c.MyLogin(context.Background())
 	if err != nil {
 		return nil, err
 	}

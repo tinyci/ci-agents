@@ -87,7 +87,7 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 	}
 
 	go func() {
-		if err := github.StartedStatus(parts[0], parts[1], qi.Run.Name, qi.Run.Task.Ref.SHA, fmt.Sprintf("%s/log/%d", qs.H.URL, qi.Run.ID)); err != nil {
+		if err := github.StartedStatus(ctx, parts[0], parts[1], qi.Run.Name, qi.Run.Task.Ref.SHA, fmt.Sprintf("%s/log/%d", qs.H.URL, qi.Run.ID)); err != nil {
 			fmt.Println(err)
 		}
 	}()

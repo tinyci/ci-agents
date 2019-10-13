@@ -90,7 +90,7 @@ func (h *H) GetUser(ctx *gin.Context) (*model.User, *errors.Error) {
 			}
 		} else {
 			var err *errors.Error
-			name, err = client.MyLogin()
+			name, err = client.MyLogin(ctx)
 			if err != nil {
 				return nil, errors.New(err)
 			}
