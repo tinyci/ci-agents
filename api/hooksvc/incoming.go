@@ -97,7 +97,7 @@ func (h *Handler) doSubmit(w http.ResponseWriter, logger *log.SubLogger, obj int
 		switch err := err.(type) {
 		case *ErrCancelPR:
 			logger.WithFields(log.FieldMap{"pull_request": fmt.Sprintf("%v", err.PRID), "repository": err.Repository}).Infof(context.Background(), "Canceling PR")
-			if err := h.dataClient.CancelTasksByPR(err.Repository, err.PRID); err != nil {
+			if err := h.dataClient.CancelTasksByPR(context.Background(), err.Repository, err.PRID); err != nil {
 				return true
 			}
 

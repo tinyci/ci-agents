@@ -17,7 +17,7 @@ type RepositoryServer struct {
 }
 
 func (rs *RepositoryServer) getClientForRepo(ctx context.Context, repoName string) (*github.Client, *errors.Error) {
-	repo, err := rs.H.Clients.Data.GetRepository(repoName)
+	repo, err := rs.H.Clients.Data.GetRepository(ctx, repoName)
 	if err != nil {
 		return nil, err
 	}

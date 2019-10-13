@@ -1,6 +1,8 @@
 package restapi
 
 import (
+	"context"
+
 	"github.com/tinyci/ci-agents/clients/data"
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/clients/tinyci"
@@ -50,18 +52,18 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 		return nil, nil, nil, nil, errors.New(err)
 	}
 
-	u, err := d.PutUser(&model.User{Username: "erikh", Token: &types.OAuthToken{Token: "dummy", Scopes: []string{"repo"}}})
+	u, err := d.PutUser(context.Background(), &model.User{Username: "erikh", Token: &types.OAuthToken{Token: "dummy", Scopes: []string{"repo"}}})
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
 	for _, cap := range model.AllCapabilities {
-		if err := d.AddCapability(u, cap); err != nil {
+		if err := d.AddCapability(context.Background(), u, cap); err != nil {
 			return nil, nil, nil, nil, err
 		}
 	}
 
-	token, err := d.GetToken("erikh")
+	token, err := d.GetToken(context.Background(), "erikh")
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -71,16 +73,16 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 		return nil, nil, nil, nil, err
 	}
 
-	if _, err := tc.Errors(); err != nil { // connectivity check
+	if _, err := tc.Errors(context.Background()); err != nil { // connectivity check
 		return nil, nil, nil, nil, err
 	}
 
-	_, err = d.PutUser(&model.User{Username: "erikh2", Token: &types.OAuthToken{Token: "dummy"}})
+	_, err = d.PutUser(context.Background(), &model.User{Username: "erikh2", Token: &types.OAuthToken{Token: "dummy"}})
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
-	token, err = d.GetToken("erikh2")
+	token, err = d.GetToken(context.Background(), "erikh2")
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

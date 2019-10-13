@@ -1,6 +1,7 @@
 package sessions
 
 import (
+	"context"
 	"encoding/base32"
 	"net/http"
 	"strings"
@@ -55,14 +56,14 @@ func (sm *SessionManager) New(r *http.Request, name string) (*sessions.Session, 
 	session.Options = &opts
 	session.IsNew = true
 
-	return session, sm.get(session, r, name)
+	return session, sm.get(context.Background(), session, r, name)
 }
 
-func (sm *SessionManager) get(session *sessions.Session, r *http.Request, name string) error {
+func (sm *SessionManager) get(ctx context.Context, session *sessions.Session, r *http.Request, name string) error {
 	if c, errCookie := r.Cookie(name); errCookie == nil {
 		err := securecookie.DecodeMulti(name, c.Value, &session.ID, sm.codecs...)
 		if err == nil {
-			if err := sm.LoadSession(session); err == nil {
+			if err := sm.LoadSession(ctx, session); err == nil {
 				session.IsNew = false
 			} else if errors.Cause(err).Error() != "record not found" {
 				return err
@@ -76,8 +77,8 @@ func (sm *SessionManager) get(session *sessions.Session, r *http.Request, name s
 }
 
 // LoadSession loads a session from the database.
-func (sm *SessionManager) LoadSession(session *sessions.Session) error {
-	s, err := sm.datasvc.GetSession(session.ID)
+func (sm *SessionManager) LoadSession(ctx context.Context, session *sessions.Session) error {
+	s, err := sm.datasvc.GetSession(ctx, session.ID)
 	if err != nil {
 		return err
 	}
@@ -153,7 +154,7 @@ func (sm *SessionManager) SaveSession(s *sessions.Session) (string, error) {
 		ExpiresOn: time.Now().Add(time.Duration(s.Options.MaxAge) * time.Second),
 	}
 
-	if err := sm.datasvc.PutSession(session); err != nil {
+	if err := sm.datasvc.PutSession(context.Background(), session); err != nil {
 		return "", err
 	}
 

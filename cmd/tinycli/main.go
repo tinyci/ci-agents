@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -328,7 +329,7 @@ func doInit(ctx *cli.Context) error {
 		return errors.New(err)
 	}
 
-	if _, err := client.Errors(); err != nil {
+	if _, err := client.Errors(context.Background()); err != nil {
 		return err.Wrap("Could not retrieve with the client, token or URL issue")
 	}
 
@@ -363,7 +364,7 @@ func submit(ctx *cli.Context) error {
 
 	fmt.Printf("Submitting %s / %s (all tasks: %v) -- this may take a few seconds to complete.\n", ctx.Args()[0], ctx.Args()[1], ctx.Bool("all"))
 
-	if err := client.Submit(ctx.Args()[0], ctx.Args()[1], ctx.Bool("all")); err != nil {
+	if err := client.Submit(context.Background(), ctx.Args()[0], ctx.Args()[1], ctx.Bool("all")); err != nil {
 		return err
 	}
 
@@ -388,8 +389,8 @@ func mkTaskStatus(task *model.Task) string {
 	return statusStr
 }
 
-func mkSubRunCounts(client *tinyci.Client, sub *model.Submission) (int64, int64, int64, error) {
-	tasks, err := client.TasksForSubmission(sub)
+func mkSubRunCounts(ctx context.Context, client *tinyci.Client, sub *model.Submission) (int64, int64, int64, error) {
+	tasks, err := client.TasksForSubmission(ctx, sub)
 	if err != nil {
 		return 0, 0, 0, err
 	}
@@ -397,7 +398,7 @@ func mkSubRunCounts(client *tinyci.Client, sub *model.Submission) (int64, int64,
 	var runningCount, finishedCount, totalCount int64
 
 	for _, task := range tasks {
-		running, finished, total, err := mkTaskRunCounts(client, task)
+		running, finished, total, err := mkTaskRunCounts(ctx, client, task)
 		if err != nil {
 			return 0, 0, 0, err
 		}
@@ -409,8 +410,8 @@ func mkSubRunCounts(client *tinyci.Client, sub *model.Submission) (int64, int64,
 	return runningCount, finishedCount, totalCount, nil
 }
 
-func mkTaskRunCounts(client *tinyci.Client, task *model.Task) (int64, int64, int64, error) {
-	totalCount, err := client.RunsForTaskCount(task.ID)
+func mkTaskRunCounts(ctx context.Context, client *tinyci.Client, task *model.Task) (int64, int64, int64, error) {
+	totalCount, err := client.RunsForTaskCount(ctx, task.ID)
 	if err != nil {
 		return 0, 0, 0, err
 	}
@@ -418,7 +419,7 @@ func mkTaskRunCounts(client *tinyci.Client, task *model.Task) (int64, int64, int
 	runs := []*model.Run{}
 
 	for i := int64(0); i <= totalCount/utils.MaxPerPage; i++ {
-		tmp, err := client.RunsForTask(task.ID, i, utils.MaxPerPage)
+		tmp, err := client.RunsForTask(ctx, task.ID, i, utils.MaxPerPage)
 		if err != nil {
 			return 0, 0, 0, err
 		}
@@ -444,7 +445,8 @@ func submissions(ctx *cli.Context) error {
 		return err
 	}
 
-	subs, err := client.Submissions(ctx.String("repository"), ctx.String("ref"), ctx.Int64("page"), ctx.Int64("count"))
+	ct := context.Background()
+	subs, err := client.Submissions(ct, ctx.String("repository"), ctx.String("ref"), ctx.Int64("page"), ctx.Int64("count"))
 	if err != nil {
 		return err
 	}
@@ -455,7 +457,7 @@ func submissions(ctx *cli.Context) error {
 	}
 
 	for _, sub := range subs {
-		running, finished, total, err := mkSubRunCounts(client, sub)
+		running, finished, total, err := mkSubRunCounts(ct, client, sub)
 		if err != nil {
 			return err
 		}
@@ -500,7 +502,9 @@ func tasks(ctx *cli.Context) error {
 		return err
 	}
 
-	tasks, err := client.Tasks(ctx.String("repository"), ctx.String("ref"), ctx.Int64("page"), ctx.Int64("count"))
+	ct := context.Background()
+
+	tasks, err := client.Tasks(ct, ctx.String("repository"), ctx.String("ref"), ctx.Int64("page"), ctx.Int64("count"))
 	if err != nil {
 		return err
 	}
@@ -525,7 +529,7 @@ func tasks(ctx *cli.Context) error {
 		refName := task.Ref.RefName
 		sha := task.Ref.SHA[:12]
 
-		runningCount, finishedCount, totalCount, err := mkTaskRunCounts(client, task)
+		runningCount, finishedCount, totalCount, err := mkTaskRunCounts(ct, client, task)
 		if err != nil {
 			return err
 		}
@@ -550,7 +554,7 @@ func runs(ctx *cli.Context) error {
 		return err
 	}
 
-	runs, err := client.Runs(ctx.String("repository"), ctx.String("ref"), ctx.Int64("page"), ctx.Int64("count"))
+	runs, err := client.Runs(context.Background(), ctx.String("repository"), ctx.String("ref"), ctx.Int64("page"), ctx.Int64("count"))
 	if err != nil {
 		return err
 	}
@@ -607,7 +611,7 @@ func log(ctx *cli.Context) error {
 		return errors.New(convErr).Wrap("Invalid ID")
 	}
 
-	return client.LogAttach(id, os.Stdout)
+	return client.LogAttach(context.Background(), id, os.Stdout)
 }
 
 func addCapability(ctx *cli.Context) error {
@@ -620,7 +624,7 @@ func addCapability(ctx *cli.Context) error {
 		return err
 	}
 
-	err = client.AddCapability(ctx.Args()[0], model.Capability(ctx.Args()[1]))
+	err = client.AddCapability(context.Background(), ctx.Args()[0], model.Capability(ctx.Args()[1]))
 	if err != nil {
 		return err
 	}
@@ -638,7 +642,7 @@ func removeCapability(ctx *cli.Context) error {
 		return err
 	}
 
-	err = client.RemoveCapability(ctx.Args()[0], model.Capability(ctx.Args()[1]))
+	err = client.RemoveCapability(context.Background(), ctx.Args()[0], model.Capability(ctx.Args()[1]))
 	if err != nil {
 		return err
 	}

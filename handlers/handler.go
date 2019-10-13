@@ -83,7 +83,7 @@ func (h *H) GetUser(ctx *gin.Context) (*model.User, *errors.Error) {
 		if token := ctx.Request.Header.Get("Authorization"); token != "" {
 			token := ctx.Request.Header.Get("Authorization")
 			if token != "" {
-				u, err = h.Clients.Data.ValidateToken(token)
+				u, err = h.Clients.Data.ValidateToken(ctx, token)
 				if err != nil {
 					return nil, err
 				}
@@ -109,7 +109,7 @@ func (h *H) GetUser(ctx *gin.Context) (*model.User, *errors.Error) {
 	}
 
 	if u == nil && name != "" {
-		u, err = h.Clients.Data.GetUser(name)
+		u, err = h.Clients.Data.GetUser(ctx, name)
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +136,7 @@ func (h *H) GetClient(ctx *gin.Context) (github.Client, *errors.Error) {
 
 // OAuthRedirect redirects the user to the OAuth redirection URL.
 func (h *H) OAuthRedirect(ctx *gin.Context, scopes []string) *errors.Error {
-	url, err := h.Clients.Auth.GetOAuthURL(scopes)
+	url, err := h.Clients.Auth.GetOAuthURL(ctx, scopes)
 	if err != nil {
 		return err
 	}
@@ -315,12 +315,12 @@ func (h *H) GetGithub(ctx *gin.Context) (u *model.User, outErr *errors.Error) {
 	uname, ok := sess.Get(SessionUsername).(string)
 	if ok && strings.TrimSpace(uname) != "" {
 		// no error, we're already logged in
-		return h.Clients.Data.GetUser(uname)
+		return h.Clients.Data.GetUser(ctx, uname)
 	}
 
 	token := ctx.Request.Header.Get("Authorization")
 	if token != "" {
-		return h.Clients.Data.ValidateToken(token)
+		return h.Clients.Data.ValidateToken(ctx, token)
 	}
 
 	return nil, errInvalidCookie
@@ -349,7 +349,7 @@ func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error
 			if h.EnableTracing {
 				span.LogKV("authorization", "token")
 			}
-			u, err = h.Clients.Data.ValidateToken(token)
+			u, err = h.Clients.Data.ValidateToken(ctx, token)
 			if err != nil {
 				return err
 			}
@@ -369,7 +369,7 @@ func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error
 				span.LogKV("event", "capability check")
 			}
 
-			res, err := h.Clients.Data.HasCapability(u, cap)
+			res, err := h.Clients.Data.HasCapability(ctx, u, cap)
 			if err != nil {
 				return err
 			}

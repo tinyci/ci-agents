@@ -11,7 +11,7 @@ import (
 
 // CountRuns returns a count of the queue items by asking the datasvc for it.
 func CountRuns(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
-	count, err := h.Clients.Data.RunCount(ctx.GetString("repository"), ctx.GetString("sha"))
+	count, err := h.Clients.Data.RunCount(ctx, ctx.GetString("repository"), ctx.GetString("sha"))
 	if err != nil {
 		return nil, 500, err
 	}
@@ -26,7 +26,7 @@ func ListRuns(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error)
 		return nil, 500, err
 	}
 
-	list, err := h.Clients.Data.ListRuns(ctx.GetString("repository"), ctx.GetString("sha"), page, perPage)
+	list, err := h.Clients.Data.ListRuns(ctx, ctx.GetString("repository"), ctx.GetString("sha"), page, perPage)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -41,7 +41,7 @@ func GetRun(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 		return nil, 500, errors.New(err)
 	}
 
-	run, eErr := h.Clients.Data.GetRunUI(runID)
+	run, eErr := h.Clients.Data.GetRunUI(ctx, runID)
 	if eErr != nil {
 		return nil, 500, eErr
 	}
@@ -56,7 +56,7 @@ func CancelRun(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error
 		return nil, 500, errors.New(err)
 	}
 
-	if err := h.Clients.Data.SetCancel(runID); err != nil {
+	if err := h.Clients.Data.SetCancel(ctx, runID); err != nil {
 		return nil, 500, errors.New(err)
 	}
 

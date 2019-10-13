@@ -9,8 +9,8 @@ import (
 )
 
 // OAuthValidateState validates the state in the database.
-func (c *Client) OAuthValidateState(state string) ([]string, *errors.Error) {
-	oas, err := c.client.OAuthValidateState(context.Background(), &data.OAuthState{State: state}, grpc.WaitForReady(true))
+func (c *Client) OAuthValidateState(ctx context.Context, state string) ([]string, *errors.Error) {
+	oas, err := c.client.OAuthValidateState(ctx, &data.OAuthState{State: state}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -19,7 +19,7 @@ func (c *Client) OAuthValidateState(state string) ([]string, *errors.Error) {
 }
 
 // OAuthRegisterState registers the oauth state in the database.
-func (c *Client) OAuthRegisterState(state string, scopes []string) *errors.Error {
-	_, err := c.client.OAuthRegisterState(context.Background(), &data.OAuthState{State: state, Scopes: scopes}, grpc.WaitForReady(true))
+func (c *Client) OAuthRegisterState(ctx context.Context, state string, scopes []string) *errors.Error {
+	_, err := c.client.OAuthRegisterState(ctx, &data.OAuthState{State: state, Scopes: scopes}, grpc.WaitForReady(true))
 	return errors.New(err)
 }

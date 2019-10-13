@@ -51,8 +51,8 @@ func (c *Client) Close() error {
 }
 
 // Capabilities notes what types of auth this server supports.
-func (c *Client) Capabilities() ([]string, *errors.Error) {
-	caps, err := c.ac.Capabilities(context.Background(), &empty.Empty{})
+func (c *Client) Capabilities(ctx context.Context) ([]string, *errors.Error) {
+	caps, err := c.ac.Capabilities(ctx, &empty.Empty{})
 	if err != nil {
 		return nil, errors.New(err)
 	}

@@ -13,13 +13,13 @@ func Errors(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 		return nil, 500, err
 	}
 
-	errs, err := h.Clients.Data.GetErrors(user.Username)
+	errs, err := h.Clients.Data.GetErrors(ctx, user.Username)
 	if err != nil && !err.Contains(errors.New("record not found")) {
 		return nil, 500, err
 	}
 
 	for _, err := range errs {
-		if err := h.Clients.Data.DeleteError(err.ID, user.ID); err != nil && !err.Contains(errors.New("record not found")) {
+		if err := h.Clients.Data.DeleteError(ctx, err.ID, user.ID); err != nil && !err.Contains(errors.New("record not found")) {
 			return nil, 500, err
 		}
 	}

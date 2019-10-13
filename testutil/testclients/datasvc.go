@@ -1,6 +1,7 @@
 package testclients
 
 import (
+	"context"
 	"path"
 
 	"github.com/google/go-github/github"
@@ -31,7 +32,7 @@ func (dc *DataClient) Client() *data.Client {
 
 // MakeUser makes a new user with the name provided. It is given a dummy access token.
 func (dc *DataClient) MakeUser(username string) (*model.User, *errors.Error) {
-	return dc.client.PutUser(&model.User{
+	return dc.client.PutUser(context.Background(), &model.User{
 		Username: username,
 		Token:    testutil.DummyToken,
 	})
@@ -56,7 +57,7 @@ func (dc *DataClient) MakeRepo(fullRepo, owner string, private bool, forkOf stri
 		return err
 	}
 
-	return dc.client.PutRepositories(owner, ghRepos, false)
+	return dc.client.PutRepositories(context.Background(), owner, ghRepos, false)
 }
 
 // MakeQueueItem returns a queueitem that has already been stored
@@ -73,7 +74,7 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, *errors.Error) {
 		return nil, err
 	}
 
-	parent, err := dc.client.GetRepository(repoName)
+	parent, err := dc.client.GetRepository(context.Background(), repoName)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +85,7 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, *errors.Error) {
 		return nil, err
 	}
 
-	fork, err := dc.client.GetRepository(forkName)
+	fork, err := dc.client.GetRepository(context.Background(), forkName)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +96,7 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, *errors.Error) {
 		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
-	id, err := dc.client.PutRef(ref)
+	id, err := dc.client.PutRef(context.Background(), ref)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +124,7 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, *errors.Error) {
 		BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
-	t, err := dc.client.PutTask(task)
+	t, err := dc.client.PutTask(context.Background(), task)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +140,7 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, *errors.Error) {
 		},
 	}
 
-	qis, err := dc.client.PutQueue([]*model.QueueItem{qi})
+	qis, err := dc.client.PutQueue(context.Background(), []*model.QueueItem{qi})
 	if err != nil {
 		return nil, err
 	}
