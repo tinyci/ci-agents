@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -179,13 +180,13 @@ func (m *Model) SetRunStatus(runID int64, gh github.Client, status, canceled boo
 
 	if canceled {
 		go func() {
-			if err := bits.github.ErrorStatus(bits.parts[0], bits.parts[1], bits.run.Name, bits.run.Task.Ref.SHA, fmt.Sprintf("%s/log/%d", url, runID), errors.ErrRunCanceled); err != nil {
+			if err := bits.github.ErrorStatus(context.Background(), bits.parts[0], bits.parts[1], bits.run.Name, bits.run.Task.Ref.SHA, fmt.Sprintf("%s/log/%d", url, runID), errors.ErrRunCanceled); err != nil {
 				fmt.Println(err) // FIXME log
 			}
 		}()
 	} else {
 		go func() {
-			if err := bits.github.FinishedStatus(bits.parts[0], bits.parts[1], bits.run.Name, bits.run.Task.Ref.SHA, fmt.Sprintf("%s/log/%d", url, runID), status, addlMessage); err != nil {
+			if err := bits.github.FinishedStatus(context.Background(), bits.parts[0], bits.parts[1], bits.run.Name, bits.run.Task.Ref.SHA, fmt.Sprintf("%s/log/%d", url, runID), status, addlMessage); err != nil {
 				fmt.Println(err)
 			}
 		}()

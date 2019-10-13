@@ -47,22 +47,22 @@ func (qs *queuesvcSuite) TestBadYAML(c *check.C) {
 	taskBytes, e := ioutil.ReadFile("../testdata/bad_task.yml")
 	c.Assert(e, check.IsNil)
 
-	qs.getMock().GetRepository("erikh/foobar2").Return(&gh.Repository{FullName: gh.String("erikh/foobar2")}, nil)
-	qs.getMock().GetRepository("erikh/foobar").Return(&gh.Repository{FullName: gh.String("erikh/foobar")}, nil)
-	qs.getMock().GetRefs(sub.Fork, sub.HeadSHA).Return([]string{"heads/master"}, nil)
-	qs.getMock().GetRefs(sub.Parent, sub.BaseSHA).Return([]string{"heads/master"}, nil)
-	qs.getMock().GetFile(sub.Parent, "refs/heads/master", "tinyci.yml").Return(repoConfigBytes, nil)
-	qs.getMock().GetDiffFiles(sub.Parent, sub.BaseSHA, sub.HeadSHA).Return([]string{"task.yml"}, nil)
-	qs.getMock().GetFileList(sub.Fork, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar", "bar/task.yml", "bar/quux"}, nil)
-	qs.getMock().GetRepository(sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
-	qs.getMock().CommentError(sub.Parent, sub.TicketID, gomock.Any()).Return(nil)
+	qs.getMock().GetRepository(gomock.Any(), "erikh/foobar2").Return(&gh.Repository{FullName: gh.String("erikh/foobar2")}, nil)
+	qs.getMock().GetRepository(gomock.Any(), "erikh/foobar").Return(&gh.Repository{FullName: gh.String("erikh/foobar")}, nil)
+	qs.getMock().GetRefs(gomock.Any(), sub.Fork, sub.HeadSHA).Return([]string{"heads/master"}, nil)
+	qs.getMock().GetRefs(gomock.Any(), sub.Parent, sub.BaseSHA).Return([]string{"heads/master"}, nil)
+	qs.getMock().GetFile(gomock.Any(), sub.Parent, "refs/heads/master", "tinyci.yml").Return(repoConfigBytes, nil)
+	qs.getMock().GetDiffFiles(gomock.Any(), sub.Parent, sub.BaseSHA, sub.HeadSHA).Return([]string{"task.yml"}, nil)
+	qs.getMock().GetFileList(gomock.Any(), sub.Fork, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar", "bar/task.yml", "bar/quux"}, nil)
+	qs.getMock().GetRepository(gomock.Any(), sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
+	qs.getMock().CommentError(gomock.Any(), sub.Parent, sub.TicketID, gomock.Any()).Return(nil)
 
-	qs.getMock().GetFile(sub.Fork, sub.HeadSHA, "task.yml").Return(taskBytes, nil)
+	qs.getMock().GetFile(gomock.Any(), sub.Fork, sub.HeadSHA, "task.yml").Return(taskBytes, nil)
 
-	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
+	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.datasvcClient.Client().EnableRepository("erikh", sub.Parent), check.IsNil)
 
-	qs.getMock().FinishedStatus("erikh", "foobar", "*global*", "be3d26c478991039e951097f2c99f56b55396940", "url", false, gomock.Any()).Return(nil)
+	qs.getMock().FinishedStatus(gomock.Any(), "erikh", "foobar", "*global*", "be3d26c478991039e951097f2c99f56b55396940", "url", false, gomock.Any()).Return(nil)
 
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.NotNil)
 	runs, err := qs.datasvcClient.Client().ListRuns("", "", 0, 100)
@@ -129,10 +129,10 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	}
 
 	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
-	qs.getMock().GetSHA(sub.Fork, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396940", nil)
-	qs.getMock().GetSHA(sub.Parent, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396941", nil)
+	qs.getMock().GetSHA(gomock.Any(), sub.Fork, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396940", nil)
+	qs.getMock().GetSHA(gomock.Any(), sub.Parent, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396941", nil)
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub, ""), check.IsNil)
-	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
+	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), msub), check.IsNil)
 
 	qis, err := qs.datasvcClient.Client().ListRuns(sub.Fork, "be3d26c478991039e951097f2c99f56b55396940", 0, 100)
@@ -142,6 +142,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 		// original sha from first run
 		qs.getMock().
 			ErrorStatus(
+				gomock.Any(),
 				"erikh",
 				"foobar",
 				qis[i].Name,
@@ -166,10 +167,10 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 		TicketID: 10,
 	}
 
-	qs.getMock().GetSHA(sub.Fork, "heads/foobar").Return("be3d26c478991039e951097f2c99f56b55396942", nil) // also here
-	qs.getMock().GetSHA(sub.Parent, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396941", nil)
+	qs.getMock().GetSHA(gomock.Any(), sub.Fork, "heads/foobar").Return("be3d26c478991039e951097f2c99f56b55396942", nil) // also here
+	qs.getMock().GetSHA(gomock.Any(), sub.Parent, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396941", nil)
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub, ""), check.IsNil)
-	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
+	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), msub), check.IsNil)
 
 	qis, err = qs.datasvcClient.Client().ListRuns(sub.Fork, "be3d26c478991039e951097f2c99f56b55396942", 0, 100)
@@ -178,13 +179,14 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 
 	// cancellation tests
 
-	qs.getMock().GetSHA(sub.Fork, "heads/foobar").Return("be3d26c478991039e951097f2c99f56b55396942", nil) // also here
-	qs.getMock().GetSHA(sub.Parent, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396941", nil)
+	qs.getMock().GetSHA(gomock.Any(), sub.Fork, "heads/foobar").Return("be3d26c478991039e951097f2c99f56b55396942", nil) // also here
+	qs.getMock().GetSHA(gomock.Any(), sub.Parent, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396941", nil)
 
 	for i := len(qis) - 1; i >= 0; i-- {
 		// original sha from first run
 		qs.getMock().
 			ErrorStatus(
+				gomock.Any(),
 				"erikh",
 				"foobar",
 				qis[i].Name,
@@ -195,7 +197,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	}
 
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub, ""), check.IsNil)
-	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
+	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), msub), check.IsNil)
 
 	qis, err = qs.datasvcClient.Client().ListRuns(sub.Fork, "be3d26c478991039e951097f2c99f56b55396942", 0, 100)
@@ -223,7 +225,7 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 
 	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub, ""), check.IsNil)
-	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
+	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
 	runs, err := qs.datasvcClient.Client().ListRuns("", "", 0, 100)
@@ -240,7 +242,7 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 
 	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub, ""), check.IsNil)
-	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
+	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
 	runs, err = qs.datasvcClient.Client().ListRuns("", "", 0, 100)
@@ -271,25 +273,25 @@ func (qs *queuesvcSuite) TestSubmission(c *check.C) {
 	taskBytes, e := ioutil.ReadFile("../testdata/standard_task.yml")
 	c.Assert(e, check.IsNil)
 
-	qs.getMock().GetRepository("erikh/foobar2").Return(&gh.Repository{FullName: gh.String("erikh/foobar2")}, nil)
-	qs.getMock().GetRepository("erikh/foobar").Return(&gh.Repository{FullName: gh.String("erikh/foobar")}, nil)
-	qs.getMock().GetRefs(sub.Fork, sub.HeadSHA).Return([]string{"heads/master"}, nil)
-	qs.getMock().GetRefs(sub.Parent, sub.BaseSHA).Return([]string{"heads/master"}, nil)
-	qs.getMock().GetFile(sub.Parent, "refs/heads/master", "tinyci.yml").Return(repoConfigBytes, nil)
-	qs.getMock().GetDiffFiles(sub.Parent, sub.BaseSHA, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar"}, nil)
-	qs.getMock().GetFileList(sub.Fork, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar", "bar/task.yml", "bar/quux"}, nil)
-	qs.getMock().GetRepository(sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
+	qs.getMock().GetRepository(gomock.Any(), "erikh/foobar2").Return(&gh.Repository{FullName: gh.String("erikh/foobar2")}, nil)
+	qs.getMock().GetRepository(gomock.Any(), "erikh/foobar").Return(&gh.Repository{FullName: gh.String("erikh/foobar")}, nil)
+	qs.getMock().GetRefs(gomock.Any(), sub.Fork, sub.HeadSHA).Return([]string{"heads/master"}, nil)
+	qs.getMock().GetRefs(gomock.Any(), sub.Parent, sub.BaseSHA).Return([]string{"heads/master"}, nil)
+	qs.getMock().GetFile(gomock.Any(), sub.Parent, "refs/heads/master", "tinyci.yml").Return(repoConfigBytes, nil)
+	qs.getMock().GetDiffFiles(gomock.Any(), sub.Parent, sub.BaseSHA, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar"}, nil)
+	qs.getMock().GetFileList(gomock.Any(), sub.Fork, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar", "bar/task.yml", "bar/quux"}, nil)
+	qs.getMock().GetRepository(gomock.Any(), sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
 
-	qs.getMock().GetFile(sub.Fork, sub.HeadSHA, "foo/task.yml").Return(taskBytes, nil)
-	qs.getMock().GetFile(sub.Fork, sub.HeadSHA, "task.yml").Return(taskBytes, nil)
+	qs.getMock().GetFile(gomock.Any(), sub.Fork, sub.HeadSHA, "foo/task.yml").Return(taskBytes, nil)
+	qs.getMock().GetFile(gomock.Any(), sub.Fork, sub.HeadSHA, "task.yml").Return(taskBytes, nil)
 
 	for _, name := range []string{"*root*", "foo"} {
 		for x := 1; x <= 5; x++ {
-			qs.getMock().PendingStatus("erikh", "foobar", fmt.Sprintf("%s:%d", name, x), sub.HeadSHA, "url")
+			qs.getMock().PendingStatus(gomock.Any(), "erikh", "foobar", fmt.Sprintf("%s:%d", name, x), sub.HeadSHA, "url")
 		}
 	}
 
-	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
+	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.datasvcClient.Client().EnableRepository("erikh", sub.Parent), check.IsNil)
 
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
@@ -344,25 +346,25 @@ func (qs *queuesvcSuite) TestDependencies(c *check.C) {
 	standardTaskBytes, e := ioutil.ReadFile("../testdata/standard_task.yml")
 	c.Assert(e, check.IsNil)
 
-	qs.getMock().GetRepository("erikh/foobar2").Return(&gh.Repository{FullName: gh.String("erikh/foobar2")}, nil)
-	qs.getMock().GetRepository("erikh/foobar").Return(&gh.Repository{FullName: gh.String("erikh/foobar")}, nil)
-	qs.getMock().GetRefs(sub.Fork, sub.HeadSHA).Return([]string{"heads/master"}, nil)
-	qs.getMock().GetRefs(sub.Parent, sub.BaseSHA).Return([]string{"heads/master"}, nil)
-	qs.getMock().GetFile(sub.Parent, "refs/heads/master", "tinyci.yml").Return(repoConfigBytes, nil)
-	qs.getMock().GetDiffFiles(sub.Parent, sub.BaseSHA, sub.HeadSHA).Return([]string{"task.yml"}, nil)
-	qs.getMock().GetFileList(sub.Fork, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar", "bar/task.yml", "bar/quux"}, nil)
-	qs.getMock().GetRepository(sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
+	qs.getMock().GetRepository(gomock.Any(), "erikh/foobar2").Return(&gh.Repository{FullName: gh.String("erikh/foobar2")}, nil)
+	qs.getMock().GetRepository(gomock.Any(), "erikh/foobar").Return(&gh.Repository{FullName: gh.String("erikh/foobar")}, nil)
+	qs.getMock().GetRefs(gomock.Any(), sub.Fork, sub.HeadSHA).Return([]string{"heads/master"}, nil)
+	qs.getMock().GetRefs(gomock.Any(), sub.Parent, sub.BaseSHA).Return([]string{"heads/master"}, nil)
+	qs.getMock().GetFile(gomock.Any(), sub.Parent, "refs/heads/master", "tinyci.yml").Return(repoConfigBytes, nil)
+	qs.getMock().GetDiffFiles(gomock.Any(), sub.Parent, sub.BaseSHA, sub.HeadSHA).Return([]string{"task.yml"}, nil)
+	qs.getMock().GetFileList(gomock.Any(), sub.Fork, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar", "bar/task.yml", "bar/quux"}, nil)
+	qs.getMock().GetRepository(gomock.Any(), sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
 
-	qs.getMock().GetFile(sub.Fork, sub.HeadSHA, "task.yml").Return(taskBytes, nil)
-	qs.getMock().GetFile(sub.Fork, sub.HeadSHA, "bar/task.yml").Return(depTaskBytes, nil)
-	qs.getMock().GetFile(sub.Fork, sub.HeadSHA, "foo/task.yml").Return(standardTaskBytes, nil)
+	qs.getMock().GetFile(gomock.Any(), sub.Fork, sub.HeadSHA, "task.yml").Return(taskBytes, nil)
+	qs.getMock().GetFile(gomock.Any(), sub.Fork, sub.HeadSHA, "bar/task.yml").Return(depTaskBytes, nil)
+	qs.getMock().GetFile(gomock.Any(), sub.Fork, sub.HeadSHA, "foo/task.yml").Return(standardTaskBytes, nil)
 
-	qs.getMock().PendingStatus("erikh", "foobar", "*root*:1", sub.HeadSHA, "url")
+	qs.getMock().PendingStatus(gomock.Any(), "erikh", "foobar", "*root*:1", sub.HeadSHA, "url")
 	for x := 1; x <= 5; x++ {
-		qs.getMock().PendingStatus("erikh", "foobar", fmt.Sprintf("%s:%d", "foo", x), sub.HeadSHA, "url")
+		qs.getMock().PendingStatus(gomock.Any(), "erikh", "foobar", fmt.Sprintf("%s:%d", "foo", x), sub.HeadSHA, "url")
 	}
 
-	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
+	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 	c.Assert(qs.datasvcClient.Client().EnableRepository("erikh", sub.Parent), check.IsNil)
 
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
@@ -389,7 +391,7 @@ func (qs *queuesvcSuite) TestBasic(c *check.C) {
 		TicketID: 10,
 	}
 
-	_, _, _, err = ManageRepositories(qs.queueHandler, sub)
+	_, _, _, err = ManageRepositories(context.Background(), qs.queueHandler, sub)
 	c.Assert(err, check.NotNil)
 
 	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
@@ -398,11 +400,11 @@ func (qs *queuesvcSuite) TestBasic(c *check.C) {
 	c.Assert(qs.datasvcClient.Client().EnableRepository("erikh", "erikh/foobar"), check.IsNil)
 
 	gomock.InOrder(
-		qs.getMock().GetRepository("erikh/foobar2").Return(&gh.Repository{FullName: gh.String("erikh/foobar2")}, nil),
-		qs.getMock().GetRepository("erikh/foobar").Return(&gh.Repository{FullName: gh.String("erikh/foobar")}, nil),
+		qs.getMock().GetRepository(gomock.Any(), "erikh/foobar2").Return(&gh.Repository{FullName: gh.String("erikh/foobar2")}, nil),
+		qs.getMock().GetRepository(gomock.Any(), "erikh/foobar").Return(&gh.Repository{FullName: gh.String("erikh/foobar")}, nil),
 	)
 
-	parent, fork, _, err := ManageRepositories(qs.queueHandler, sub)
+	parent, fork, _, err := ManageRepositories(context.Background(), qs.queueHandler, sub)
 	c.Assert(err, check.IsNil)
 
 	c.Assert(parent.ID, check.Not(check.Equals), int64(0))
@@ -412,35 +414,35 @@ func (qs *queuesvcSuite) TestBasic(c *check.C) {
 	c.Assert(fork.AutoCreated, check.Equals, true)
 
 	gomock.InOrder(
-		qs.getMock().GetRefs(sub.Fork, sub.HeadSHA).Return([]string{"heads/master"}, nil),
+		qs.getMock().GetRefs(gomock.Any(), sub.Fork, sub.HeadSHA).Return([]string{"heads/master"}, nil),
 	)
 
-	forkRef, err := ManageRefs(qs.queueHandler, config.DefaultGithubClient, fork, sub.HeadSHA)
+	forkRef, err := ManageRefs(context.Background(), qs.queueHandler, config.DefaultGithubClient, fork, sub.HeadSHA)
 	c.Assert(err, check.IsNil)
 
 	c.Assert(forkRef.SHA, check.Equals, sub.HeadSHA)
 	c.Assert(forkRef.RefName, check.Equals, "heads/master")
 
 	gomock.InOrder(
-		qs.getMock().GetRefs(sub.Parent, sub.BaseSHA).Return([]string{"heads/master"}, nil),
+		qs.getMock().GetRefs(gomock.Any(), sub.Parent, sub.BaseSHA).Return([]string{"heads/master"}, nil),
 	)
 
-	parentRef, err := ManageRefs(qs.queueHandler, config.DefaultGithubClient, parent, sub.BaseSHA)
+	parentRef, err := ManageRefs(context.Background(), qs.queueHandler, config.DefaultGithubClient, parent, sub.BaseSHA)
 	c.Assert(err, check.IsNil)
 
 	c.Assert(parentRef.SHA, check.Equals, sub.BaseSHA)
 	c.Assert(parentRef.RefName, check.Equals, "heads/master")
 
 	gomock.InOrder(
-		qs.getMock().GetDiffFiles(sub.Parent, sub.BaseSHA, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar", "untested/bar", "untested/task.yml"}, nil),
-		qs.getMock().GetFileList(sub.Fork, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar", "bar/task.yml", "bar/quux"}, nil),
+		qs.getMock().GetDiffFiles(gomock.Any(), sub.Parent, sub.BaseSHA, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar", "untested/bar", "untested/task.yml"}, nil),
+		qs.getMock().GetFileList(gomock.Any(), sub.Fork, sub.HeadSHA).Return([]string{"task.yml", "foo/task.yml", "foo/bar", "bar/task.yml", "bar/quux"}, nil),
 	)
 
 	rc := &types.RepoConfig{
 		IgnoreDirs: []string{"untested"},
 	}
 
-	processMap, err := PickTasks(config.DefaultGithubClient, sub, forkRef, parent, rc)
+	processMap, err := PickTasks(context.Background(), config.DefaultGithubClient, sub, forkRef, parent, rc)
 	c.Assert(err, check.IsNil)
 
 	for _, key := range []string{".", "foo"} {
@@ -457,10 +459,10 @@ func (qs *queuesvcSuite) TestBasic(c *check.C) {
 	repoConfigBytes, e := ioutil.ReadFile("../testdata/standard_repoconfig.yml")
 	c.Assert(e, check.IsNil)
 
-	qs.getMock().GetRepository(sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
-	qs.getMock().GetFile(sub.Parent, "refs/heads/master", "tinyci.yml").Return(repoConfigBytes, nil)
+	qs.getMock().GetRepository(gomock.Any(), sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
+	qs.getMock().GetFile(gomock.Any(), sub.Parent, "refs/heads/master", "tinyci.yml").Return(repoConfigBytes, nil)
 
-	repoConfig, err := GetRepoConfig(config.DefaultGithubClient, sub)
+	repoConfig, err := GetRepoConfig(context.Background(), config.DefaultGithubClient, sub)
 	c.Assert(err, check.IsNil)
 
 	c.Assert(repoConfig.Queue, check.Equals, "repoconfig")
@@ -469,8 +471,8 @@ func (qs *queuesvcSuite) TestBasic(c *check.C) {
 	taskBytes, e := ioutil.ReadFile("../testdata/standard_task.yml")
 	c.Assert(e, check.IsNil)
 
-	qs.getMock().GetFile(sub.Fork, sub.HeadSHA, "task.yml").Return(taskBytes, nil)
-	qs.getMock().GetFile(sub.Fork, sub.HeadSHA, "foo/task.yml").Return(taskBytes, nil)
+	qs.getMock().GetFile(gomock.Any(), sub.Fork, sub.HeadSHA, "task.yml").Return(taskBytes, nil)
+	qs.getMock().GetFile(gomock.Any(), sub.Fork, sub.HeadSHA, "foo/task.yml").Return(taskBytes, nil)
 
 	parts := strings.SplitN(parent.Name, "/", 2)
 	c.Assert(len(parts), check.Equals, 2)
@@ -478,12 +480,12 @@ func (qs *queuesvcSuite) TestBasic(c *check.C) {
 	for _, name := range []string{"*root*", "foo"} {
 		for x := 1; x <= 5; x++ {
 			gomock.InOrder(
-				qs.getMock().PendingStatus(parts[0], parts[1], fmt.Sprintf("%s:%d", name, x), sub.HeadSHA, "url"),
+				qs.getMock().PendingStatus(gomock.Any(), parts[0], parts[1], fmt.Sprintf("%s:%d", name, x), sub.HeadSHA, "url"),
 			)
 		}
 	}
 
-	qs.getMock().ClearStates(sub.Parent, sub.HeadSHA).Return(nil)
+	qs.getMock().ClearStates(gomock.Any(), sub.Parent, sub.HeadSHA).Return(nil)
 	qis, err := GenerateQueueItems(
 		context.Background(),
 		qs.queueHandler,

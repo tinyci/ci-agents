@@ -44,7 +44,7 @@ func ScanRepositories(h *handlers.H, ctx *gin.Context) (interface{}, int, *error
 		return nil, 500, err
 	}
 
-	githubRepos, err := github.MyRepositories()
+	githubRepos, err := github.MyRepositories(ctx)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -103,7 +103,7 @@ func DeleteRepositoryFromCI(h *handlers.H, ctx *gin.Context) (interface{}, int, 
 		return nil, 500, errors.New("repo is not enabled")
 	}
 
-	if err := github.TeardownHook(ctx.GetString("owner"), ctx.GetString("repo"), h.HookURL); err != nil {
+	if err := github.TeardownHook(ctx, ctx.GetString("owner"), ctx.GetString("repo"), h.HookURL); err != nil {
 		return nil, 500, err
 	}
 
@@ -127,7 +127,7 @@ func AddRepositoryToCI(h *handlers.H, ctx *gin.Context) (interface{}, int, *erro
 		return nil, 500, err
 	}
 
-	if err := github.TeardownHook(ctx.GetString("owner"), ctx.GetString("repo"), h.HookURL); err != nil {
+	if err := github.TeardownHook(ctx, ctx.GetString("owner"), ctx.GetString("repo"), h.HookURL); err != nil {
 		return nil, 500, err
 	}
 
@@ -141,7 +141,7 @@ func AddRepositoryToCI(h *handlers.H, ctx *gin.Context) (interface{}, int, *erro
 		return nil, 500, err
 	}
 
-	if err := github.SetupHook(ctx.GetString("owner"), ctx.GetString("repo"), h.HookURL, postRepo.HookSecret); err != nil {
+	if err := github.SetupHook(ctx, ctx.GetString("owner"), ctx.GetString("repo"), h.HookURL, postRepo.HookSecret); err != nil {
 		if err := h.Clients.Data.DisableRepository(user.Username, repoName); err != nil {
 			return nil, 500, err
 		}

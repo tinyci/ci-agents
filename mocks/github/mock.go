@@ -5,6 +5,7 @@
 package github
 
 import (
+	context "context"
 	gomock "github.com/golang/mock/gomock"
 	github "github.com/google/go-github/github"
 	errors "github.com/tinyci/ci-agents/errors"
@@ -35,233 +36,233 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // ClearStates mocks base method
-func (m *MockClient) ClearStates(arg0, arg1 string) *errors.Error {
+func (m *MockClient) ClearStates(arg0 context.Context, arg1, arg2 string) *errors.Error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ClearStates", arg0, arg1)
+	ret := m.ctrl.Call(m, "ClearStates", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
 // ClearStates indicates an expected call of ClearStates
-func (mr *MockClientMockRecorder) ClearStates(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) ClearStates(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearStates", reflect.TypeOf((*MockClient)(nil).ClearStates), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearStates", reflect.TypeOf((*MockClient)(nil).ClearStates), arg0, arg1, arg2)
 }
 
 // CommentError mocks base method
-func (m *MockClient) CommentError(arg0 string, arg1 int64, arg2 *errors.Error) *errors.Error {
+func (m *MockClient) CommentError(arg0 context.Context, arg1 string, arg2 int64, arg3 *errors.Error) *errors.Error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CommentError", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "CommentError", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
 // CommentError indicates an expected call of CommentError
-func (mr *MockClientMockRecorder) CommentError(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) CommentError(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CommentError", reflect.TypeOf((*MockClient)(nil).CommentError), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CommentError", reflect.TypeOf((*MockClient)(nil).CommentError), arg0, arg1, arg2, arg3)
 }
 
 // ErrorStatus mocks base method
-func (m *MockClient) ErrorStatus(arg0, arg1, arg2, arg3, arg4 string, arg5 *errors.Error) *errors.Error {
+func (m *MockClient) ErrorStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string, arg6 *errors.Error) *errors.Error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ErrorStatus", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret := m.ctrl.Call(m, "ErrorStatus", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
 // ErrorStatus indicates an expected call of ErrorStatus
-func (mr *MockClientMockRecorder) ErrorStatus(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) ErrorStatus(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ErrorStatus", reflect.TypeOf((*MockClient)(nil).ErrorStatus), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ErrorStatus", reflect.TypeOf((*MockClient)(nil).ErrorStatus), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
 // FinishedStatus mocks base method
-func (m *MockClient) FinishedStatus(arg0, arg1, arg2, arg3, arg4 string, arg5 bool, arg6 string) *errors.Error {
+func (m *MockClient) FinishedStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string, arg6 bool, arg7 string) *errors.Error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FinishedStatus", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+	ret := m.ctrl.Call(m, "FinishedStatus", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
 // FinishedStatus indicates an expected call of FinishedStatus
-func (mr *MockClientMockRecorder) FinishedStatus(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) FinishedStatus(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinishedStatus", reflect.TypeOf((*MockClient)(nil).FinishedStatus), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinishedStatus", reflect.TypeOf((*MockClient)(nil).FinishedStatus), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 }
 
 // GetDiffFiles mocks base method
-func (m *MockClient) GetDiffFiles(arg0, arg1, arg2 string) ([]string, *errors.Error) {
+func (m *MockClient) GetDiffFiles(arg0 context.Context, arg1, arg2, arg3 string) ([]string, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDiffFiles", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetDiffFiles", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
 // GetDiffFiles indicates an expected call of GetDiffFiles
-func (mr *MockClientMockRecorder) GetDiffFiles(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetDiffFiles(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDiffFiles", reflect.TypeOf((*MockClient)(nil).GetDiffFiles), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDiffFiles", reflect.TypeOf((*MockClient)(nil).GetDiffFiles), arg0, arg1, arg2, arg3)
 }
 
 // GetFile mocks base method
-func (m *MockClient) GetFile(arg0, arg1, arg2 string) ([]byte, *errors.Error) {
+func (m *MockClient) GetFile(arg0 context.Context, arg1, arg2, arg3 string) ([]byte, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFile", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetFile", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
 // GetFile indicates an expected call of GetFile
-func (mr *MockClientMockRecorder) GetFile(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetFile(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockClient)(nil).GetFile), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockClient)(nil).GetFile), arg0, arg1, arg2, arg3)
 }
 
 // GetFileList mocks base method
-func (m *MockClient) GetFileList(arg0, arg1 string) ([]string, *errors.Error) {
+func (m *MockClient) GetFileList(arg0 context.Context, arg1, arg2 string) ([]string, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFileList", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetFileList", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
 // GetFileList indicates an expected call of GetFileList
-func (mr *MockClientMockRecorder) GetFileList(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetFileList(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileList", reflect.TypeOf((*MockClient)(nil).GetFileList), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileList", reflect.TypeOf((*MockClient)(nil).GetFileList), arg0, arg1, arg2)
 }
 
 // GetRefs mocks base method
-func (m *MockClient) GetRefs(arg0, arg1 string) ([]string, *errors.Error) {
+func (m *MockClient) GetRefs(arg0 context.Context, arg1, arg2 string) ([]string, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRefs", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetRefs", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
 // GetRefs indicates an expected call of GetRefs
-func (mr *MockClientMockRecorder) GetRefs(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetRefs(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRefs", reflect.TypeOf((*MockClient)(nil).GetRefs), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRefs", reflect.TypeOf((*MockClient)(nil).GetRefs), arg0, arg1, arg2)
 }
 
 // GetRepository mocks base method
-func (m *MockClient) GetRepository(arg0 string) (*github.Repository, *errors.Error) {
+func (m *MockClient) GetRepository(arg0 context.Context, arg1 string) (*github.Repository, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRepository", arg0)
+	ret := m.ctrl.Call(m, "GetRepository", arg0, arg1)
 	ret0, _ := ret[0].(*github.Repository)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
 // GetRepository indicates an expected call of GetRepository
-func (mr *MockClientMockRecorder) GetRepository(arg0 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetRepository(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRepository", reflect.TypeOf((*MockClient)(nil).GetRepository), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRepository", reflect.TypeOf((*MockClient)(nil).GetRepository), arg0, arg1)
 }
 
 // GetSHA mocks base method
-func (m *MockClient) GetSHA(arg0, arg1 string) (string, *errors.Error) {
+func (m *MockClient) GetSHA(arg0 context.Context, arg1, arg2 string) (string, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSHA", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetSHA", arg0, arg1, arg2)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
 // GetSHA indicates an expected call of GetSHA
-func (mr *MockClientMockRecorder) GetSHA(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetSHA(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSHA", reflect.TypeOf((*MockClient)(nil).GetSHA), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSHA", reflect.TypeOf((*MockClient)(nil).GetSHA), arg0, arg1, arg2)
 }
 
 // MyLogin mocks base method
-func (m *MockClient) MyLogin() (string, *errors.Error) {
+func (m *MockClient) MyLogin(arg0 context.Context) (string, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MyLogin")
+	ret := m.ctrl.Call(m, "MyLogin", arg0)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
 // MyLogin indicates an expected call of MyLogin
-func (mr *MockClientMockRecorder) MyLogin() *gomock.Call {
+func (mr *MockClientMockRecorder) MyLogin(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MyLogin", reflect.TypeOf((*MockClient)(nil).MyLogin))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MyLogin", reflect.TypeOf((*MockClient)(nil).MyLogin), arg0)
 }
 
 // MyRepositories mocks base method
-func (m *MockClient) MyRepositories() ([]*github.Repository, *errors.Error) {
+func (m *MockClient) MyRepositories(arg0 context.Context) ([]*github.Repository, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MyRepositories")
+	ret := m.ctrl.Call(m, "MyRepositories", arg0)
 	ret0, _ := ret[0].([]*github.Repository)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
 // MyRepositories indicates an expected call of MyRepositories
-func (mr *MockClientMockRecorder) MyRepositories() *gomock.Call {
+func (mr *MockClientMockRecorder) MyRepositories(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MyRepositories", reflect.TypeOf((*MockClient)(nil).MyRepositories))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MyRepositories", reflect.TypeOf((*MockClient)(nil).MyRepositories), arg0)
 }
 
 // PendingStatus mocks base method
-func (m *MockClient) PendingStatus(arg0, arg1, arg2, arg3, arg4 string) *errors.Error {
+func (m *MockClient) PendingStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string) *errors.Error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PendingStatus", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "PendingStatus", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
 // PendingStatus indicates an expected call of PendingStatus
-func (mr *MockClientMockRecorder) PendingStatus(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) PendingStatus(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PendingStatus", reflect.TypeOf((*MockClient)(nil).PendingStatus), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PendingStatus", reflect.TypeOf((*MockClient)(nil).PendingStatus), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 // SetupHook mocks base method
-func (m *MockClient) SetupHook(arg0, arg1, arg2, arg3 string) *errors.Error {
+func (m *MockClient) SetupHook(arg0 context.Context, arg1, arg2, arg3, arg4 string) *errors.Error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetupHook", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "SetupHook", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
 // SetupHook indicates an expected call of SetupHook
-func (mr *MockClientMockRecorder) SetupHook(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SetupHook(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetupHook", reflect.TypeOf((*MockClient)(nil).SetupHook), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetupHook", reflect.TypeOf((*MockClient)(nil).SetupHook), arg0, arg1, arg2, arg3, arg4)
 }
 
 // StartedStatus mocks base method
-func (m *MockClient) StartedStatus(arg0, arg1, arg2, arg3, arg4 string) *errors.Error {
+func (m *MockClient) StartedStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string) *errors.Error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartedStatus", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "StartedStatus", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
 // StartedStatus indicates an expected call of StartedStatus
-func (mr *MockClientMockRecorder) StartedStatus(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) StartedStatus(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartedStatus", reflect.TypeOf((*MockClient)(nil).StartedStatus), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartedStatus", reflect.TypeOf((*MockClient)(nil).StartedStatus), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 // TeardownHook mocks base method
-func (m *MockClient) TeardownHook(arg0, arg1, arg2 string) *errors.Error {
+func (m *MockClient) TeardownHook(arg0 context.Context, arg1, arg2, arg3 string) *errors.Error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TeardownHook", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "TeardownHook", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
 // TeardownHook indicates an expected call of TeardownHook
-func (mr *MockClientMockRecorder) TeardownHook(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) TeardownHook(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TeardownHook", reflect.TypeOf((*MockClient)(nil).TeardownHook), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TeardownHook", reflect.TypeOf((*MockClient)(nil).TeardownHook), arg0, arg1, arg2, arg3)
 }

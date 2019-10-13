@@ -304,7 +304,7 @@ func (ms *modelSuite) TestSubmissionTasks(c *check.C) {
 					runCount += count
 
 					for i := int64(0); i < count; i++ {
-						gh.EXPECT().ErrorStatus(owner, repo, "default", task.Ref.SHA, gomock.Any(), gomock.Any())
+						gh.EXPECT().ErrorStatus(gomock.Any(), owner, repo, "default", task.Ref.SHA, gomock.Any(), gomock.Any())
 					}
 				}
 

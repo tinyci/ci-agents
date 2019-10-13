@@ -19,22 +19,22 @@ var (
 
 // Client is the generic client to github operations.
 type Client interface {
-	CommentError(string, int64, *errors.Error) *errors.Error
-	MyRepositories() ([]*github.Repository, *errors.Error)
-	GetRepository(string) (*github.Repository, *errors.Error)
-	MyLogin() (string, *errors.Error)
-	GetFileList(string, string) ([]string, *errors.Error)
-	GetSHA(string, string) (string, *errors.Error)
-	GetRefs(string, string) ([]string, *errors.Error)
-	GetFile(string, string, string) ([]byte, *errors.Error)
-	GetDiffFiles(string, string, string) ([]string, *errors.Error)
-	SetupHook(string, string, string, string) *errors.Error
-	TeardownHook(string, string, string) *errors.Error
-	PendingStatus(string, string, string, string, string) *errors.Error
-	StartedStatus(string, string, string, string, string) *errors.Error
-	ErrorStatus(string, string, string, string, string, *errors.Error) *errors.Error
-	FinishedStatus(string, string, string, string, string, bool, string) *errors.Error
-	ClearStates(string, string) *errors.Error
+	CommentError(context.Context, string, int64, *errors.Error) *errors.Error
+	MyRepositories(context.Context) ([]*github.Repository, *errors.Error)
+	GetRepository(context.Context, string) (*github.Repository, *errors.Error)
+	MyLogin(context.Context) (string, *errors.Error)
+	GetFileList(context.Context, string, string) ([]string, *errors.Error)
+	GetSHA(context.Context, string, string) (string, *errors.Error)
+	GetRefs(context.Context, string, string) ([]string, *errors.Error)
+	GetFile(context.Context, string, string, string) ([]byte, *errors.Error)
+	GetDiffFiles(context.Context, string, string, string) ([]string, *errors.Error)
+	SetupHook(context.Context, string, string, string, string) *errors.Error
+	TeardownHook(context.Context, string, string, string) *errors.Error
+	PendingStatus(context.Context, string, string, string, string, string) *errors.Error
+	StartedStatus(context.Context, string, string, string, string, string) *errors.Error
+	ErrorStatus(context.Context, string, string, string, string, string, *errors.Error) *errors.Error
+	FinishedStatus(context.Context, string, string, string, string, string, bool, string) *errors.Error
+	ClearStates(context.Context, string, string) *errors.Error
 }
 
 // HTTPClient encapsulates the "real world", or http client.
@@ -54,8 +54,8 @@ func NewClientFromAccessToken(accessToken string) Client {
 }
 
 // PendingStatus updates the status for the sha for the given repo on github.
-func (c *HTTPClient) PendingStatus(owner, repo, name, sha, url string) *errors.Error {
-	_, _, err := c.github.Repositories.CreateStatus(context.Background(), owner, repo, sha, &github.RepoStatus{
+func (c *HTTPClient) PendingStatus(ctx context.Context, owner, repo, name, sha, url string) *errors.Error {
+	_, _, err := c.github.Repositories.CreateStatus(ctx, owner, repo, sha, &github.RepoStatus{
 		TargetURL:   github.String(url),
 		State:       github.String("pending"),
 		Description: github.String("The run will be starting soon."),
@@ -66,8 +66,8 @@ func (c *HTTPClient) PendingStatus(owner, repo, name, sha, url string) *errors.E
 }
 
 // StartedStatus updates the status for the sha for the given repo on github.
-func (c *HTTPClient) StartedStatus(owner, repo, name, sha, url string) *errors.Error {
-	_, _, err := c.github.Repositories.CreateStatus(context.Background(), owner, repo, sha, &github.RepoStatus{
+func (c *HTTPClient) StartedStatus(ctx context.Context, owner, repo, name, sha, url string) *errors.Error {
+	_, _, err := c.github.Repositories.CreateStatus(ctx, owner, repo, sha, &github.RepoStatus{
 		TargetURL:   github.String(url),
 		State:       github.String("pending"),
 		Description: github.String("The run has started!"),
@@ -86,8 +86,8 @@ func capStatus(str string) *string {
 }
 
 // ErrorStatus updates the status for the sha for the given repo on github.
-func (c *HTTPClient) ErrorStatus(owner, repo, name, sha, url string, outErr *errors.Error) *errors.Error {
-	_, _, err := c.github.Repositories.CreateStatus(context.Background(), owner, repo, sha, &github.RepoStatus{
+func (c *HTTPClient) ErrorStatus(ctx context.Context, owner, repo, name, sha, url string, outErr *errors.Error) *errors.Error {
+	_, _, err := c.github.Repositories.CreateStatus(ctx, owner, repo, sha, &github.RepoStatus{
 		TargetURL: github.String(url),
 		State:     github.String("error"),
 		// github statuses cap at 140c
@@ -99,13 +99,13 @@ func (c *HTTPClient) ErrorStatus(owner, repo, name, sha, url string, outErr *err
 }
 
 // FinishedStatus updates the status for the sha for the given repo on github.
-func (c *HTTPClient) FinishedStatus(owner, repo, name, sha, url string, status bool, addlMessage string) *errors.Error {
+func (c *HTTPClient) FinishedStatus(ctx context.Context, owner, repo, name, sha, url string, status bool, addlMessage string) *errors.Error {
 	statusString := "failure"
 	if status {
 		statusString = "success"
 	}
 
-	_, _, err := c.github.Repositories.CreateStatus(context.Background(), owner, repo, sha, &github.RepoStatus{
+	_, _, err := c.github.Repositories.CreateStatus(ctx, owner, repo, sha, &github.RepoStatus{
 		TargetURL: github.String(url),
 		State:     github.String(statusString),
 		// github statuses cap at 140c
@@ -117,8 +117,8 @@ func (c *HTTPClient) FinishedStatus(owner, repo, name, sha, url string, status b
 }
 
 // SetupHook sets up the pr webhook in github.
-func (c *HTTPClient) SetupHook(owner, repo, configAddress, hookSecret string) *errors.Error {
-	_, _, err := c.github.Repositories.CreateHook(context.Background(), owner, repo, &github.Hook{
+func (c *HTTPClient) SetupHook(ctx context.Context, owner, repo, configAddress, hookSecret string) *errors.Error {
+	_, _, err := c.github.Repositories.CreateHook(ctx, owner, repo, &github.Hook{
 		URL:    github.String(configAddress),
 		Events: []string{"push", "pull_request"},
 		Active: github.Bool(true),
@@ -133,12 +133,12 @@ func (c *HTTPClient) SetupHook(owner, repo, configAddress, hookSecret string) *e
 }
 
 // TeardownHook removes the pr webhook in github.
-func (c *HTTPClient) TeardownHook(owner, repo, hookURL string) *errors.Error {
+func (c *HTTPClient) TeardownHook(ctx context.Context, owner, repo, hookURL string) *errors.Error {
 	var id int64
 	var i int
 
 	for {
-		hooks, _, err := c.github.Repositories.ListHooks(context.Background(), owner, repo, &github.ListOptions{Page: i, PerPage: 20})
+		hooks, _, err := c.github.Repositories.ListHooks(ctx, owner, repo, &github.ListOptions{Page: i, PerPage: 20})
 		if err != nil || len(hooks) == 0 {
 			break
 		}
@@ -153,7 +153,7 @@ func (c *HTTPClient) TeardownHook(owner, repo, hookURL string) *errors.Error {
 
 finish:
 	if id != 0 {
-		_, err := c.github.Repositories.DeleteHook(context.Background(), owner, repo, id)
+		_, err := c.github.Repositories.DeleteHook(ctx, owner, repo, id)
 		return errors.New(err)
 	}
 
@@ -162,14 +162,14 @@ finish:
 
 // MyRepositories returns all the writable repositories accessible to user
 // owning the access key
-func (c *HTTPClient) MyRepositories() ([]*github.Repository, *errors.Error) {
+func (c *HTTPClient) MyRepositories(ctx context.Context) ([]*github.Repository, *errors.Error) {
 	var i int
 	ret := map[string]*github.Repository{}
 	order := []string{}
 
 	for {
 		repos, _, err := c.github.Repositories.List(
-			context.Background(),
+			ctx,
 			"",
 			&github.RepositoryListOptions{
 				Visibility: "owner",
@@ -210,12 +210,12 @@ func (c *HTTPClient) MyRepositories() ([]*github.Repository, *errors.Error) {
 
 // MyLogin returns the username calling out to the API with its key. Can either
 // be seeded by OAuth or Personal Token.
-func (c *HTTPClient) MyLogin() (string, *errors.Error) {
+func (c *HTTPClient) MyLogin(ctx context.Context) (string, *errors.Error) {
 	if DefaultUsername != "" {
 		return DefaultUsername, nil
 	}
 
-	u, _, err := c.github.Users.Get(context.Background(), "")
+	u, _, err := c.github.Users.Get(ctx, "")
 	if err != nil {
 		return "", errors.New(err)
 	}
@@ -224,24 +224,24 @@ func (c *HTTPClient) MyLogin() (string, *errors.Error) {
 }
 
 // GetRepository retrieves the github response for a given repository.
-func (c *HTTPClient) GetRepository(name string) (*github.Repository, *errors.Error) {
+func (c *HTTPClient) GetRepository(ctx context.Context, name string) (*github.Repository, *errors.Error) {
 	owner, repo, eErr := utils.OwnerRepo(name)
 	if eErr != nil {
 		return nil, eErr
 	}
 
-	r, _, err := c.github.Repositories.Get(context.Background(), owner, repo)
+	r, _, err := c.github.Repositories.Get(ctx, owner, repo)
 	return r, errors.New(err)
 }
 
 // GetFileList finds all the files in the tree for the given repository
-func (c *HTTPClient) GetFileList(repoName, sha string) ([]string, *errors.Error) {
+func (c *HTTPClient) GetFileList(ctx context.Context, repoName, sha string) ([]string, *errors.Error) {
 	owner, repo, eErr := utils.OwnerRepo(repoName)
 	if eErr != nil {
 		return nil, eErr
 	}
 
-	tree, _, err := c.github.Git.GetTree(context.Background(), owner, repo, sha, true)
+	tree, _, err := c.github.Git.GetTree(ctx, owner, repo, sha, true)
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -256,13 +256,13 @@ func (c *HTTPClient) GetFileList(repoName, sha string) ([]string, *errors.Error)
 }
 
 // GetSHA retrieves the SHA for the branch in the given repository
-func (c *HTTPClient) GetSHA(repoName, refName string) (string, *errors.Error) {
+func (c *HTTPClient) GetSHA(ctx context.Context, repoName, refName string) (string, *errors.Error) {
 	owner, repo, eErr := utils.OwnerRepo(repoName)
 	if eErr != nil {
 		return "", eErr
 	}
 
-	ref, _, err := c.github.Git.GetRef(context.Background(), owner, repo, refName)
+	ref, _, err := c.github.Git.GetRef(ctx, owner, repo, refName)
 	if err != nil {
 		return "", errors.New(err)
 	}
@@ -271,14 +271,14 @@ func (c *HTTPClient) GetSHA(repoName, refName string) (string, *errors.Error) {
 }
 
 // GetRefs gets the refs that match the given SHA. Only heads and tags are considered.
-func (c *HTTPClient) GetRefs(repoName, sha string) ([]string, *errors.Error) {
+func (c *HTTPClient) GetRefs(ctx context.Context, repoName, sha string) ([]string, *errors.Error) {
 	owner, repo, eErr := utils.OwnerRepo(repoName)
 	if eErr != nil {
 		return nil, eErr
 	}
 
 	// FIXME pagination (sigh)
-	refs, _, err := c.github.Git.ListRefs(context.Background(), owner, repo, nil)
+	refs, _, err := c.github.Git.ListRefs(ctx, owner, repo, nil)
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -296,20 +296,20 @@ func (c *HTTPClient) GetRefs(repoName, sha string) ([]string, *errors.Error) {
 
 // GetFile retrieves a file from github directly through the api. Used for
 // retrieving our configuration yamls and other stuff.
-func (c *HTTPClient) GetFile(repoName, sha, filename string) ([]byte, *errors.Error) {
+func (c *HTTPClient) GetFile(ctx context.Context, repoName, sha, filename string) ([]byte, *errors.Error) {
 	owner, repo, eErr := utils.OwnerRepo(repoName)
 	if eErr != nil {
 		return nil, eErr
 	}
 
-	tree, _, err := c.github.Git.GetTree(context.Background(), owner, repo, sha, true)
+	tree, _, err := c.github.Git.GetTree(ctx, owner, repo, sha, true)
 	if err != nil {
 		return nil, errors.New(err)
 	}
 
 	for _, entry := range tree.Entries {
 		if entry.GetPath() == filename {
-			content, _, err := c.github.Git.GetBlobRaw(context.Background(), owner, repo, entry.GetSHA())
+			content, _, err := c.github.Git.GetBlobRaw(ctx, owner, repo, entry.GetSHA())
 			if err != nil {
 				return nil, errors.New(err)
 			}
@@ -322,21 +322,21 @@ func (c *HTTPClient) GetFile(repoName, sha, filename string) ([]byte, *errors.Er
 }
 
 // GetDiffFiles retrieves the files present in the diff between the base and the head.
-func (c *HTTPClient) GetDiffFiles(repoName, base, head string) ([]string, *errors.Error) {
+func (c *HTTPClient) GetDiffFiles(ctx context.Context, repoName, base, head string) ([]string, *errors.Error) {
 	owner, repo, eErr := utils.OwnerRepo(repoName)
 	if eErr != nil {
 		return nil, eErr
 	}
 
 	if base == strings.Repeat("0", 40) {
-		return c.GetFileList(repoName, head)
+		return c.GetFileList(ctx, repoName, head)
 	}
 
 	if head == strings.Repeat("0", 40) {
 		return []string{}, errors.New("branch deleted")
 	}
 
-	commits, _, err := c.github.Repositories.CompareCommits(context.Background(), owner, repo, base, head)
+	commits, _, err := c.github.Repositories.CompareCommits(ctx, owner, repo, base, head)
 	if err != nil {
 		return nil, errors.New(err)
 	}
@@ -352,7 +352,7 @@ func (c *HTTPClient) GetDiffFiles(repoName, base, head string) ([]string, *error
 
 // ClearStates removes all status reports from a SHA in an attempt to restart
 // the process.
-func (c *HTTPClient) ClearStates(repoName, sha string) *errors.Error {
+func (c *HTTPClient) ClearStates(ctx context.Context, repoName, sha string) *errors.Error {
 	owner, repo, err := utils.OwnerRepo(repoName)
 	if err != nil {
 		return err
@@ -363,7 +363,7 @@ func (c *HTTPClient) ClearStates(repoName, sha string) *errors.Error {
 
 	var i int
 	for {
-		states, _, err := c.github.Repositories.ListStatuses(context.Background(), owner, repo, sha, &github.ListOptions{Page: i, PerPage: 200})
+		states, _, err := c.github.Repositories.ListStatuses(ctx, owner, repo, sha, &github.ListOptions{Page: i, PerPage: 200})
 		if err != nil {
 			return errors.New(err)
 		}
@@ -387,7 +387,7 @@ func (c *HTTPClient) ClearStates(repoName, sha string) *errors.Error {
 		// change it here.
 		status.State = github.String("error")
 		status.Description = github.String("The run that this test was a part of has been overridden by a new run. Pushing a new change will remove this error.")
-		_, _, err := c.github.Repositories.CreateStatus(context.Background(), owner, repo, sha, status)
+		_, _, err := c.github.Repositories.CreateStatus(ctx, owner, repo, sha, status)
 		if err != nil {
 			return errors.New(err)
 		}
@@ -397,13 +397,13 @@ func (c *HTTPClient) ClearStates(repoName, sha string) *errors.Error {
 }
 
 // CommentError is for commenting on PRs when there is no better means of bubbling up an error.
-func (c *HTTPClient) CommentError(repoName string, prID int64, err *errors.Error) *errors.Error {
+func (c *HTTPClient) CommentError(ctx context.Context, repoName string, prID int64, err *errors.Error) *errors.Error {
 	owner, repo, retErr := utils.OwnerRepo(repoName)
 	if retErr != nil {
 		return retErr
 	}
 
-	_, _, eerr := c.github.Issues.CreateComment(context.Background(), owner, repo, int(prID), &github.IssueComment{
+	_, _, eerr := c.github.Issues.CreateComment(ctx, owner, repo, int(prID), &github.IssueComment{
 		Body: github.String(fmt.Sprintf("%v", err)),
 	})
 
