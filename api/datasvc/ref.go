@@ -38,7 +38,7 @@ func (ds *DataServer) PutRef(ctx context.Context, ref *types.Ref) (*types.Ref, e
 // up by ref and repository information. It is used by the queuesvc to auto
 // cancel runs as new ones are being submitted.
 func (ds *DataServer) CancelRefByName(ctx context.Context, rr *data.RepoRef) (*empty.Empty, error) {
-	if err := ds.H.Model.CancelRefByName(rr.Repository, rr.RefName, ds.H.URL, config.DefaultGithubClient); err != nil {
+	if err := ds.H.Model.CancelRefByName(rr.Repository, rr.RefName, ds.H.URL, config.DefaultGithubClient()); err != nil {
 		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 

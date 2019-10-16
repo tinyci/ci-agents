@@ -21,7 +21,7 @@ import (
 var ctx = context.Background()
 
 func (qs *queuesvcSuite) getMock() *github.MockClientMockRecorder {
-	return config.DefaultGithubClient.(*github.MockClient).EXPECT()
+	return config.DefaultGithubClient().(*github.MockClient).EXPECT()
 }
 
 func (qs *queuesvcSuite) TestBadYAML(c *check.C) {
