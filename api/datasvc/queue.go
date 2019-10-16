@@ -106,7 +106,7 @@ func (ds *DataServer) QueueNext(ctx context.Context, r *types.QueueRequest) (*ty
 
 // PutStatus sets the status for the given run_id
 func (ds *DataServer) PutStatus(ctx context.Context, s *types.Status) (*empty.Empty, error) {
-	if err := ds.H.Model.SetRunStatus(s.Id, config.DefaultGithubClient, s.Status, false, ds.H.URL, s.AdditionalMessage); err != nil {
+	if err := ds.H.Model.SetRunStatus(s.Id, config.DefaultGithubClient(), s.Status, false, ds.H.URL, s.AdditionalMessage); err != nil {
 		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
@@ -116,7 +116,7 @@ func (ds *DataServer) PutStatus(ctx context.Context, s *types.Status) (*empty.Em
 // SetCancel flags the run (which will flag the rest of the task's runs) as
 // canceled. Will fail on finished tasks.
 func (ds *DataServer) SetCancel(ctx context.Context, id *types.IntID) (*empty.Empty, error) {
-	if err := ds.H.Model.CancelRun(id.ID, ds.H.URL, config.DefaultGithubClient); err != nil {
+	if err := ds.H.Model.CancelRun(id.ID, ds.H.URL, config.DefaultGithubClient()); err != nil {
 		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 

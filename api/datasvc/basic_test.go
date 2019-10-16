@@ -229,7 +229,7 @@ func (ds *datasvcSuite) TestSubscriptions(c *check.C) {
 }
 
 func (ds *datasvcSuite) TestRuns(c *check.C) {
-	config.DefaultGithubClient = github.NewMockClient(gomock.NewController(c))
+	config.SetDefaultGithubClient(github.NewMockClient(gomock.NewController(c)))
 	now := time.Now()
 	qis := []*model.QueueItem{}
 	for i := 0; i < 1000; i++ {
@@ -271,7 +271,7 @@ func (ds *datasvcSuite) TestRuns(c *check.C) {
 }
 
 func (ds *datasvcSuite) TestQueue(c *check.C) {
-	config.DefaultGithubClient = github.NewMockClient(gomock.NewController(c))
+	config.SetDefaultGithubClient(github.NewMockClient(gomock.NewController(c)))
 	now := time.Now()
 	for i := 0; i < 1000; i++ {
 		_, err := ds.client.MakeQueueItem()

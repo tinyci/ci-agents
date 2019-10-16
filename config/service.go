@@ -3,6 +3,7 @@ package config
 import (
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/tinyci/ci-agents/clients/asset"
@@ -15,8 +16,11 @@ import (
 	"github.com/tinyci/ci-agents/model"
 )
 
-// DefaultGithubClient if set, will override any requested github client.
-var DefaultGithubClient github.Client
+var (
+	// DefaultGithubClient if set, will override any requested github client.
+	defaultGithubClient github.Client
+	githubClientMutex   sync.RWMutex
+)
 
 // TestClientConfig is a default test client configuration
 var TestClientConfig = ClientConfig{
