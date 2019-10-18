@@ -1,8 +1,10 @@
 package model
 
 import (
+	"encoding/json"
 	"math/rand"
 	"sort"
+	"strings"
 
 	check "github.com/erikh/check"
 	"github.com/google/go-github/github"
@@ -13,6 +15,40 @@ import (
 
 var testToken = &types.OAuthToken{
 	Token: "123456",
+}
+
+func (ms *modelSuite) TestUserTokens(c *check.C) {
+	usr, err := ms.model.CreateUser("roz", testToken)
+	c.Assert(err, check.IsNil)
+	testTokenJSON, err2 := json.Marshal(testToken)
+	c.Assert(err2, check.IsNil)
+
+	usrJSON, err2 := json.Marshal(usr)
+	c.Assert(err2, check.IsNil)
+
+	c.Assert(strings.Contains(string(usrJSON), string(testTokenJSON)), check.Equals, false)
+
+	typesUser := usr.ToProto()
+	usr2, err := NewUserFromProto(typesUser)
+
+	c.Assert(err, check.IsNil)
+	usr2JSON, err2 := json.Marshal(usr2)
+
+	c.Assert(err2, check.IsNil)
+	c.Assert(usr2JSON, check.DeepEquals, usrJSON)
+
+	usrList := []*User{usr, usr2}
+	usrListJSON, err2 := json.Marshal(usrList)
+
+	c.Assert(err2, check.IsNil)
+
+	usr2List, err := MakeUsers(MakeUserList(usrList))
+	c.Assert(err, check.IsNil)
+	usr2ListJSON, err2 := json.Marshal(usr2List)
+
+	c.Assert(err2, check.IsNil)
+	c.Assert(usrListJSON, check.DeepEquals, usr2ListJSON)
+	c.Assert(strings.Contains(string(usrListJSON), string(testTokenJSON)), check.Equals, false)
 }
 
 func (ms *modelSuite) TestCapabilityModification(c *check.C) {
