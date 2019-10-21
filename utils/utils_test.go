@@ -106,13 +106,16 @@ func (us *utilsSuite) TestOwnerRepo(c *check.C) {
 			owner: "owner",
 			repo:  "repo",
 		},
-		"../..": {error: true},
-		"":      {error: true},
-		"./":    {error: true},
-		"/.":    {error: true},
-		"/":     {error: true},
-		"/asdf": {error: true},
-		"asdf/": {error: true},
+		"../..":       {error: true},
+		"":            {error: true},
+		"./":          {error: true},
+		"/.":          {error: true},
+		"/":           {error: true},
+		"/asdf":       {error: true},
+		"asdf/":       {error: true},
+		"%/asdf":      {error: true},
+		"asdf</>asdf": {error: true},
+		"asdf&/asdf":  {error: true},
 	}
 
 	for test, result := range results {

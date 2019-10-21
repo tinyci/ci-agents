@@ -15,13 +15,21 @@ func OwnerRepo(repoName string) (string, string, *errors.Error) {
 		return "", "", errors.New("parsing repository name: invalid number of parts")
 	}
 
+	errInvalidCharacters := errors.New("repository name contains invalid characters")
+
 	for _, part := range parts {
 		if len(part) == 0 {
 			return "", "", errors.New("repository name part is empty")
 		}
 
 		if strings.HasPrefix(part, ".") || strings.HasSuffix(part, ".") {
-			return "", "", errors.New("repository name contains invalid characters")
+			return "", "", errInvalidCharacters
+		}
+		if strings.Contains(part, ">") || strings.Contains(part, "<") {
+			return "", "", errInvalidCharacters
+		}
+		if strings.Contains(part, "&") || strings.Contains(part, "%") {
+			return "", "", errInvalidCharacters
 		}
 	}
 
