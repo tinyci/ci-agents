@@ -7,6 +7,11 @@ import (
 	"github.com/tinyci/ci-agents/errors"
 )
 
+var (
+	//ErrInvalidCharacters occurs when one of "%><$." is found in either Owner or repo
+	ErrInvalidCharacters = errors.New("repository name contains invalid characters")
+)
+
 // OwnerRepo returns the owner and repository parts of a github full repository
 // name. It returns an *errors.Error if there are issues.
 func OwnerRepo(repoName string) (string, string, *errors.Error) {
@@ -21,7 +26,13 @@ func OwnerRepo(repoName string) (string, string, *errors.Error) {
 		}
 
 		if strings.HasPrefix(part, ".") || strings.HasSuffix(part, ".") {
-			return "", "", errors.New("repository name contains invalid characters")
+			return "", "", ErrInvalidCharacters
+		}
+		if strings.Contains(part, ">") || strings.Contains(part, "<") {
+			return "", "", ErrInvalidCharacters
+		}
+		if strings.Contains(part, "&") || strings.Contains(part, "%") {
+			return "", "", ErrInvalidCharacters
 		}
 	}
 
