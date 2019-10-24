@@ -15,6 +15,11 @@ var (
 	// DefaultUsername controls the default username in the event NoAuth is in
 	// effect; if set it will be used, otherwise an API call will be made.
 	DefaultUsername string
+
+	// Readonly disables certain actions -- most of which write content back to
+	// github -- to ensure testing can be done with a real github client, without
+	// affecting too much ON github. This is set through config/service.go.
+	Readonly bool
 )
 
 // Client is the generic client to github operations.
@@ -55,6 +60,10 @@ func NewClientFromAccessToken(accessToken string) Client {
 
 // PendingStatus updates the status for the sha for the given repo on github.
 func (c *HTTPClient) PendingStatus(ctx context.Context, owner, repo, name, sha, url string) *errors.Error {
+	if Readonly {
+		return nil
+	}
+
 	_, _, err := c.github.Repositories.CreateStatus(ctx, owner, repo, sha, &github.RepoStatus{
 		TargetURL:   github.String(url),
 		State:       github.String("pending"),
@@ -67,6 +76,10 @@ func (c *HTTPClient) PendingStatus(ctx context.Context, owner, repo, name, sha, 
 
 // StartedStatus updates the status for the sha for the given repo on github.
 func (c *HTTPClient) StartedStatus(ctx context.Context, owner, repo, name, sha, url string) *errors.Error {
+	if Readonly {
+		return nil
+	}
+
 	_, _, err := c.github.Repositories.CreateStatus(ctx, owner, repo, sha, &github.RepoStatus{
 		TargetURL:   github.String(url),
 		State:       github.String("pending"),
@@ -87,6 +100,10 @@ func capStatus(str string) *string {
 
 // ErrorStatus updates the status for the sha for the given repo on github.
 func (c *HTTPClient) ErrorStatus(ctx context.Context, owner, repo, name, sha, url string, outErr *errors.Error) *errors.Error {
+	if Readonly {
+		return nil
+	}
+
 	_, _, err := c.github.Repositories.CreateStatus(ctx, owner, repo, sha, &github.RepoStatus{
 		TargetURL: github.String(url),
 		State:     github.String("error"),
@@ -100,6 +117,10 @@ func (c *HTTPClient) ErrorStatus(ctx context.Context, owner, repo, name, sha, ur
 
 // FinishedStatus updates the status for the sha for the given repo on github.
 func (c *HTTPClient) FinishedStatus(ctx context.Context, owner, repo, name, sha, url string, status bool, addlMessage string) *errors.Error {
+	if Readonly {
+		return nil
+	}
+
 	statusString := "failure"
 	if status {
 		statusString = "success"
@@ -118,6 +139,10 @@ func (c *HTTPClient) FinishedStatus(ctx context.Context, owner, repo, name, sha,
 
 // SetupHook sets up the pr webhook in github.
 func (c *HTTPClient) SetupHook(ctx context.Context, owner, repo, configAddress, hookSecret string) *errors.Error {
+	if Readonly {
+		return nil
+	}
+
 	_, _, err := c.github.Repositories.CreateHook(ctx, owner, repo, &github.Hook{
 		URL:    github.String(configAddress),
 		Events: []string{"push", "pull_request"},
@@ -134,6 +159,10 @@ func (c *HTTPClient) SetupHook(ctx context.Context, owner, repo, configAddress, 
 
 // TeardownHook removes the pr webhook in github.
 func (c *HTTPClient) TeardownHook(ctx context.Context, owner, repo, hookURL string) *errors.Error {
+	if Readonly {
+		return nil
+	}
+
 	var id int64
 	var i int
 
@@ -353,6 +382,10 @@ func (c *HTTPClient) GetDiffFiles(ctx context.Context, repoName, base, head stri
 // ClearStates removes all status reports from a SHA in an attempt to restart
 // the process.
 func (c *HTTPClient) ClearStates(ctx context.Context, repoName, sha string) *errors.Error {
+	if Readonly {
+		return nil
+	}
+
 	owner, repo, err := utils.OwnerRepo(repoName)
 	if err != nil {
 		return err
@@ -398,6 +431,10 @@ func (c *HTTPClient) ClearStates(ctx context.Context, repoName, sha string) *err
 
 // CommentError is for commenting on PRs when there is no better means of bubbling up an error.
 func (c *HTTPClient) CommentError(ctx context.Context, repoName string, prID int64, err *errors.Error) *errors.Error {
+	if Readonly {
+		return nil
+	}
+
 	owner, repo, retErr := utils.OwnerRepo(repoName)
 	if retErr != nil {
 		return retErr

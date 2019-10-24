@@ -51,6 +51,7 @@ type UserConfig struct {
 	Port           uint        `yaml:"port"`
 	URL            string      `yaml:"url"`
 	EnableTracing  bool        `yaml:"enable_tracing"`
+	ReadonlyClient bool        `yaml:"readonly_client"`
 }
 
 // Service is the internal configuration for a service
@@ -123,11 +124,14 @@ func (cc *ClientConfig) Validate() *errors.Error {
 	return cc.Cert.Validate()
 }
 
-// CreateClients creates all the clients that are populated in the clients struct
+// CreateClients creates all the clients that are populated in the clients
+// struct. It will also tweak any settings for the github client.
 func (cc *ClientConfig) CreateClients(uc UserConfig, service string) (*Clients, *errors.Error) {
 	if err := cc.Validate(); err != nil {
 		return nil, err
 	}
+
+	github.Readonly = uc.ReadonlyClient
 
 	clientCert, err := cc.Cert.Load()
 	if err != nil {
