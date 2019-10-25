@@ -244,15 +244,15 @@ func (ds *datasvcSuite) TestRuns(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(count, check.Equals, int64(1000))
 
-	count, err = ds.client.Client().RunCount(ctx, qis[0].Run.Task.Ref.Repository.Name, "")
+	count, err = ds.client.Client().RunCount(ctx, qis[0].Run.Task.Submission.BaseRef.Repository.Name, "")
 	c.Assert(err, check.IsNil)
 	c.Assert(count, check.Equals, int64(1))
 
-	count, err = ds.client.Client().RunCount(ctx, qis[0].Run.Task.Ref.Repository.Name, "foo")
+	count, err = ds.client.Client().RunCount(ctx, qis[0].Run.Task.Submission.BaseRef.Repository.Name, "foo")
 	c.Assert(err, check.IsNil)
 	c.Assert(count, check.Equals, int64(0))
 
-	count, err = ds.client.Client().RunCount(ctx, qis[0].Run.Task.Ref.Repository.Name, qis[0].Run.Task.Ref.SHA)
+	count, err = ds.client.Client().RunCount(ctx, qis[0].Run.Task.Submission.BaseRef.Repository.Name, qis[0].Run.Task.Submission.BaseRef.SHA)
 	c.Assert(err, check.IsNil)
 	c.Assert(count, check.Equals, int64(1))
 
@@ -366,7 +366,7 @@ func (ds *datasvcSuite) TestSubmissions(c *check.C) {
 		c.Assert(err, check.IsNil)
 		c.Assert(ref.ID, check.Equals, id)
 
-		s, err := ds.client.Client().PutSubmission(ctx, &model.Submission{BaseRef: ref, User: user})
+		s, err := ds.client.Client().PutSubmission(ctx, &model.Submission{BaseRef: ref, HeadRef: ref, User: user})
 		c.Assert(err, check.IsNil)
 		c.Assert(s.ID, check.Not(check.Equals), int64(0))
 
@@ -389,9 +389,6 @@ func (ds *datasvcSuite) TestSubmissions(c *check.C) {
 
 			task := &model.Task{
 				TaskSettings: ts,
-				Parent:       repo,
-				Ref:          ref,
-				BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 				Submission:   s,
 			}
 

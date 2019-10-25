@@ -285,7 +285,7 @@ func (ms *modelSuite) TestSubmissionTasks(c *check.C) {
 				runs := []*Run{}
 
 				for _, task := range tasks {
-					owner, repo, err := task.Parent.OwnerRepo()
+					owner, repo, err := task.Submission.BaseRef.Repository.OwnerRepo()
 					c.Assert(err, check.IsNil)
 					count, err := ms.model.CountRunsForTask(task.ID)
 					c.Assert(err, check.IsNil)
@@ -304,7 +304,7 @@ func (ms *modelSuite) TestSubmissionTasks(c *check.C) {
 					runCount += count
 
 					for i := int64(0); i < count; i++ {
-						gh.EXPECT().ErrorStatus(gomock.Any(), owner, repo, "default", task.Ref.SHA, gomock.Any(), gomock.Any())
+						gh.EXPECT().ErrorStatus(gomock.Any(), owner, repo, "default", task.Submission.HeadRef.SHA, gomock.Any(), gomock.Any())
 					}
 				}
 

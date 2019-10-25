@@ -74,11 +74,6 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, *errors.Error) {
 		return nil, err
 	}
 
-	parent, err := dc.client.GetRepository(context.Background(), repoName)
-	if err != nil {
-		return nil, err
-	}
-
 	forkRepoOwner, forkRepoName := testutil.RandString(8), testutil.RandString(8)
 	forkName := path.Join(forkRepoOwner, forkRepoName)
 	if err := dc.MakeRepo(forkName, username, false, repoName); err != nil {
@@ -90,18 +85,42 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, *errors.Error) {
 		return nil, err
 	}
 
-	ref := &model.Ref{
+	parent, err := dc.client.GetRepository(context.Background(), repoName)
+	if err != nil {
+		return nil, err
+	}
+
+	baseref := &model.Ref{
+		Repository: parent,
+		RefName:    testutil.RandString(8),
+		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	}
+
+	id, err := dc.client.PutRef(context.Background(), baseref)
+	if err != nil {
+		return nil, err
+	}
+
+	baseref.ID = id
+
+	headref := &model.Ref{
 		Repository: fork,
 		RefName:    testutil.RandString(8),
 		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
-	id, err := dc.client.PutRef(context.Background(), ref)
+	id, err = dc.client.PutRef(context.Background(), headref)
 	if err != nil {
 		return nil, err
 	}
 
-	ref.ID = id
+	headref.ID = id
+
+	sub := &model.Submission{BaseRef: baseref, HeadRef: headref}
+	sub, err = dc.client.PutSubmission(context.Background(), sub)
+	if err != nil {
+		return nil, err
+	}
 
 	runName := testutil.RandString(8)
 
@@ -119,9 +138,7 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, *errors.Error) {
 
 	task := &model.Task{
 		TaskSettings: ts,
-		Parent:       parent,
-		Ref:          ref,
-		BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		Submission:   sub,
 	}
 
 	t, err := dc.client.PutTask(context.Background(), task)

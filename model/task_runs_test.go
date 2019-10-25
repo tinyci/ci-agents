@@ -17,13 +17,23 @@ func (ms *modelSuite) TestRunsForTask(c *check.C) {
 	fork, err := ms.CreateRepository()
 	c.Assert(err, check.IsNil)
 
-	ref := &Ref{
+	baseref := &Ref{
+		Repository: parent,
+		RefName:    "refs/heads/master",
+		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	}
+	c.Assert(ms.model.Save(baseref).Error, check.IsNil)
+
+	headref := &Ref{
 		Repository: fork,
 		RefName:    "refs/heads/master",
 		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
-	c.Assert(ms.model.Save(ref).Error, check.IsNil)
+	c.Assert(ms.model.Save(headref).Error, check.IsNil)
+
+	sub := &Submission{BaseRef: baseref, HeadRef: headref}
+	c.Assert(ms.model.Save(sub).Error, check.IsNil)
 
 	tasks := map[int64]map[string]*types.RunSettings{}
 
@@ -54,10 +64,8 @@ func (ms *modelSuite) TestRunsForTask(c *check.C) {
 		}
 
 		t2 := &Task{
-			Ref:          ref,
-			Parent:       parent,
-			BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 			TaskSettings: ts,
+			Submission:   sub,
 		}
 
 		c.Assert(ms.model.Create(t2).Error, check.IsNil)

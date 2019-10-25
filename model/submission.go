@@ -46,15 +46,10 @@ type Submission struct {
 func (s *Submission) ToProto() *gtypes.Submission {
 	var (
 		pu *gtypes.User
-		hr *gtypes.Ref
 	)
 
 	if s.User != nil {
 		pu = s.User.ToProto()
-	}
-
-	if s.HeadRef != nil {
-		hr = s.HeadRef.ToProto()
 	}
 
 	var status bool
@@ -65,7 +60,7 @@ func (s *Submission) ToProto() *gtypes.Submission {
 	return &gtypes.Submission{
 		Id:         s.ID,
 		BaseRef:    s.BaseRef.ToProto(),
-		HeadRef:    hr,
+		HeadRef:    s.HeadRef.ToProto(),
 		User:       pu,
 		TasksCount: s.TasksCount,
 		RunsCount:  s.RunsCount,
@@ -104,6 +99,10 @@ func NewSubmissionFromProto(gt *gtypes.Submission) (*Submission, *errors.Error) 
 	baseref, err := NewRefFromProto(gt.BaseRef)
 	if err != nil {
 		return nil, err.Wrap("converting for use in submission")
+	}
+
+	if headref == nil {
+		headref = baseref
 	}
 
 	var status *bool

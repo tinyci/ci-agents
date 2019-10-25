@@ -3184,9 +3184,6 @@ func init() {
         "task": {
           "type": "object",
           "properties": {
-            "base_sha": {
-              "type": "string"
-            },
             "canceled": {
               "type": "boolean"
             },
@@ -3202,70 +3199,8 @@ func init() {
             "id": {
               "type": "integer"
             },
-            "parent": {
-              "type": "object",
-              "properties": {
-                "auto_created": {
-                  "type": "boolean"
-                },
-                "disabled": {
-                  "type": "boolean"
-                },
-                "github": {
-                  "type": "object",
-                  "additionalProperties": true
-                },
-                "id": {
-                  "type": "integer"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "private": {
-                  "type": "boolean"
-                }
-              }
-            },
             "path": {
               "type": "string"
-            },
-            "ref": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "integer"
-                },
-                "ref_name": {
-                  "type": "string"
-                },
-                "repository": {
-                  "type": "object",
-                  "properties": {
-                    "auto_created": {
-                      "type": "boolean"
-                    },
-                    "disabled": {
-                      "type": "boolean"
-                    },
-                    "github": {
-                      "type": "object",
-                      "additionalProperties": true
-                    },
-                    "id": {
-                      "type": "integer"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "private": {
-                      "type": "boolean"
-                    }
-                  }
-                },
-                "sha": {
-                  "type": "string"
-                }
-              }
             },
             "runs": {
               "type": "integer"
@@ -3578,9 +3513,6 @@ func init() {
           "task": {
             "type": "object",
             "properties": {
-              "base_sha": {
-                "type": "string"
-              },
               "canceled": {
                 "type": "boolean"
               },
@@ -3596,70 +3528,8 @@ func init() {
               "id": {
                 "type": "integer"
               },
-              "parent": {
-                "type": "object",
-                "properties": {
-                  "auto_created": {
-                    "type": "boolean"
-                  },
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "github": {
-                    "type": "object",
-                    "additionalProperties": true
-                  },
-                  "id": {
-                    "type": "integer"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "private": {
-                    "type": "boolean"
-                  }
-                }
-              },
               "path": {
                 "type": "string"
-              },
-              "ref": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "integer"
-                  },
-                  "ref_name": {
-                    "type": "string"
-                  },
-                  "repository": {
-                    "type": "object",
-                    "properties": {
-                      "auto_created": {
-                        "type": "boolean"
-                      },
-                      "disabled": {
-                        "type": "boolean"
-                      },
-                      "github": {
-                        "type": "object",
-                        "additionalProperties": true
-                      },
-                      "id": {
-                        "type": "integer"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "private": {
-                        "type": "boolean"
-                      }
-                    }
-                  },
-                  "sha": {
-                    "type": "string"
-                  }
-                }
               },
               "runs": {
                 "type": "integer"
@@ -3914,9 +3784,6 @@ func init() {
       "items": {
         "type": "object",
         "properties": {
-          "base_sha": {
-            "type": "string"
-          },
           "canceled": {
             "type": "boolean"
           },
@@ -3932,70 +3799,8 @@ func init() {
           "id": {
             "type": "integer"
           },
-          "parent": {
-            "type": "object",
-            "properties": {
-              "auto_created": {
-                "type": "boolean"
-              },
-              "disabled": {
-                "type": "boolean"
-              },
-              "github": {
-                "type": "object",
-                "additionalProperties": true
-              },
-              "id": {
-                "type": "integer"
-              },
-              "name": {
-                "type": "string"
-              },
-              "private": {
-                "type": "boolean"
-              }
-            }
-          },
           "path": {
             "type": "string"
-          },
-          "ref": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "integer"
-              },
-              "ref_name": {
-                "type": "string"
-              },
-              "repository": {
-                "type": "object",
-                "properties": {
-                  "auto_created": {
-                    "type": "boolean"
-                  },
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "github": {
-                    "type": "object",
-                    "additionalProperties": true
-                  },
-                  "id": {
-                    "type": "integer"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "private": {
-                    "type": "boolean"
-                  }
-                }
-              },
-              "sha": {
-                "type": "string"
-              }
-            }
           },
           "runs": {
             "type": "integer"

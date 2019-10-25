@@ -15,11 +15,11 @@ func (ms *modelSuite) TestCancellationByRef(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	for _, qi := range qis {
-		owner, repo, err := qi.Run.Task.Parent.OwnerRepo()
+		owner, repo, err := qi.Run.Task.Submission.BaseRef.Repository.OwnerRepo()
 		c.Assert(err, check.IsNil)
 
-		client.EXPECT().ErrorStatus(gomock.Any(), owner, repo, qi.Run.Name, qi.Run.Task.Ref.SHA, fmt.Sprintf("__test__/log/%d", qi.Run.ID), errors.ErrRunCanceled).Return(nil)
-		c.Assert(ms.model.CancelRefByName(qi.Run.Task.Ref.Repository.ID, qi.Run.Task.Ref.RefName, "__test__", client), check.IsNil)
+		client.EXPECT().ErrorStatus(gomock.Any(), owner, repo, qi.Run.Name, qi.Run.Task.Submission.HeadRef.SHA, fmt.Sprintf("__test__/log/%d", qi.Run.ID), errors.ErrRunCanceled).Return(nil)
+		c.Assert(ms.model.CancelRefByName(qi.Run.Task.Submission.HeadRef.Repository.ID, qi.Run.Task.Submission.HeadRef.RefName, "__test__", client), check.IsNil)
 
 		runs, err := ms.model.GetRunsForTask(qi.Run.Task.ID, 0, 100)
 		c.Assert(err, check.IsNil)
@@ -36,10 +36,10 @@ func (ms *modelSuite) TestCancellationByTask(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	for _, qi := range qis {
-		owner, repo, err := qi.Run.Task.Parent.OwnerRepo()
+		owner, repo, err := qi.Run.Task.Submission.BaseRef.Repository.OwnerRepo()
 		c.Assert(err, check.IsNil)
 
-		client.EXPECT().ErrorStatus(gomock.Any(), owner, repo, qi.Run.Name, qi.Run.Task.Ref.SHA, fmt.Sprintf("__test__/log/%d", qi.Run.ID), errors.ErrRunCanceled).Return(nil)
+		client.EXPECT().ErrorStatus(gomock.Any(), owner, repo, qi.Run.Name, qi.Run.Task.Submission.HeadRef.SHA, fmt.Sprintf("__test__/log/%d", qi.Run.ID), errors.ErrRunCanceled).Return(nil)
 		c.Assert(ms.model.CancelTask(qi.Run.Task, "__test__", client), check.IsNil)
 
 		runs, err := ms.model.GetRunsForTask(qi.Run.Task.ID, 0, 100)
@@ -57,10 +57,10 @@ func (ms *modelSuite) TestCancellationByRun(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	for _, qi := range qis {
-		owner, repo, err := qi.Run.Task.Parent.OwnerRepo()
+		owner, repo, err := qi.Run.Task.Submission.BaseRef.Repository.OwnerRepo()
 		c.Assert(err, check.IsNil)
 
-		client.EXPECT().ErrorStatus(gomock.Any(), owner, repo, qi.Run.Name, qi.Run.Task.Ref.SHA, fmt.Sprintf("__test__/log/%d", qi.Run.ID), errors.ErrRunCanceled).Return(nil)
+		client.EXPECT().ErrorStatus(gomock.Any(), owner, repo, qi.Run.Name, qi.Run.Task.Submission.HeadRef.SHA, fmt.Sprintf("__test__/log/%d", qi.Run.ID), errors.ErrRunCanceled).Return(nil)
 		c.Assert(ms.model.CancelRun(qi.Run.ID, "__test__", client), check.IsNil)
 
 		runs, err := ms.model.GetRunsForTask(qi.Run.Task.ID, 0, 100)

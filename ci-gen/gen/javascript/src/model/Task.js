@@ -13,8 +13,6 @@
 
 import ApiClient from '../ApiClient';
 import ModelSubmission from './ModelSubmission';
-import Ref from './Ref';
-import Repository from './Repository';
 import TaskSettings from './TaskSettings';
 
 /**
@@ -57,15 +55,6 @@ class Task {
             if (data.hasOwnProperty('settings')) {
                 obj['settings'] = TaskSettings.constructFromObject(data['settings']);
             }
-            if (data.hasOwnProperty('parent')) {
-                obj['parent'] = Repository.constructFromObject(data['parent']);
-            }
-            if (data.hasOwnProperty('ref')) {
-                obj['ref'] = Ref.constructFromObject(data['ref']);
-            }
-            if (data.hasOwnProperty('base_sha')) {
-                obj['base_sha'] = ApiClient.convertToType(data['base_sha'], 'String');
-            }
             if (data.hasOwnProperty('canceled')) {
                 obj['canceled'] = ApiClient.convertToType(data['canceled'], 'Boolean');
             }
@@ -106,21 +95,6 @@ Task.prototype['path'] = undefined;
  * @member {module:model/TaskSettings} settings
  */
 Task.prototype['settings'] = undefined;
-
-/**
- * @member {module:model/Repository} parent
- */
-Task.prototype['parent'] = undefined;
-
-/**
- * @member {module:model/Ref} ref
- */
-Task.prototype['ref'] = undefined;
-
-/**
- * @member {String} base_sha
- */
-Task.prototype['base_sha'] = undefined;
 
 /**
  * @member {Boolean} canceled

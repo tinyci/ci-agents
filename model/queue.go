@@ -112,7 +112,9 @@ func (m *Model) QueueTotalCountForRepository(repo *Repository) (int64, *errors.E
 		m.Table("queue_items").
 			Joins("inner join runs on runs.id = queue_items.run_id").
 			Joins("inner join tasks on runs.task_id = tasks.id").
-			Joins("inner join repositories on tasks.parent_id = repositories.id").
+			Joins("inner join submissions on submissions.id = tasks.submission_id").
+			Joins("inner join refs on refs.repository_id = submissions.base_ref_id").
+			Joins("inner join repositories on refs.repository_id = repositories.id").
 			Where("repositories.id = ?", repo.ID).
 			Count(&ret), "computing repository queue count",
 	)
@@ -139,7 +141,7 @@ func (m *Model) NextQueueItem(runningOn string, queueName string) (*QueueItem, *
 	qi := &QueueItem{}
 
 	err := m.WrapError(
-		db.Preload("Run.Task.Parent").
+		db.Preload("Run.Task").
 			Order("id").
 			Where("queue_name = ? and not running", queueName).
 			First(qi),
@@ -197,7 +199,9 @@ func (m *Model) QueueListForRepository(repo *Repository, page, perPage int64) ([
 			Order("id DESC").
 			Joins("inner join runs on run_id = runs.id").
 			Joins("inner join tasks on runs.task_id = tasks.id").
-			Joins("inner join repositories on tasks.parent_id = repositories.id").
+			Joins("inner join submissions on submissions.id = tasks.submission_id").
+			Joins("inner join refs on refs.id = submissions.base_ref_id").
+			Joins("inner join repositories on refs.repository_id = repositories.id").
 			Where("repositories.id = ?", repo.ID).
 			Find(&qis),
 		"listing queue for repository",

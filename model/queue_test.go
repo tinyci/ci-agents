@@ -17,6 +17,13 @@ func (ms *modelSuite) TestQueueValidate(c *check.C) {
 		fork, err := ms.CreateRepository()
 		c.Assert(err, check.IsNil)
 
+		baseref := &Ref{
+			Repository: parent,
+			RefName:    "refs/heads/master",
+			SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		}
+		c.Assert(ms.model.Save(baseref).Error, check.IsNil)
+
 		ref := &Ref{
 			Repository: fork,
 			RefName:    "refs/heads/master",
@@ -24,6 +31,12 @@ func (ms *modelSuite) TestQueueValidate(c *check.C) {
 		}
 
 		c.Assert(ms.model.Save(ref).Error, check.IsNil)
+
+		sub := &Submission{
+			BaseRef: baseref,
+			HeadRef: ref,
+		}
+		c.Assert(ms.model.Save(sub).Error, check.IsNil)
 
 		ts := &types.TaskSettings{
 			Mountpoint: "/tmp",
@@ -37,9 +50,7 @@ func (ms *modelSuite) TestQueueValidate(c *check.C) {
 
 		task := &Task{
 			TaskSettings: ts,
-			Parent:       parent,
-			Ref:          ref,
-			BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			Submission:   sub,
 		}
 
 		c.Assert(ms.model.Save(task).Error, check.IsNil)
@@ -163,14 +174,14 @@ func (ms *modelSuite) TestQueueManipulation(c *check.C) {
 			c.Assert(qi.Running, check.Equals, false)
 			c.Assert(qi.RunningOn, check.IsNil)
 
-			count, err := ms.model.QueueTotalCountForRepository(qi.Run.Task.Parent)
+			count, err := ms.model.QueueTotalCountForRepository(qi.Run.Task.Submission.BaseRef.Repository)
 			c.Assert(err, check.IsNil)
 			c.Assert(count, check.Equals, int64(1)) // repo names are uniq'd
 
-			_, err = ms.model.QueueListForRepository(qi.Run.Task.Parent, -1, 100)
+			_, err = ms.model.QueueListForRepository(qi.Run.Task.Submission.BaseRef.Repository, -1, 100)
 			c.Assert(err, check.NotNil)
 
-			tmp, err := ms.model.QueueListForRepository(qi.Run.Task.Parent, 0, 100)
+			tmp, err := ms.model.QueueListForRepository(qi.Run.Task.Submission.BaseRef.Repository, 0, 100)
 			c.Assert(err, check.IsNil)
 			c.Assert(tmp[0], check.DeepEquals, qi) // repo names are uniq'd
 		}
@@ -202,7 +213,7 @@ func (ms *modelSuite) TestQueueManipulation(c *check.C) {
 		c.Assert(qi.Running, check.Equals, true)
 		c.Assert(*qi.RunningOn, check.Equals, "hostname")
 		c.Assert(qi.StartedAt, check.NotNil)
-		c.Assert(qi.Run.Task.Parent, check.NotNil) // checking the ORM works
+		c.Assert(qi.Run.Task.Submission.BaseRef.Repository, check.NotNil) // checking the ORM works
 		c.Assert(*qi.Run.RanOn, check.Equals, "hostname")
 		firstID++
 	}
@@ -256,7 +267,7 @@ func (ms *modelSuite) TestQueueNamed(c *check.C) {
 		c.Assert(qi.Running, check.Equals, true)
 		c.Assert(*qi.RunningOn, check.Equals, "hostname")
 		c.Assert(qi.StartedAt, check.NotNil)
-		c.Assert(qi.Run.Task.Parent, check.NotNil) // checking the ORM works
+		c.Assert(qi.Run.Task.Submission.BaseRef.Repository, check.NotNil) // checking the ORM works
 		c.Assert(*qi.Run.RanOn, check.Equals, "hostname")
 	}
 
@@ -329,7 +340,7 @@ func (ms *modelSuite) TestQueueConcurrent(c *check.C) {
 			c.Assert(qi.Running, check.Equals, true)
 			c.Assert(*qi.RunningOn, check.Equals, "hostname")
 			c.Assert(qi.StartedAt, check.NotNil)
-			c.Assert(qi.Run.Task.Parent, check.NotNil) // checking the ORM works
+			c.Assert(qi.Run.Task.Submission.BaseRef.Repository, check.NotNil) // checking the ORM works
 			c.Assert(*qi.Run.RanOn, check.Equals, "hostname")
 		}
 	}
@@ -413,7 +424,7 @@ func (ms *modelSuite) TestQueueNamedConcurrent(c *check.C) {
 			c.Assert(qi.Running, check.Equals, true)
 			c.Assert(*qi.RunningOn, check.Equals, "hostname")
 			c.Assert(qi.StartedAt, check.NotNil)
-			c.Assert(qi.Run.Task.Parent, check.NotNil) // checking the ORM works
+			c.Assert(qi.Run.Task.Submission.BaseRef.Repository, check.NotNil) // checking the ORM works
 			c.Assert(*qi.Run.RanOn, check.Equals, "hostname")
 		}
 	}

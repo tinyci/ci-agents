@@ -303,9 +303,11 @@ func (m *Model) SaveRepositories(repos []*gh.Repository, username string, autoCr
 // for the user.
 func (m *Model) ListSubscribedTasksForUser(userID, page, perPage int64) ([]*Task, *errors.Error) {
 	tasks := []*Task{}
-	call := m.Limit(perPage).Offset(page*perPage).Joins(
-		"inner join subscriptions on subscriptions.repository_id = tasks.parent_id",
-	).Where("subscriptions.user_id = ?", userID).Find(&tasks)
+	call := m.Limit(perPage).Offset(page*perPage).
+		Joins("inner join submissions on submissions.id = tasks.submission_id").
+		Joins("inner join refs on refs.id = submissions.base_ref_id or refs.id = submissions.head_ref_id").
+		Joins("inner join subscriptions on subscriptions.repository_id = refs.repository_id").
+		Where("subscriptions.user_id = ?", userID).Find(&tasks)
 
 	return tasks, m.WrapError(call, "locating user's subscribed tasks")
 }

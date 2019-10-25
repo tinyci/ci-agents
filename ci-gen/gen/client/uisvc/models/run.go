@@ -223,9 +223,6 @@ func (m *RunSettings) UnmarshalBinary(b []byte) error {
 // swagger:model RunTask
 type RunTask struct {
 
-	// base sha
-	BaseSha string `json:"base_sha,omitempty"`
-
 	// canceled
 	Canceled bool `json:"canceled,omitempty"`
 
@@ -240,14 +237,8 @@ type RunTask struct {
 	// id
 	ID int64 `json:"id,omitempty"`
 
-	// parent
-	Parent *RunTaskParent `json:"parent,omitempty"`
-
 	// path
 	Path string `json:"path,omitempty"`
-
-	// ref
-	Ref *RunTaskRef `json:"ref,omitempty"`
 
 	// runs
 	Runs int64 `json:"runs,omitempty"`
@@ -275,14 +266,6 @@ func (m *RunTask) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateFinishedAt(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateParent(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateRef(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -325,42 +308,6 @@ func (m *RunTask) validateFinishedAt(formats strfmt.Registry) error {
 
 	if err := validate.FormatOf("task"+"."+"finished_at", "body", "date-time", m.FinishedAt.String(), formats); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (m *RunTask) validateParent(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Parent) { // not required
-		return nil
-	}
-
-	if m.Parent != nil {
-		if err := m.Parent.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("task" + "." + "parent")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *RunTask) validateRef(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Ref) { // not required
-		return nil
-	}
-
-	if m.Ref != nil {
-		if err := m.Ref.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("task" + "." + "ref")
-			}
-			return err
-		}
 	}
 
 	return nil
@@ -426,165 +373,6 @@ func (m *RunTask) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *RunTask) UnmarshalBinary(b []byte) error {
 	var res RunTask
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*m = res
-	return nil
-}
-
-// RunTaskParent run task parent
-// swagger:model RunTaskParent
-type RunTaskParent struct {
-
-	// auto created
-	AutoCreated bool `json:"auto_created,omitempty"`
-
-	// disabled
-	Disabled bool `json:"disabled,omitempty"`
-
-	// github
-	Github interface{} `json:"github,omitempty"`
-
-	// id
-	ID int64 `json:"id,omitempty"`
-
-	// name
-	Name string `json:"name,omitempty"`
-
-	// private
-	Private bool `json:"private,omitempty"`
-}
-
-// Validate validates this run task parent
-func (m *RunTaskParent) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (m *RunTaskParent) MarshalBinary() ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(m)
-}
-
-// UnmarshalBinary interface implementation
-func (m *RunTaskParent) UnmarshalBinary(b []byte) error {
-	var res RunTaskParent
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*m = res
-	return nil
-}
-
-// RunTaskRef run task ref
-// swagger:model RunTaskRef
-type RunTaskRef struct {
-
-	// id
-	ID int64 `json:"id,omitempty"`
-
-	// ref name
-	RefName string `json:"ref_name,omitempty"`
-
-	// repository
-	Repository *RunTaskRefRepository `json:"repository,omitempty"`
-
-	// sha
-	Sha string `json:"sha,omitempty"`
-}
-
-// Validate validates this run task ref
-func (m *RunTaskRef) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.validateRepository(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *RunTaskRef) validateRepository(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Repository) { // not required
-		return nil
-	}
-
-	if m.Repository != nil {
-		if err := m.Repository.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("task" + "." + "ref" + "." + "repository")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (m *RunTaskRef) MarshalBinary() ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(m)
-}
-
-// UnmarshalBinary interface implementation
-func (m *RunTaskRef) UnmarshalBinary(b []byte) error {
-	var res RunTaskRef
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*m = res
-	return nil
-}
-
-// RunTaskRefRepository run task ref repository
-// swagger:model RunTaskRefRepository
-type RunTaskRefRepository struct {
-
-	// auto created
-	AutoCreated bool `json:"auto_created,omitempty"`
-
-	// disabled
-	Disabled bool `json:"disabled,omitempty"`
-
-	// github
-	Github interface{} `json:"github,omitempty"`
-
-	// id
-	ID int64 `json:"id,omitempty"`
-
-	// name
-	Name string `json:"name,omitempty"`
-
-	// private
-	Private bool `json:"private,omitempty"`
-}
-
-// Validate validates this run task ref repository
-func (m *RunTaskRefRepository) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (m *RunTaskRefRepository) MarshalBinary() ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(m)
-}
-
-// UnmarshalBinary interface implementation
-func (m *RunTaskRefRepository) UnmarshalBinary(b []byte) error {
-	var res RunTaskRefRepository
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

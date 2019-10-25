@@ -66,24 +66,6 @@
       //expect(instance).to.be();
     });
 
-    it('should have the property parent (base name: "parent")', function() {
-      // uncomment below and update the code to test the property parent
-      //var instane = new Uisvc.Task();
-      //expect(instance).to.be();
-    });
-
-    it('should have the property ref (base name: "ref")', function() {
-      // uncomment below and update the code to test the property ref
-      //var instane = new Uisvc.Task();
-      //expect(instance).to.be();
-    });
-
-    it('should have the property baseSha (base name: "base_sha")', function() {
-      // uncomment below and update the code to test the property baseSha
-      //var instane = new Uisvc.Task();
-      //expect(instance).to.be();
-    });
-
     it('should have the property canceled (base name: "canceled")', function() {
       // uncomment below and update the code to test the property canceled
       //var instane = new Uisvc.Task();

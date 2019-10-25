@@ -64,10 +64,10 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 		return &gtypes.QueueItem{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
-	if qi.Run.Task.Parent.Owner == nil {
+	if qi.Run.Task.Submission.BaseRef.Repository.Owner == nil {
 		err := errors.New("No owner for repository for queued run; skipping")
 		qs.H.Clients.Log.WithFields(log.FieldMap{
-			"repository": qi.Run.Task.Parent.Name,
+			"repository": qi.Run.Task.Submission.BaseRef.Repository.Name,
 			"run_id":     fmt.Sprintf("%d", qi.Run.ID),
 			"ran_on":     qr.RunningOn,
 		}).Error(ctx, err)
@@ -76,18 +76,18 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 	}
 
 	token := &types.OAuthToken{}
-	if err := utils.JSONIO(qi.Run.Task.Parent.Owner.Token, token); err != nil {
+	if err := utils.JSONIO(qi.Run.Task.Submission.BaseRef.Repository.Owner.Token, token); err != nil {
 		return &gtypes.QueueItem{}, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	github := qs.H.OAuth.GithubClient(token)
-	parts := strings.SplitN(qi.Run.Task.Parent.Name, "/", 2)
+	parts := strings.SplitN(qi.Run.Task.Submission.BaseRef.Repository.Name, "/", 2)
 	if len(parts) != 2 {
 		return &gtypes.QueueItem{}, errors.New("invalid repository").ToGRPC(codes.FailedPrecondition)
 	}
 
 	go func() {
-		if err := github.StartedStatus(ctx, parts[0], parts[1], qi.Run.Name, qi.Run.Task.Ref.SHA, fmt.Sprintf("%s/log/%d", qs.H.URL, qi.Run.ID)); err != nil {
+		if err := github.StartedStatus(ctx, parts[0], parts[1], qi.Run.Name, qi.Run.Task.Submission.HeadRef.SHA, fmt.Sprintf("%s/log/%d", qs.H.URL, qi.Run.ID)); err != nil {
 			fmt.Println(err)
 		}
 	}()

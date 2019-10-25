@@ -22,14 +22,6 @@ type Task struct {
 
 	TaskSettingsJSON []byte `gorm:"column:task_settings" json:"-"`
 
-	Parent   *Repository `json:"parent" gorm:"association_autoupdate:false"`
-	ParentID int64       `json:"-"`
-
-	Ref   *Ref  `json:"ref" gorm:"association_autoupdate:false"`
-	RefID int64 `json:"-"`
-
-	BaseSHA string `json:"base_sha"`
-
 	Canceled   bool       `json:"canceled"`
 	FinishedAt *time.Time `json:"finished_at,omitempty"`
 	StartedAt  *time.Time `json:"started_at,omitempty"`
@@ -46,15 +38,6 @@ type Task struct {
 
 // NewTaskFromProto converts the proto representation to the task type.
 func NewTaskFromProto(gt *gtypes.Task) (*Task, *errors.Error) {
-	parent, err := NewRepositoryFromProto(gt.Parent)
-	if err != nil {
-		return nil, err
-	}
-	ref, err := NewRefFromProto(gt.Ref)
-	if err != nil {
-		return nil, err
-	}
-
 	var sub *Submission
 	if gt.Submission != nil {
 		var err *errors.Error
@@ -66,10 +49,7 @@ func NewTaskFromProto(gt *gtypes.Task) (*Task, *errors.Error) {
 
 	return &Task{
 		ID:           gt.Id,
-		Parent:       parent,
-		Ref:          ref,
 		Path:         gt.Path,
-		BaseSHA:      gt.BaseSHA,
 		Canceled:     gt.Canceled,
 		FinishedAt:   MakeTime(gt.FinishedAt, true),
 		StartedAt:    MakeTime(gt.StartedAt, true),
@@ -97,9 +77,6 @@ func (t *Task) ToProto() *gtypes.Task {
 
 	return &gtypes.Task{
 		Id:         t.ID,
-		Parent:     t.Parent.ToProto(),
-		Ref:        t.Ref.ToProto(),
-		BaseSHA:    t.BaseSHA,
 		Path:       t.Path,
 		Canceled:   t.Canceled,
 		FinishedAt: MakeTimestamp(t.FinishedAt),
@@ -115,16 +92,8 @@ func (t *Task) ToProto() *gtypes.Task {
 
 // Validate ensures all parameters are set properly.
 func (t *Task) Validate() *errors.Error {
-	if t.Ref == nil {
-		return errors.New("ref was nil")
-	}
-
-	if t.Parent == nil {
-		return errors.New("parent repository was nil")
-	}
-
-	if len(t.BaseSHA) != 40 {
-		return errors.New("base sha was invalid")
+	if t.Submission == nil {
+		return errors.New("invalid submission in task")
 	}
 
 	if t.TaskSettings == nil {
@@ -137,10 +106,6 @@ func (t *Task) Validate() *errors.Error {
 // AfterFind validates the output from the database before releasing it to the
 // hook chain
 func (t *Task) AfterFind(tx *gorm.DB) error {
-	if t.SubmissionID == 0 {
-		t.Submission = nil
-	}
-
 	if err := json.Unmarshal(t.TaskSettingsJSON, &t.TaskSettings); err != nil {
 		return errors.New(err).Wrapf("unpacking task settings for task %d", t.ID)
 	}
@@ -176,15 +141,18 @@ func (t *Task) BeforeSave(tx *gorm.DB) error {
 func (m *Model) CancelTasksForPR(repository string, prID int64, baseURL string) *errors.Error {
 	tasks := []*Task{}
 
-	err := m.WrapError(m.Joins("inner join repositories on repositories.id = tasks.parent_id").
+	err := m.WrapError(m.
+		Joins("inner join submissions on submissions.id = tasks.submission_id").
+		Joins("inner join refs on refs.id = submissions.base_ref_id").
+		Joins("inner join repositories on repositories.id = refs.repository_id").
 		Where("repositories.name = ? and tasks.pull_request_id = ?", repository, prID).Find(&tasks), "locating pull request tasks")
 	if err != nil {
 		return err
 	}
 
 	for _, task := range tasks {
-		if task.Parent.Owner != nil {
-			client := github.NewClientFromAccessToken(task.Parent.Owner.Token.Token)
+		if task.Submission.BaseRef.Repository.Owner != nil {
+			client := github.NewClientFromAccessToken(task.Submission.BaseRef.Repository.Owner.Token.Token)
 			if task.FinishedAt != nil {
 				continue
 			}
@@ -279,11 +247,12 @@ func (m *Model) prepTaskListQuery(repository, sha string) (*gorm.DB, *errors.Err
 
 	if repository != "" {
 		db = db.
-			Joins("left outer join refs on tasks.ref_id = refs.id").
-			Joins("left outer join repositories on tasks.parent_id = repositories.id or refs.repository_id = repositories.id")
+			Joins("inner join submissions on tasks.submission_id = submissions.id").
+			Joins("inner join refs on submissions.head_ref_id = refs.id or submissions.base_ref_id = refs.id").
+			Joins("inner join repositories on refs.repository_id = repositories.id")
 
 		if sha != "" {
-			db = db.Where("tasks.base_sha = ? or refs.sha = ? or refs.ref = ?", sha, sha, sha)
+			db = db.Where("refs.sha = ? or refs.ref = ?", sha, sha)
 		}
 
 		db = db.Where("repositories.name = ?", repository)

@@ -181,12 +181,6 @@ definitions:
         type: string
       settings:
         $ref: '#/definitions/TaskSettings'
-      parent:
-        $ref: '#/definitions/Repository'
-      ref:
-        $ref: '#/definitions/Ref'
-      base_sha:
-        type: string
       canceled:
         type: boolean
       finished_at:
