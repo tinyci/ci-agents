@@ -17,9 +17,10 @@ import "github.com/tinyci/ci-agents/ci-gen/grpc/types/submission.proto";
 // created indicating the group of them, as well as properties they share.
 message Task {
   int64                     id            = 1; // ID of the task
-  types.Repository          parent        = 2; // Parent Repository
-  types.Ref                 ref           = 3; // Associated Ref to be tested
-  string                    baseSHA       = 4; // BaseSHA for diff
+  // XXX Fields that are no longer used
+  // types.Repository          parent        = 2; // Parent Repository
+  // types.Ref                 ref           = 3; // Associated Ref to be tested
+  // string                    baseSHA       = 4; // BaseSHA for diff
   int64                     pullRequestID = 5; // A pull request ID for PR events; 0 otherwise
   bool                      canceled      = 6; // Was the run canceled?
   google.protobuf.Timestamp finishedAt    = 7; // When did it finish?

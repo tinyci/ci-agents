@@ -70,10 +70,7 @@ func (ms *modelSuite) CreateTaskForSubmission(sub *Submission) (*Task, *errors.E
 
 	task := &Task{
 		TaskSettings: ts,
-		Parent:       sub.BaseRef.Repository,
-		Ref:          sub.HeadRef,
 		Submission:   sub,
-		BaseSHA:      testutil.RandHexString(40),
 	}
 
 	run := &Run{
@@ -108,14 +105,29 @@ func (ms *modelSuite) CreateRun() (*Run, *errors.Error) {
 	if err != nil {
 		return nil, err
 	}
+	baseref := &Ref{
+		Repository: parent,
+		RefName:    testutil.RandString(8),
+		SHA:        testutil.RandHexString(40),
+	}
 
-	ref := &Ref{
+	if err := ms.model.Save(baseref).Error; err != nil {
+		return nil, errors.New(err)
+	}
+
+	headref := &Ref{
 		Repository: fork,
 		RefName:    testutil.RandString(8),
 		SHA:        testutil.RandHexString(40),
 	}
 
-	if err := ms.model.Save(ref).Error; err != nil {
+	if err := ms.model.Save(headref).Error; err != nil {
+		return nil, errors.New(err)
+	}
+
+	sub := &Submission{HeadRef: headref, BaseRef: baseref}
+
+	if err := ms.model.Save(sub).Error; err != nil {
 		return nil, errors.New(err)
 	}
 
@@ -134,9 +146,7 @@ func (ms *modelSuite) CreateRun() (*Run, *errors.Error) {
 
 	task := &Task{
 		TaskSettings: ts,
-		Parent:       parent,
-		Ref:          ref,
-		BaseSHA:      testutil.RandHexString(40),
+		Submission:   sub,
 	}
 
 	run := &Run{

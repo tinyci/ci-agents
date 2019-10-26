@@ -209,9 +209,6 @@ func (tp *taskPicker) makeTask(ctx context.Context, subRecord *model.Submission,
 	}
 
 	return &model.Task{
-		Parent:       repoInfo.parent,
-		BaseSHA:      repoInfo.parentRef.SHA,
-		Ref:          repoInfo.forkRef,
 		Path:         dir,
 		TaskSettings: ts,
 		CreatedAt:    time.Now(),

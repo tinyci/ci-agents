@@ -97,12 +97,12 @@ func run(ctx *cli.Context) error {
 		for _, run := range runs {
 			if run.Status == nil && time.Since(run.CreatedAt) > ctx.GlobalDuration("timeout") {
 				if ctx.GlobalBool("dry-run") {
-					logrus.Infof("Would cancel run %d, repository %v, ref %v, name %v -- %v old", run.ID, run.Task.Parent.Name, run.Task.Ref.RefName, run.Name, time.Since(run.CreatedAt))
+					logrus.Infof("Would cancel run %d, repository %v, ref %v, name %v -- %v old", run.ID, run.Task.Submission.BaseRef.Repository.Name, run.Task.Submission.HeadRef.RefName, run.Name, time.Since(run.CreatedAt))
 				} else {
 					if err := client.SetCancel(ct, run.ID); err != nil {
 						return err
 					}
-					logrus.Infof("Canceled run %d, repository %v, ref %v, name %v -- %v old", run.ID, run.Task.Parent.Name, run.Task.Ref.RefName, run.Name, time.Since(run.CreatedAt))
+					logrus.Infof("Canceled run %d, repository %v, ref %v, name %v -- %v old", run.ID, run.Task.Submission.BaseRef.Repository.Name, run.Task.Submission.HeadRef.RefName, run.Name, time.Since(run.CreatedAt))
 				}
 			}
 		}

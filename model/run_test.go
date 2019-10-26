@@ -49,9 +49,6 @@ func (ms *modelSuite) TestRunValidate(c *check.C) {
 
 	task := &Task{
 		TaskSettings: ts,
-		Parent:       parent,
-		Ref:          ref,
-		BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 		Submission:   sub,
 	}
 
@@ -125,11 +122,14 @@ func (ms *modelSuite) TestRunList(c *check.C) {
 		},
 	}
 
+	sub := &Submission{
+		BaseRef: ref,
+	}
+
+	c.Assert(ms.model.Save(sub).Error, check.IsNil)
 	task := &Task{
 		TaskSettings: ts,
-		Parent:       parent,
-		Ref:          ref,
-		BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		Submission:   sub,
 	}
 
 	c.Assert(ms.model.Save(task).Error, check.IsNil)
@@ -175,7 +175,7 @@ func (ms *modelSuite) TestRunList(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 10)
 
-	runs, err = ms.model.RunList(0, 0, fork.Name, task.Ref.SHA)
+	runs, err = ms.model.RunList(0, 0, fork.Name, task.Submission.BaseRef.SHA)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, 10)
 

@@ -159,8 +159,7 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 	c.Assert(int(count), check.Equals, len(tasks))
 
 	for _, task := range tasks {
-		c.Assert(task.Parent.HookSecret, check.Equals, "")
-		c.Assert(task.Ref.Repository.HookSecret, check.Equals, "")
+		c.Assert(task.Submission.BaseRef.Repository.HookSecret, check.Equals, "")
 		runs, err := tc.RunsForTask(ctx, task.ID, 0, 200)
 		c.Assert(err, check.IsNil)
 		count, err := tc.RunsForTaskCount(ctx, task.ID)
@@ -177,16 +176,14 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 	c.Assert(len(runs), check.Equals, int(count))
 
 	for _, run := range runs {
-		c.Assert(run.Task.Parent.HookSecret, check.Equals, "")
-		c.Assert(run.Task.Ref.Repository.HookSecret, check.Equals, "")
+		c.Assert(run.Task.Submission.BaseRef.Repository.HookSecret, check.Equals, "")
 	}
 
 	runs, err = tc.RunsForTask(ctx, runs[0].Task.ID, 0, 200)
 	c.Assert(err, check.IsNil)
 
 	for _, run := range runs {
-		c.Assert(run.Task.Parent.HookSecret, check.Equals, "")
-		c.Assert(run.Task.Ref.Repository.HookSecret, check.Equals, "")
+		c.Assert(run.Task.Submission.BaseRef.Repository.HookSecret, check.Equals, "")
 	}
 
 	for i := 0; i < len(runs); i++ {

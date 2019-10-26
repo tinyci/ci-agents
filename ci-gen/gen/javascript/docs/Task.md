@@ -6,9 +6,6 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **path** | **String** |  | [optional] 
 **settings** | [**TaskSettings**](TaskSettings.md) |  | [optional] 
-**parent** | [**Repository**](Repository.md) |  | [optional] 
-**ref** | [**Ref**](Ref.md) |  | [optional] 
-**baseSha** | **String** |  | [optional] 
 **canceled** | **Boolean** |  | [optional] 
 **finishedAt** | **Date** |  | [optional] 
 **startedAt** | **Date** |  | [optional] 

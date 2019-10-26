@@ -180,13 +180,13 @@ func (m *Model) SetRunStatus(runID int64, gh github.Client, status, canceled boo
 
 	if canceled {
 		go func() {
-			if err := bits.github.ErrorStatus(context.Background(), bits.parts[0], bits.parts[1], bits.run.Name, bits.run.Task.Ref.SHA, fmt.Sprintf("%s/log/%d", url, runID), errors.ErrRunCanceled); err != nil {
+			if err := bits.github.ErrorStatus(context.Background(), bits.parts[0], bits.parts[1], bits.run.Name, bits.run.Task.Submission.HeadRef.SHA, fmt.Sprintf("%s/log/%d", url, runID), errors.ErrRunCanceled); err != nil {
 				fmt.Println(err) // FIXME log
 			}
 		}()
 	} else {
 		go func() {
-			if err := bits.github.FinishedStatus(context.Background(), bits.parts[0], bits.parts[1], bits.run.Name, bits.run.Task.Ref.SHA, fmt.Sprintf("%s/log/%d", url, runID), status, addlMessage); err != nil {
+			if err := bits.github.FinishedStatus(context.Background(), bits.parts[0], bits.parts[1], bits.run.Name, bits.run.Task.Submission.HeadRef.SHA, fmt.Sprintf("%s/log/%d", url, runID), status, addlMessage); err != nil {
 				fmt.Println(err)
 			}
 		}()
@@ -238,16 +238,16 @@ func (m *Model) getRunBits(runID int64, gh github.Client) (*runBits, *errors.Err
 		return nil, errors.New(err)
 	}
 
-	owner, repo, err := run.Task.Parent.OwnerRepo()
+	owner, repo, err := run.Task.Submission.BaseRef.Repository.OwnerRepo()
 	if err != nil {
-		return nil, err.Wrapf("invalid repository for run %d: %v", run.ID, run.Task.Ref.Repository.Name)
+		return nil, err.Wrapf("invalid repository for run %d: %v", run.ID, run.Task.Submission.HeadRef.Repository.Name)
 	}
 
 	if gh == nil {
-		if run.Task.Parent.Owner == nil {
-			return nil, errors.Errorf("No owner for repository %q corresponding to run %d", run.Task.Parent.Name, run.ID)
+		if run.Task.Submission.BaseRef.Repository.Owner == nil {
+			return nil, errors.Errorf("No owner for repository %q corresponding to run %d", run.Task.Submission.BaseRef.Repository.Name, run.ID)
 		}
-		gh = github.NewClientFromAccessToken(run.Task.Parent.Owner.Token.Token)
+		gh = github.NewClientFromAccessToken(run.Task.Submission.BaseRef.Repository.Owner.Token.Token)
 	}
 
 	return &runBits{
@@ -303,7 +303,8 @@ func (m *Model) RunListForRepository(repo *Repository, ref *Ref, page, perPage i
 		Limit(perPage).
 		Order("runs.id DESC").
 		Joins("inner join tasks on tasks.id = runs.task_id").
-		Joins("inner join refs on refs.id = tasks.ref_id").
+		Joins("inner join submissions on submissions.id = tasks.submission_id").
+		Joins("inner join refs on refs.id = submissions.head_ref_id or refs.id = submissions.base_ref_id").
 		Joins("inner join repositories on repositories.id = refs.repository_id")
 
 	if ref != nil {
@@ -328,7 +329,8 @@ func (m *Model) RunTotalCountForRepository(repo *Repository) (int64, *errors.Err
 	return ret, m.WrapError(
 		m.Table("runs").
 			Joins("inner join tasks on runs.task_id = tasks.id").
-			Joins("inner join refs on tasks.ref_id = refs.id").
+			Joins("inner join submissions on submissions.id = tasks.submission_id").
+			Joins("inner join refs on submissions.base_ref_id = refs.id or submissions.head_ref_id = refs.id").
 			Joins("inner join repositories on refs.repository_id = repositories.id").
 			Where("repositories.id = ?", repo.ID).
 			Count(&ret),
@@ -343,7 +345,8 @@ func (m *Model) RunTotalCountForRepositoryAndSHA(repo *Repository, sha string) (
 	return ret, m.WrapError(
 		m.Table("runs").
 			Joins("inner join tasks on runs.task_id = tasks.id").
-			Joins("inner join refs on tasks.ref_id = refs.id").
+			Joins("inner join submissions on submissions.id = tasks.submission_id").
+			Joins("inner join refs on submissions.base_ref_id = refs.id or submissions.head_ref_id = refs.id").
 			Joins("inner join repositories on refs.repository_id = repositories.id").
 			Where("repositories.id = ? and refs.sha = ?", repo.ID, sha).
 			Count(&ret),
@@ -358,8 +361,9 @@ func (m *Model) RunsForTicket(repoName string, ticketID int) ([]*Run, *errors.Er
 	return ret, m.WrapError(
 		m.Table("runs").
 			Joins("inner join tasks on runs.task_id = tasks.id").
-			Joins("inner join repositories on tasks.parent_id = repositories.id").
 			Joins("inner join submissions on submissions.id = tasks.submission_id").
+			Joins("inner join refs on refs.id = submissions.base_ref_id").
+			Joins("inner join repositories on refs.repository_id = repositories.id").
 			Where("submissions.ticket_id = ? and repositories.name = ?", ticketID, repoName).Find(&ret),
 		"retrieving runs for a pull request id",
 	)

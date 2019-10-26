@@ -126,7 +126,8 @@ func (m *Model) CancelRefByName(repoID int64, refName, baseURL string, gh github
 
 	err = m.WrapError(
 		m.Where("refs.ref = ? and refs.repository_id = ? and tasks.status is null and tasks.finished_at is null", refName, repoID).
-			Joins("inner join refs on refs.id = tasks.ref_id").
+			Joins("inner join submissions on submissions.id = tasks.submission_id").
+			Joins("inner join refs on refs.id = submissions.head_ref_id").
 			Find(&tasks),
 		"finding tasks during cancel ref operation",
 	)

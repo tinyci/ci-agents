@@ -272,9 +272,6 @@ func (c *cmd) mkTask(ctx context.Context, sub *model.Submission) (*model.Task, *
 
 	task := &model.Task{
 		Path:         c.getString(),
-		Parent:       sub.BaseRef.Repository,
-		Ref:          sub.HeadRef,
-		BaseSHA:      sub.BaseRef.SHA,
 		CreatedAt:    createdAt,
 		FinishedAt:   finishedAt,
 		StartedAt:    startedAt,

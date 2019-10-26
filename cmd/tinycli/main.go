@@ -526,8 +526,8 @@ func tasks(ctx *cli.Context) error {
 			duration = time.Since(*task.StartedAt).Round(time.Millisecond).String()
 		}
 
-		refName := task.Ref.RefName
-		sha := task.Ref.SHA[:12]
+		refName := task.Submission.HeadRef.RefName
+		sha := task.Submission.HeadRef.SHA[:12]
 
 		runningCount, finishedCount, totalCount, err := mkTaskRunCounts(ct, client, task)
 		if err != nil {
@@ -539,7 +539,7 @@ func tasks(ctx *cli.Context) error {
 			path = "*root*"
 		}
 
-		if _, err := w.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d/%d/%d\t%s\t%s\n", task.ID, task.Ref.Repository.Name, refName, sha, path, runningCount, finishedCount, totalCount, statusStr, duration))); err != nil {
+		if _, err := w.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d/%d/%d\t%s\t%s\n", task.ID, task.Submission.HeadRef.Repository.Name, refName, sha, path, runningCount, finishedCount, totalCount, statusStr, duration))); err != nil {
 			return err
 		}
 	}
@@ -584,10 +584,10 @@ func runs(ctx *cli.Context) error {
 			duration = d.String()
 		}
 
-		refName := run.Task.Ref.RefName
-		sha := run.Task.Ref.SHA[:12]
+		refName := run.Task.Submission.HeadRef.RefName
+		sha := run.Task.Submission.HeadRef.SHA[:12]
 
-		if _, err := w.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d\t%s\t%s\n", run.ID, run.Task.Ref.Repository.Name, refName, sha, run.Name, run.Task.ID, statusStr, duration))); err != nil {
+		if _, err := w.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d\t%s\t%s\n", run.ID, run.Task.Submission.HeadRef.Repository.Name, refName, sha, run.Name, run.Task.ID, statusStr, duration))); err != nil {
 			return err
 		}
 	}

@@ -16,14 +16,27 @@ func (ms *modelSuite) TestTaskValidate(c *check.C) {
 
 	fork, err := ms.CreateRepository()
 	c.Assert(err, check.IsNil)
+	baseref := &Ref{
+		Repository: parent,
+		RefName:    "refs/heads/master",
+		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	}
 
-	ref := &Ref{
+	c.Assert(ms.model.Save(baseref).Error, check.IsNil)
+
+	headref := &Ref{
 		Repository: fork,
 		RefName:    "refs/heads/master",
 		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
-	c.Assert(ms.model.Save(ref).Error, check.IsNil)
+	c.Assert(ms.model.Save(headref).Error, check.IsNil)
+
+	sub := &Submission{
+		BaseRef: baseref,
+		HeadRef: headref,
+	}
+	c.Assert(ms.model.Save(sub).Error, check.IsNil)
 
 	ts := &types.TaskSettings{
 		Mountpoint: "/tmp",
@@ -36,23 +49,16 @@ func (ms *modelSuite) TestTaskValidate(c *check.C) {
 	}
 
 	failures := []struct {
-		ref          *Ref
-		parent       *Repository
-		baseSHA      string
+		sub          *Submission
 		TaskSettings *types.TaskSettings
 	}{
-		{nil, parent, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", ts},
-		{ref, nil, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", ts},
-		{ref, parent, "", ts},
-		{ref, parent, "123", ts},
-		{ref, parent, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nil},
+		{nil, ts},
+		{sub, nil},
 	}
 
 	for i, failure := range failures {
 		t := &Task{
-			Ref:          failure.ref,
-			Parent:       failure.parent,
-			BaseSHA:      failure.baseSHA,
+			Submission:   failure.sub,
 			TaskSettings: failure.TaskSettings,
 		}
 
@@ -61,9 +67,7 @@ func (ms *modelSuite) TestTaskValidate(c *check.C) {
 	}
 
 	t := &Task{
-		Ref:          ref,
-		Parent:       parent,
-		BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		Submission:   sub,
 		TaskSettings: ts,
 	}
 
@@ -73,9 +77,7 @@ func (ms *modelSuite) TestTaskValidate(c *check.C) {
 	c.Assert(ms.model.Where("id = ?", t.ID).First(t2).Error, check.IsNil)
 	c.Assert(t2.ID, check.Equals, t.ID)
 	c.Assert(len(t2.TaskSettings.Runs), check.Equals, 1)
-	c.Assert(t2.Parent.Name, check.Equals, t.Parent.Name)
-	c.Assert(t2.Ref.Repository.Name, check.Equals, t.Ref.Repository.Name)
-	c.Assert(t2.Parent.Name, check.Not(check.Equals), t2.Ref.Repository.Name)
+	c.Assert(t2.Submission.BaseRef.Repository.Name, check.Equals, t.Submission.BaseRef.Repository.Name)
 }
 
 func (ms *modelSuite) TestTaskList(c *check.C) {
@@ -85,13 +87,28 @@ func (ms *modelSuite) TestTaskList(c *check.C) {
 	fork, err := ms.CreateRepository()
 	c.Assert(err, check.IsNil)
 
-	ref := &Ref{
+	baseref := &Ref{
+		Repository: parent,
+		RefName:    "refs/heads/master",
+		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	}
+
+	c.Assert(ms.model.Save(baseref).Error, check.IsNil)
+
+	headref := &Ref{
 		Repository: fork,
 		RefName:    "refs/heads/master",
 		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
-	c.Assert(ms.model.Save(ref).Error, check.IsNil)
+	c.Assert(ms.model.Save(headref).Error, check.IsNil)
+
+	sub := &Submission{
+		BaseRef: baseref,
+		HeadRef: headref,
+	}
+
+	c.Assert(ms.model.Save(sub).Error, check.IsNil)
 
 	ts := &types.TaskSettings{
 		Mountpoint: "/tmp",
@@ -104,9 +121,7 @@ func (ms *modelSuite) TestTaskList(c *check.C) {
 	}
 
 	t := &Task{
-		Ref:          ref,
-		Parent:       parent,
-		BaseSHA:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		Submission:   sub,
 		TaskSettings: ts,
 	}
 
@@ -114,7 +129,7 @@ func (ms *modelSuite) TestTaskList(c *check.C) {
 
 	tasks, err := ms.model.ListTasks(fork.Name, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 0, 100)
 	c.Assert(err, check.IsNil)
-	c.Assert(tasks[0].BaseSHA, check.Not(check.Equals), "")
+	c.Assert(tasks[0].Submission.BaseRef.SHA, check.Not(check.Equals), "")
 
 	count, err := ms.model.CountTasks("", "")
 	c.Assert(err, check.IsNil)
@@ -144,13 +159,13 @@ func (ms *modelSuite) TestTaskListSHAList(c *check.C) {
 	fork, err := ms.CreateRepository()
 	c.Assert(err, check.IsNil)
 
-	ref := &Ref{
-		Repository: fork,
+	baseref := &Ref{
+		Repository: parent,
 		RefName:    "refs/heads/master",
 		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
-	c.Assert(ms.model.Save(ref).Error, check.IsNil)
+	c.Assert(ms.model.Save(baseref).Error, check.IsNil)
 
 	ts := &types.TaskSettings{
 		Mountpoint: "/tmp",
@@ -167,7 +182,7 @@ func (ms *modelSuite) TestTaskListSHAList(c *check.C) {
 	now := time.Now()
 	fmt.Print("generating tasks... ")
 	for i := 0; i < 1000; i++ {
-		count := rand.Intn(100)
+		count := rand.Intn(50)
 		sha := testutil.RandString(40)
 		shas[sha] = count
 		ref := &Ref{
@@ -177,11 +192,15 @@ func (ms *modelSuite) TestTaskListSHAList(c *check.C) {
 		}
 		c.Assert(ms.model.Save(ref).Error, check.IsNil)
 
+		sub := &Submission{
+			BaseRef: baseref,
+			HeadRef: ref,
+		}
+		c.Assert(ms.model.Save(sub).Error, check.IsNil)
+
 		for x := count - 1; x >= 0; x-- {
 			t2 := &Task{
-				Ref:          ref,
-				Parent:       parent,
-				BaseSHA:      sha,
+				Submission:   sub,
 				TaskSettings: ts,
 			}
 			c.Assert(ms.model.Save(t2).Error, check.IsNil)
@@ -227,7 +246,7 @@ func (ms *modelSuite) TestTaskListSHAList(c *check.C) {
 		c.Assert(err, check.IsNil)
 		c.Assert(len(tasks), check.Equals, count)
 		for _, task := range tasks {
-			c.Assert(task.BaseSHA, check.Equals, sha)
+			c.Assert(task.Submission.HeadRef.SHA, check.Equals, sha)
 		}
 	}
 	fmt.Printf("duration: %v\n", time.Since(now))
@@ -242,14 +261,6 @@ func (ms *modelSuite) TestTaskListSHAList(c *check.C) {
 func (ms *modelSuite) TestTaskListParents(c *check.C) {
 	fork, err := ms.CreateRepository()
 	c.Assert(err, check.IsNil)
-
-	ref := &Ref{
-		Repository: fork,
-		RefName:    "refs/heads/master",
-		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-	}
-
-	c.Assert(ms.model.Save(ref).Error, check.IsNil)
 
 	ts := &types.TaskSettings{
 		Mountpoint: "/tmp",
@@ -270,18 +281,26 @@ func (ms *modelSuite) TestTaskListParents(c *check.C) {
 		c.Assert(err, check.IsNil)
 		parents[parent.Name] = count
 		sha := testutil.RandString(40)
-		ref := &Ref{
+		baseref := &Ref{
+			Repository: parent,
+			RefName:    "refs/heads/master",
+			SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		}
+		c.Assert(ms.model.Save(baseref).Error, check.IsNil)
+
+		headref := &Ref{
 			Repository: fork,
 			RefName:    "refs/heads/master",
 			SHA:        sha,
 		}
-		c.Assert(ms.model.Save(ref).Error, check.IsNil)
+		c.Assert(ms.model.Save(headref).Error, check.IsNil)
+
+		sub := &Submission{BaseRef: baseref, HeadRef: headref}
+		c.Assert(ms.model.Save(sub).Error, check.IsNil)
 
 		for x := count - 1; x >= 0; x-- {
 			t2 := &Task{
-				Ref:          ref,
-				Parent:       parent,
-				BaseSHA:      sha,
+				Submission:   sub,
 				TaskSettings: ts,
 			}
 			c.Assert(ms.model.Save(t2).Error, check.IsNil)
@@ -301,7 +320,7 @@ func (ms *modelSuite) TestTaskListParents(c *check.C) {
 		c.Assert(len(tasks), check.Equals, count)
 		var lastID int64
 		for _, task := range tasks {
-			c.Assert(task.Parent.Name, check.Equals, parentName)
+			c.Assert(task.Submission.BaseRef.Repository.Name, check.Equals, parentName)
 			if lastID != 0 {
 				c.Assert(task.ID < lastID, check.Equals, true)
 				lastID = task.ID
@@ -324,16 +343,13 @@ func (ms *modelSuite) TestTaskListForks(c *check.C) {
 	parent, err := ms.CreateRepository()
 	c.Assert(err, check.IsNil)
 
-	fork, err := ms.CreateRepository()
-	c.Assert(err, check.IsNil)
-
-	ref := &Ref{
-		Repository: fork,
+	baseref := &Ref{
+		Repository: parent,
 		RefName:    "refs/heads/master",
 		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
-	c.Assert(ms.model.Save(ref).Error, check.IsNil)
+	c.Assert(ms.model.Save(baseref).Error, check.IsNil)
 
 	ts := &types.TaskSettings{
 		Mountpoint: "/tmp",
@@ -354,19 +370,19 @@ func (ms *modelSuite) TestTaskListForks(c *check.C) {
 		c.Assert(err, check.IsNil)
 		forks[fork.Name] = count
 		sha := testutil.RandString(40)
-		ref := &Ref{
+		headref := &Ref{
 			Repository: fork,
 			RefName:    "refs/heads/master",
 			SHA:        sha,
 		}
-		c.Assert(ms.model.Save(ref).Error, check.IsNil)
+		c.Assert(ms.model.Save(headref).Error, check.IsNil)
+
+		sub := &Submission{HeadRef: headref, BaseRef: baseref}
 
 		for x := count - 1; x >= 0; x-- {
 			t2 := &Task{
-				Ref:          ref,
-				Parent:       parent,
-				BaseSHA:      sha,
 				TaskSettings: ts,
+				Submission:   sub,
 			}
 			c.Assert(ms.model.Save(t2).Error, check.IsNil)
 		}
@@ -385,7 +401,7 @@ func (ms *modelSuite) TestTaskListForks(c *check.C) {
 		c.Assert(len(tasks), check.Equals, count)
 		var lastID int64
 		for _, task := range tasks {
-			c.Assert(task.Ref.Repository.Name, check.Equals, forkName)
+			c.Assert(task.Submission.HeadRef.Repository.Name, check.Equals, forkName)
 			if lastID != 0 {
 				c.Assert(task.ID < lastID, check.Equals, true)
 				lastID = task.ID
