@@ -1,6 +1,7 @@
 package restapi
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +11,7 @@ import (
 )
 
 // CountRuns returns a count of the queue items by asking the datasvc for it.
-func CountRuns(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func CountRuns(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	count, err := h.Clients.Data.RunCount(ctx, ctx.GetString("repository"), ctx.GetString("sha"))
 	if err != nil {
 		return nil, 500, err
@@ -20,7 +21,7 @@ func CountRuns(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error
 }
 
 // ListRuns lists all the runs that were requested by the page/perPage parameters.
-func ListRuns(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func ListRuns(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	page, perPage, err := utils.ScopePagination(ctx.GetString("page"), ctx.GetString("perPage"))
 	if err != nil {
 		return nil, 500, err
@@ -35,7 +36,7 @@ func ListRuns(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error)
 }
 
 // GetRun retrieves a run by id.
-func GetRun(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func GetRun(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	runID, err := strconv.ParseInt(ctx.GetString("run_id"), 10, 64)
 	if err != nil {
 		return nil, 500, errors.New(err)
@@ -50,13 +51,13 @@ func GetRun(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 }
 
 // CancelRun cancels a run by id.
-func CancelRun(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func CancelRun(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	runID, err := strconv.ParseInt(ctx.GetString("run_id"), 10, 64)
 	if err != nil {
 		return nil, 500, errors.New(err)
 	}
 
-	if err := h.Clients.Data.SetCancel(ctx, runID); err != nil {
+	if err := h.Clients.Data.SetCancel(pCtx, runID); err != nil {
 		return nil, 500, errors.New(err)
 	}
 

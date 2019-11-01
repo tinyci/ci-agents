@@ -6,6 +6,7 @@ package operations
 // Editing this file might prove futile when you re-run the generate command
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -57,6 +58,8 @@ func GetRepositoriesMy(h *handlers.H, ctx *gin.Context, processingHandler handle
 		return errors.New("'/repositories/my': no processor defined")
 	}
 
-	resp, code, err := processingHandler(h, ctx)
+	processingContext, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	resp, code, err := processingHandler(processingContext, h, ctx)
 	return GetRepositoriesMyResponse(h, ctx, resp, code, err)
 }

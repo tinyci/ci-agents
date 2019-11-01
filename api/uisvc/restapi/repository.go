@@ -1,6 +1,7 @@
 package restapi
 
 import (
+	"context"
 	"path"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 )
 
 // ListRepositoriesSubscribed lists all subscribed repos as JSON.
-func ListRepositoriesSubscribed(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func ListRepositoriesSubscribed(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -22,7 +23,7 @@ func ListRepositoriesSubscribed(h *handlers.H, ctx *gin.Context) (interface{}, i
 }
 
 // ScanRepositories scans for owned and managed repositories for Add-to-CI operations.
-func ScanRepositories(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func ScanRepositories(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -44,12 +45,12 @@ func ScanRepositories(h *handlers.H, ctx *gin.Context) (interface{}, int, *error
 		return nil, 500, err
 	}
 
-	githubRepos, err := github.MyRepositories(ctx)
+	githubRepos, err := github.MyRepositories(pCtx)
 	if err != nil {
 		return nil, 500, err
 	}
 
-	if err := h.Clients.Data.PutRepositories(ctx, user.Username, githubRepos, true); err != nil {
+	if err := h.Clients.Data.PutRepositories(pCtx, user.Username, githubRepos, true); err != nil {
 		return nil, 500, err
 	}
 
@@ -57,7 +58,7 @@ func ScanRepositories(h *handlers.H, ctx *gin.Context) (interface{}, int, *error
 }
 
 // ListRepositoriesMy lists the repositories the user can modify.
-func ListRepositoriesMy(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func ListRepositoriesMy(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -72,7 +73,7 @@ func ListRepositoriesMy(h *handlers.H, ctx *gin.Context) (interface{}, int, *err
 }
 
 // ListRepositoriesVisible returns all the repos the user can see.
-func ListRepositoriesVisible(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func ListRepositoriesVisible(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -83,7 +84,7 @@ func ListRepositoriesVisible(h *handlers.H, ctx *gin.Context) (interface{}, int,
 }
 
 // DeleteRepositoryFromCI removes the repository from CI. that's it.
-func DeleteRepositoryFromCI(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func DeleteRepositoryFromCI(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -94,7 +95,7 @@ func DeleteRepositoryFromCI(h *handlers.H, ctx *gin.Context) (interface{}, int, 
 		return nil, 500, err
 	}
 
-	repo, err := h.Clients.Data.GetRepository(ctx, path.Join(ctx.GetString("owner"), ctx.GetString("repo")))
+	repo, err := h.Clients.Data.GetRepository(pCtx, path.Join(ctx.GetString("owner"), ctx.GetString("repo")))
 	if err != nil {
 		return nil, 500, err
 	}
@@ -103,15 +104,15 @@ func DeleteRepositoryFromCI(h *handlers.H, ctx *gin.Context) (interface{}, int, 
 		return nil, 500, errors.New("repo is not enabled")
 	}
 
-	if err := github.TeardownHook(ctx, ctx.GetString("owner"), ctx.GetString("repo"), h.HookURL); err != nil {
+	if err := github.TeardownHook(pCtx, ctx.GetString("owner"), ctx.GetString("repo"), h.HookURL); err != nil {
 		return nil, 500, err
 	}
 
-	return nil, 200, h.Clients.Data.DisableRepository(ctx, user.Username, path.Join(ctx.GetString("owner"), ctx.GetString("repo")))
+	return nil, 200, h.Clients.Data.DisableRepository(pCtx, user.Username, path.Join(ctx.GetString("owner"), ctx.GetString("repo")))
 }
 
 // AddRepositoryToCI adds the repository to CI and subscribes the user to it.
-func AddRepositoryToCI(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func AddRepositoryToCI(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -123,32 +124,32 @@ func AddRepositoryToCI(h *handlers.H, ctx *gin.Context) (interface{}, int, *erro
 	}
 
 	repoName := path.Join(ctx.GetString("owner"), ctx.GetString("repo"))
-	if _, err := h.Clients.Data.GetRepository(ctx, repoName); err != nil {
+	if _, err := h.Clients.Data.GetRepository(pCtx, repoName); err != nil {
 		return nil, 500, err
 	}
 
-	if err := github.TeardownHook(ctx, ctx.GetString("owner"), ctx.GetString("repo"), h.HookURL); err != nil {
+	if err := github.TeardownHook(pCtx, ctx.GetString("owner"), ctx.GetString("repo"), h.HookURL); err != nil {
 		return nil, 500, err
 	}
 
-	err = h.Clients.Data.EnableRepository(ctx, user.Username, repoName)
+	err = h.Clients.Data.EnableRepository(pCtx, user.Username, repoName)
 	if err != nil {
 		return nil, 500, err
 	}
 
-	postRepo, err := h.Clients.Data.GetRepository(ctx, repoName)
+	postRepo, err := h.Clients.Data.GetRepository(pCtx, repoName)
 	if err != nil {
 		return nil, 500, err
 	}
 
-	if err := github.SetupHook(ctx, ctx.GetString("owner"), ctx.GetString("repo"), h.HookURL, postRepo.HookSecret); err != nil {
-		if err := h.Clients.Data.DisableRepository(ctx, user.Username, repoName); err != nil {
+	if err := github.SetupHook(pCtx, ctx.GetString("owner"), ctx.GetString("repo"), h.HookURL, postRepo.HookSecret); err != nil {
+		if err := h.Clients.Data.DisableRepository(pCtx, user.Username, repoName); err != nil {
 			return nil, 500, err
 		}
 		return nil, 500, err
 	}
 
-	err = h.Clients.Data.AddSubscription(ctx, user.Username, repoName)
+	err = h.Clients.Data.AddSubscription(pCtx, user.Username, repoName)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -157,21 +158,21 @@ func AddRepositoryToCI(h *handlers.H, ctx *gin.Context) (interface{}, int, *erro
 }
 
 // AddRepositorySubscription adds a subscription for the user to the repo
-func AddRepositorySubscription(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func AddRepositorySubscription(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
 	}
 
-	return nil, 200, h.Clients.Data.AddSubscription(ctx, user.Username, path.Join(ctx.GetString("owner"), ctx.GetString("repo")))
+	return nil, 200, h.Clients.Data.AddSubscription(pCtx, user.Username, path.Join(ctx.GetString("owner"), ctx.GetString("repo")))
 }
 
 // DeleteRepositorySubscription removes the subscription to the repository from the user account.
-func DeleteRepositorySubscription(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func DeleteRepositorySubscription(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
 	}
 
-	return nil, 200, h.Clients.Data.DeleteSubscription(ctx, user.Username, path.Join(ctx.GetString("owner"), ctx.GetString("repo")))
+	return nil, 200, h.Clients.Data.DeleteSubscription(pCtx, user.Username, path.Join(ctx.GetString("owner"), ctx.GetString("repo")))
 }

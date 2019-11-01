@@ -1,6 +1,7 @@
 package restapi
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +11,7 @@ import (
 )
 
 // Submit powers a manual submission to the queuesvc.
-func Submit(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func Submit(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	repo := ctx.GetString("repository")
 	sha := ctx.GetString("sha")
 
@@ -24,7 +25,7 @@ func Submit(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 		return nil, 500, err
 	}
 
-	err = h.Clients.Queue.Submit(ctx.Request.Context(), &types.Submission{
+	err = h.Clients.Queue.Submit(pCtx, &types.Submission{
 		Fork:        repo,
 		HeadSHA:     sha,
 		SubmittedBy: user.Username,

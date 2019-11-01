@@ -1,6 +1,7 @@
 package restapi
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -11,7 +12,7 @@ import (
 )
 
 // LogAttach connects to a running logging process and outputs the return data as it arrives.
-func LogAttach(h *handlers.H, ctx *gin.Context, conn *websocket.Conn) *errors.Error {
+func LogAttach(pCtx context.Context, h *handlers.H, ctx *gin.Context, conn *websocket.Conn) *errors.Error {
 	id, err := strconv.ParseInt(ctx.GetString("id"), 10, 64)
 	if err != nil {
 		return errors.New(err)

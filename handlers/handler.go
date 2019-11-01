@@ -392,7 +392,7 @@ func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error
 	}
 }
 
-func (h *H) inWebsocket(key string, paramHandler func(*H, *gin.Context) *errors.Error, handler func(h *H, ctx *gin.Context, conn *websocket.Conn) *errors.Error) func(ctx *gin.Context) {
+func (h *H) inWebsocket(key string, paramHandler func(*H, *gin.Context) *errors.Error, handler WebsocketFunc) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		if h.EnableTracing {
 			span := h.NewTracingSpan(ctx, key)
@@ -400,11 +400,13 @@ func (h *H) inWebsocket(key string, paramHandler func(*H, *gin.Context) *errors.
 		}
 
 		outerHandler := func(conn *websocket.Conn) {
+			pCtx, cancel := context.WithTimeout(context.Background(), time.Minute)
+			defer cancel()
 			if err := paramHandler(h, ctx); err != nil {
 				conn.Close()
 			}
 
-			if err := handler(h, ctx, conn); err != nil {
+			if err := handler(pCtx, h, ctx, conn); err != nil {
 				conn.Close()
 			}
 		}
@@ -530,7 +532,7 @@ func (h *H) LogError(err error, ctx *gin.Context, code int) {
 
 	content, jsonErr := json.Marshal(ctx.Params)
 	if jsonErr != nil {
-		logger.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
+		logger.Error(context.Background(), errors.New(jsonErr).Wrap("encoding params for log message"))
 	}
 
 	var doLog bool
@@ -545,6 +547,6 @@ func (h *H) LogError(err error, ctx *gin.Context, code int) {
 	}
 
 	if doLog {
-		logger.WithFields(log.FieldMap{"params": string(content)}).Error(ctx.Request.Context(), err)
+		logger.WithFields(log.FieldMap{"params": string(content)}).Error(context.Background(), err)
 	}
 }

@@ -6,6 +6,7 @@ package operations
 // Editing this file might prove futile when you re-run the generate command
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -58,6 +59,8 @@ func GetRepositoriesCiDelOwnerRepo(h *handlers.H, ctx *gin.Context, processingHa
 		return errors.New("'/repositories/ci/del/{owner}/{repo}': no processor defined")
 	}
 
-	resp, code, err := processingHandler(h, ctx)
+	processingContext, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	resp, code, err := processingHandler(processingContext, h, ctx)
 	return GetRepositoriesCiDelOwnerRepoResponse(h, ctx, resp, code, err)
 }

@@ -1,6 +1,7 @@
 package restapi
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +11,7 @@ import (
 )
 
 // GetSubmission retrieves a submission by id
-func GetSubmission(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func GetSubmission(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	id, eErr := strconv.ParseInt(ctx.GetString("id"), 10, 64)
 	if eErr != nil {
 		return nil, 500, errors.New(eErr)
@@ -25,7 +26,7 @@ func GetSubmission(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.E
 }
 
 // GetSubmissionRuns retrieves a submission's runs from the submission id
-func GetSubmissionRuns(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func GetSubmissionRuns(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	id, eErr := strconv.ParseInt(ctx.GetString("id"), 10, 64)
 	if eErr != nil {
 		return nil, 500, errors.New(eErr)
@@ -50,7 +51,7 @@ func GetSubmissionRuns(h *handlers.H, ctx *gin.Context) (interface{}, int, *erro
 }
 
 // GetSubmissionTasks retrieves a submission's task from the submission id
-func GetSubmissionTasks(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func GetSubmissionTasks(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	id, eErr := strconv.ParseInt(ctx.GetString("id"), 10, 64)
 	if eErr != nil {
 		return nil, 500, errors.New(eErr)
@@ -75,7 +76,7 @@ func GetSubmissionTasks(h *handlers.H, ctx *gin.Context) (interface{}, int, *err
 }
 
 // ListSubmissions lists the submissions with optional repository/sha filtering and pagination.
-func ListSubmissions(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func ListSubmissions(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	page, perPage, err := utils.ScopePagination(ctx.GetString("page"), ctx.GetString("perPage"))
 	if err != nil {
 		return nil, 500, err
@@ -90,7 +91,7 @@ func ListSubmissions(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors
 }
 
 // CountSubmissions counts the submissions with optional repository/sha filtering.
-func CountSubmissions(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func CountSubmissions(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	count, err := h.Clients.Data.CountSubmissions(ctx, ctx.GetString("repository"), ctx.GetString("sha"))
 	if err != nil {
 		return nil, 500, err
@@ -100,13 +101,13 @@ func CountSubmissions(h *handlers.H, ctx *gin.Context) (interface{}, int, *error
 }
 
 // CancelSubmission cancels a submission by ID.
-func CancelSubmission(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func CancelSubmission(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	id, eErr := strconv.ParseInt(ctx.GetString("id"), 10, 64)
 	if eErr != nil {
 		return nil, 500, errors.New(eErr)
 	}
 
-	if err := h.Clients.Data.CancelSubmission(ctx, id); err != nil {
+	if err := h.Clients.Data.CancelSubmission(pCtx, id); err != nil {
 		return nil, 500, err
 	}
 
