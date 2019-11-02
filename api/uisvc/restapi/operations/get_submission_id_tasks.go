@@ -6,6 +6,7 @@ package operations
 // Editing this file might prove futile when you re-run the generate command
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -57,6 +58,8 @@ func GetSubmissionIDTasks(h *handlers.H, ctx *gin.Context, processingHandler han
 		return errors.New("'/submission/{id}/tasks': no processor defined")
 	}
 
-	resp, code, err := processingHandler(h, ctx)
+	processingContext, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	resp, code, err := processingHandler(processingContext, h, ctx)
 	return GetSubmissionIDTasksResponse(h, ctx, resp, code, err)
 }

@@ -1,6 +1,8 @@
 package restapi
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
@@ -8,7 +10,7 @@ import (
 
 // GetToken obtains a new token from the db. If one is already set, you must
 // delete it before this will return a new one.
-func GetToken(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func GetToken(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	u, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -23,13 +25,13 @@ func GetToken(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error)
 }
 
 // DeleteToken removes the existing token for the user.
-func DeleteToken(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func DeleteToken(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	u, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
 	}
 
-	if err := h.Clients.Data.DeleteToken(ctx, u.Username); err != nil {
+	if err := h.Clients.Data.DeleteToken(pCtx, u.Username); err != nil {
 		return nil, 500, err
 	}
 

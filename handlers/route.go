@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -26,10 +27,10 @@ type Route struct {
 }
 
 // HandlerFunc is the basic kind of HandlerFunc.
-type HandlerFunc func(*H, *gin.Context) (interface{}, int, *errors.Error)
+type HandlerFunc func(context.Context, *H, *gin.Context) (interface{}, int, *errors.Error)
 
 // WebsocketFunc is the controller for websocket operations.
-type WebsocketFunc func(*H, *gin.Context, *websocket.Conn) *errors.Error
+type WebsocketFunc func(context.Context, *H, *gin.Context, *websocket.Conn) *errors.Error
 
 // SetProcessor allows you to more simply set the processor for a given route.
 func (r Routes) SetProcessor(route string, method string, processor HandlerFunc) {

@@ -1,6 +1,8 @@
 package restapi
 
 import (
+	"context"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/tinyci/ci-agents/config"
@@ -9,7 +11,7 @@ import (
 )
 
 // Upgrade upgrades the user's api keys.
-func Upgrade(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func Upgrade(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	handlers.CORS(ctx)
 	if err := h.OAuthRedirect(ctx, config.OAuthRepositoryScope); err != nil {
 		return nil, 500, err
@@ -19,7 +21,7 @@ func Upgrade(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) 
 }
 
 // LoggedIn handles the process of signaling javascript whether or not to login.
-func LoggedIn(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func LoggedIn(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	handlers.CORS(ctx)
 
 	res := "true"
@@ -37,7 +39,7 @@ func LoggedIn(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error)
 }
 
 // Logout logs the user out of the tinyCI system.
-func Logout(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func Logout(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	sess := sessions.Default(ctx)
 	sess.Delete(handlers.SessionUsername)
 
@@ -51,7 +53,7 @@ func Logout(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 
 // Login processes the oauth response and optionally redirects the user if not
 // logged in already.
-func Login(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func Login(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	oauthinfo, err := h.Clients.Auth.OAuthChallenge(ctx, ctx.Query("state"), ctx.Query("code"))
 	if err != nil {
 		return nil, 500, err
@@ -75,7 +77,7 @@ func Login(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 }
 
 // GetUserProperties gives an object containing information about the user.
-func GetUserProperties(h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func GetUserProperties(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err

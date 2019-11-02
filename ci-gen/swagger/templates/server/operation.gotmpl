@@ -68,6 +68,8 @@ func {{ .Name }}(h *handlers.H, ctx *gin.Context, processingHandler handlers.Han
     return errors.New("'{{ .Path }}': no processor defined")
   }
 
-  resp, code, err := processingHandler(h, ctx)
+  processingContext, cancel := context.WithTimeout(context.Background(), time.Minute)
+  defer cancel()
+  resp, code, err := processingHandler(processingContext, h, ctx)
   return {{ .Name }}Response(h, ctx, resp, code, err)
 }
