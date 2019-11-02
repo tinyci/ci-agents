@@ -20,11 +20,11 @@ type Client struct {
 }
 
 // New constructs a new *Client.
-func New(addr string, cert *transport.Cert, trace bool) (*Client, *errors.Error) {
+func New(addr string, cert *transport.Cert, trace bool) (*Client, error) {
 	var (
 		closer  io.Closer
 		options []grpc.DialOption
-		eErr    *errors.Error
+		eErr    error
 	)
 
 	if trace {
@@ -52,7 +52,7 @@ func (c *Client) Close() error {
 }
 
 // GetCancel retrieves the cancel state of the run.
-func (c *Client) GetCancel(ctx context.Context, id int64) (bool, *errors.Error) {
+func (c *Client) GetCancel(ctx context.Context, id int64) (bool, error) {
 	status, err := c.client.GetCancel(ctx, &types.IntID{ID: id}, grpc.WaitForReady(true))
 	if err != nil {
 		return false, errors.New(err)
@@ -62,7 +62,7 @@ func (c *Client) GetCancel(ctx context.Context, id int64) (bool, *errors.Error) 
 }
 
 // SetCancel sets the cancel state for a given run id.
-func (c *Client) SetCancel(ctx context.Context, id int64) *errors.Error {
+func (c *Client) SetCancel(ctx context.Context, id int64) error {
 	_, err := c.client.SetCancel(ctx, &types.IntID{ID: id}, grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)
@@ -72,7 +72,7 @@ func (c *Client) SetCancel(ctx context.Context, id int64) *errors.Error {
 }
 
 // NextQueueItem returns the next item in the queue.
-func (c *Client) NextQueueItem(ctx context.Context, queueName, hostname string) (*model.QueueItem, *errors.Error) {
+func (c *Client) NextQueueItem(ctx context.Context, queueName, hostname string) (*model.QueueItem, error) {
 	qi, err := c.client.NextQueueItem(ctx, &types.QueueRequest{QueueName: queueName, RunningOn: hostname}, grpc.WaitForReady(false))
 	if err != nil {
 		return nil, errors.New(err)
@@ -82,7 +82,7 @@ func (c *Client) NextQueueItem(ctx context.Context, queueName, hostname string) 
 }
 
 // SetStatus completes the run by returning its status back to the system.
-func (c *Client) SetStatus(ctx context.Context, id int64, status bool) *errors.Error {
+func (c *Client) SetStatus(ctx context.Context, id int64, status bool) error {
 	_, err := c.client.PutStatus(ctx, &types.Status{Id: id, Status: status}, grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)

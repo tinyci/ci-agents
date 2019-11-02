@@ -15,7 +15,7 @@ import (
 func (ls *LogServer) Put(ctx context.Context, lm *log.LogMessage) (*empty.Empty, error) {
 	dispatcher, ok := ls.DispatchTable[lm.GetLevel()]
 	if !ok {
-		return &empty.Empty{}, errors.Errorf("Invalid log level %q", lm.GetLevel()).ToGRPC(codes.FailedPrecondition)
+		return &empty.Empty{}, errors.Errorf("Invalid log level %q", lm.GetLevel()).(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	fields := map[string]interface{}{}
@@ -25,7 +25,7 @@ func (ls *LogServer) Put(ctx context.Context, lm *log.LogMessage) (*empty.Empty,
 		case *_struct.Value_StringValue:
 			fields[key] = kind.StringValue
 		default:
-			return &empty.Empty{}, errors.Errorf("%q must be a string value", key).ToGRPC(codes.FailedPrecondition)
+			return &empty.Empty{}, errors.Errorf("%q must be a string value", key).(errors.Error).ToGRPC(codes.FailedPrecondition)
 		}
 	}
 

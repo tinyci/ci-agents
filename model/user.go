@@ -37,7 +37,7 @@ var (
 	TokenCryptKey = []byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
 )
 
-// UserError is the encapsulation of many *errors.Errors that need to be presented to
+// UserError is the encapsulation of many errors that need to be presented to
 // the user.
 type UserError struct {
 	ID     int64  `gorm:"primary key" json:"id"`
@@ -77,25 +77,25 @@ type User struct {
 }
 
 // SetToken sets the token's byte stream, and encrypts it.
-func (u *User) SetToken() *errors.Error {
-	var err *errors.Error
+func (u *User) SetToken() error {
+	var err error
 	u.TokenJSON, err = topTypes.EncryptToken(TokenCryptKey, u.Token)
 	return err
 }
 
 // FetchToken retrieves the token from the db, decrypting it if necessary.
-func (u *User) FetchToken() *errors.Error {
+func (u *User) FetchToken() error {
 	if u.Token != nil {
 		return nil
 	}
 
-	var err *errors.Error
+	var err error
 	u.Token, err = topTypes.DecryptToken(TokenCryptKey, u.TokenJSON)
 	return err
 }
 
 // NewUserFromProto converts a proto user to a real user.
-func NewUserFromProto(u *types.User) (*User, *errors.Error) {
+func NewUserFromProto(u *types.User) (*User, error) {
 	errs := []UserError{}
 
 	if len(u.Errors) != 0 {
@@ -123,7 +123,7 @@ func NewUserFromProto(u *types.User) (*User, *errors.Error) {
 }
 
 // MakeUsers converts a proto userlist to a model one.
-func MakeUsers(users []*types.User) ([]*User, *errors.Error) {
+func MakeUsers(users []*types.User) ([]*User, error) {
 	ret := []*User{}
 	for _, user := range users {
 		u, err := NewUserFromProto(user)
@@ -168,25 +168,25 @@ func (u *User) ToProto() *types.User {
 }
 
 // CreateUser initializes a user struct and writes it to the db.
-func (m *Model) CreateUser(username string, token *topTypes.OAuthToken) (*User, *errors.Error) {
+func (m *Model) CreateUser(username string, token *topTypes.OAuthToken) (*User, error) {
 	u := &User{Username: username, Token: token}
 	return u, m.WrapError(m.Create(u), "creating user")
 }
 
 // FindUserByID finds the user by integer ID.
-func (m *Model) FindUserByID(id int64) (*User, *errors.Error) {
+func (m *Model) FindUserByID(id int64) (*User, error) {
 	u := &User{}
 	return u, m.WrapError(m.Where("id = ?", id).First(u), "finding user by id")
 }
 
 // FindUserByName finds a user by unique key username.
-func (m *Model) FindUserByName(username string) (*User, *errors.Error) {
+func (m *Model) FindUserByName(username string) (*User, error) {
 	u := &User{}
 	return u, m.WrapError(m.Where("username = ?", username).First(u), "finding user by name")
 }
 
 // FindUserByNameWithSubscriptions finds a user by unique key username. It also fetches the subscriptions for the user.
-func (m *Model) FindUserByNameWithSubscriptions(username, search string) (*User, *errors.Error) {
+func (m *Model) FindUserByNameWithSubscriptions(username, search string) (*User, error) {
 	u := &User{}
 	if search == "" {
 		return u, m.WrapError(m.Preload("Subscribed").Where("username = ?", username).First(u), "preloading subscriptions with user")
@@ -194,24 +194,24 @@ func (m *Model) FindUserByNameWithSubscriptions(username, search string) (*User,
 	return u, m.WrapError(m.Preload("Subscribed", "name like ?", "%"+search+"%").Where("username = ?", username).First(u), "preloading subscriptions with user")
 }
 
-// DeleteError deletes a given *errors.Error for a user.
-func (m *Model) DeleteError(u *User, id int64) *errors.Error {
+// DeleteError deletes a given error for a user.
+func (m *Model) DeleteError(u *User, id int64) error {
 	return m.WrapError(m.Where("id = ?", id).Delete(u.Errors), "deleting errors for user")
 }
 
 // AddSubscriptionsForUser adds the repositories to the subscriptions table. Access is
 // validated at the API level, not here.
-func (m *Model) AddSubscriptionsForUser(u *User, repos []*Repository) *errors.Error {
+func (m *Model) AddSubscriptionsForUser(u *User, repos []*Repository) error {
 	return errors.New(m.Model(u).Association("Subscribed").Append(repos).Error)
 }
 
 // RemoveSubscriptionForUser removes an item from the subscriptions table.
-func (m *Model) RemoveSubscriptionForUser(u *User, repo *Repository) *errors.Error {
+func (m *Model) RemoveSubscriptionForUser(u *User, repo *Repository) error {
 	return errors.New(m.Model(u).Association("Subscribed").Delete(repo).Error)
 }
 
 // AddError adds an error to the error list.
-func (u *User) AddError(err *errors.Error) {
+func (u *User) AddError(err error) {
 	u.Errors = append(u.Errors, UserError{Error: err.Error()})
 }
 
@@ -222,7 +222,7 @@ func (u *User) AfterFind(tx *gorm.DB) error {
 	}
 
 	if err := u.Validate(); err != nil {
-		return errors.New(err).Wrapf("reading user id %d (%q)", u.ID, u.Username)
+		return errors.New(err).(errors.Error).Wrapf("reading user id %d (%q)", u.ID, u.Username)
 	}
 
 	return nil
@@ -236,7 +236,7 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 // BeforeSave is a gorm hook to marshal the Token JSON before saving the record
 func (u *User) BeforeSave(tx *gorm.DB) error {
 	if err := u.ValidateWrite(); err != nil {
-		return errors.New(err).Wrapf("saving user %q", u.Username)
+		return errors.New(err).(errors.Error).Wrapf("saving user %q", u.Username)
 	}
 
 	if err := u.SetToken(); err != nil {
@@ -247,7 +247,7 @@ func (u *User) BeforeSave(tx *gorm.DB) error {
 }
 
 // ValidateWrite is for write-only validations.
-func (u *User) ValidateWrite() *errors.Error {
+func (u *User) ValidateWrite() error {
 	if u.Token == nil || u.Token.Token == "" {
 		return errors.New("cannot be written because the oauth credentials are not valid")
 	}
@@ -256,7 +256,7 @@ func (u *User) ValidateWrite() *errors.Error {
 }
 
 // Validate validates the user record to ensure it can be written.
-func (u *User) Validate() *errors.Error {
+func (u *User) Validate() error {
 	if u.Username == "" {
 		return errors.New("username is empty")
 	}
@@ -277,7 +277,7 @@ func (m *Model) mkRepositoryFromGithub(repo *gh.Repository, owner *User, autoCre
 
 // SaveRepositories saves github repositories; it sets the *User provided to
 // the owner of it.
-func (m *Model) SaveRepositories(repos []*gh.Repository, username string, autoCreated bool) *errors.Error {
+func (m *Model) SaveRepositories(repos []*gh.Repository, username string, autoCreated bool) error {
 	owner, err := m.FindUserByName(username)
 	if err != nil {
 		return err
@@ -288,7 +288,7 @@ func (m *Model) SaveRepositories(repos []*gh.Repository, username string, autoCr
 		if err != nil {
 			localRepo := m.mkRepositoryFromGithub(repo, owner, autoCreated)
 			if err := m.WrapError(m.Create(localRepo), "creating repository"); err != nil {
-				return err.Wrapf("could not create repository %q", repo.GetFullName())
+				return err.(errors.Error).Wrapf("could not create repository %q", repo.GetFullName())
 			}
 		}
 	}
@@ -301,7 +301,7 @@ func (m *Model) SaveRepositories(repos []*gh.Repository, username string, autoCr
 
 // ListSubscribedTasksForUser lists all tasks related to the subscribed repositories
 // for the user.
-func (m *Model) ListSubscribedTasksForUser(userID, page, perPage int64) ([]*Task, *errors.Error) {
+func (m *Model) ListSubscribedTasksForUser(userID, page, perPage int64) ([]*Task, error) {
 	tasks := []*Task{}
 	call := m.Limit(perPage).Offset(page*perPage).
 		Joins("inner join submissions on submissions.id = tasks.submission_id").
@@ -313,17 +313,17 @@ func (m *Model) ListSubscribedTasksForUser(userID, page, perPage int64) ([]*Task
 }
 
 // AddCapabilityToUser adds a capability to a user account.
-func (m *Model) AddCapabilityToUser(u *User, cap Capability) *errors.Error {
+func (m *Model) AddCapabilityToUser(u *User, cap Capability) error {
 	return m.WrapError(m.Exec("insert into user_capabilities (user_id, name) values (?, ?)", u.ID, cap), "adding capability for user")
 }
 
 // RemoveCapabilityFromUser removes a capability from a user account.
-func (m *Model) RemoveCapabilityFromUser(u *User, cap Capability) *errors.Error {
+func (m *Model) RemoveCapabilityFromUser(u *User, cap Capability) error {
 	return m.WrapError(m.Exec("delete from user_capabilities where user_id = ? and name = ?", u.ID, cap), "removing capability from user")
 }
 
 // GetCapabilities returns the capabilities the supplied user account has.
-func (m *Model) GetCapabilities(u *User, fixedCaps map[string][]string) ([]Capability, *errors.Error) {
+func (m *Model) GetCapabilities(u *User, fixedCaps map[string][]string) ([]Capability, error) {
 	caps := map[string]struct{}{}
 
 	if fc, ok := fixedCaps[u.Username]; ok {
@@ -354,7 +354,7 @@ func (m *Model) GetCapabilities(u *User, fixedCaps map[string][]string) ([]Capab
 }
 
 // HasCapability returns true if the user is capable of performing the operation.
-func (m *Model) HasCapability(u *User, cap Capability, fixedCaps map[string][]string) (bool, *errors.Error) {
+func (m *Model) HasCapability(u *User, cap Capability, fixedCaps map[string][]string) (bool, error) {
 	// if we have fixed caps, we consult that table only; these are overrides for
 	// users that exist within the configuration file for the datasvc.
 	if caps, ok := fixedCaps[u.Username]; ok {

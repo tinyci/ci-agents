@@ -33,7 +33,7 @@ type Client struct {
 
 // New creates a new *Client. Passing a cert will enable client/server
 // certificate authentication; otherwise pass nil for no auth.
-func New(baseURL string, token string, cert *transport.Cert) (*Client, *errors.Error) {
+func New(baseURL string, token string, cert *transport.Cert) (*Client, error) {
 	t, err := transport.NewHTTP(cert)
 	if err != nil {
 		return nil, errors.New(err)
@@ -70,7 +70,7 @@ func (c *Client) UnmarshalCookies(content []byte) error {
 }
 
 // DeleteCapabilitiesUsernameCapability remove a named capability
-func (c *Client) DeleteCapabilitiesUsernameCapability(ctx context.Context, capability string, username string) *errors.Error {
+func (c *Client) DeleteCapabilitiesUsernameCapability(ctx context.Context, capability string, username string) error {
 	route := "/capabilities/{username}/{capability}"
 	route = strings.Replace(route, "{capability}", url.PathEscape(fmt.Sprintf("%v", capability)), -1)
 
@@ -123,7 +123,7 @@ func (c *Client) DeleteCapabilitiesUsernameCapability(ctx context.Context, capab
 }
 
 // DeleteToken remove and reset your tiny c i access token
-func (c *Client) DeleteToken(ctx context.Context) *errors.Error {
+func (c *Client) DeleteToken(ctx context.Context) error {
 	route := "/token"
 
 	tmp := *c.url
@@ -173,7 +173,7 @@ func (c *Client) DeleteToken(ctx context.Context) *errors.Error {
 }
 
 // GetErrors retrieve errors
-func (c *Client) GetErrors(ctx context.Context) ([]*models.UserError, *errors.Error) {
+func (c *Client) GetErrors(ctx context.Context) ([]*models.UserError, error) {
 	route := "/errors"
 
 	tmp := *c.url
@@ -229,7 +229,7 @@ func (c *Client) GetErrors(ctx context.Context) ([]*models.UserError, *errors.Er
 }
 
 // GetLogAttachID attach to a running log
-func (c *Client) GetLogAttachID(ctx context.Context, id int64, w io.WriteCloser) *errors.Error {
+func (c *Client) GetLogAttachID(ctx context.Context, id int64, w io.WriteCloser) error {
 	route := "/log/attach/{id}"
 	route = strings.Replace(route, "{id}", url.PathEscape(fmt.Sprintf("%v", id)), -1)
 
@@ -272,7 +272,7 @@ func (c *Client) GetLogAttachID(ctx context.Context, id int64, w io.WriteCloser)
 }
 
 // GetLoggedin check logged in state
-func (c *Client) GetLoggedin(ctx context.Context) (string, *errors.Error) {
+func (c *Client) GetLoggedin(ctx context.Context) (string, error) {
 	route := "/loggedin"
 
 	tmp := *c.url
@@ -328,7 +328,7 @@ func (c *Client) GetLoggedin(ctx context.Context) (string, *errors.Error) {
 }
 
 // GetLogin log into the system
-func (c *Client) GetLogin(ctx context.Context, code string, state string) *errors.Error {
+func (c *Client) GetLogin(ctx context.Context, code string, state string) error {
 	route := "/login"
 
 	tmp := *c.url
@@ -381,7 +381,7 @@ func (c *Client) GetLogin(ctx context.Context, code string, state string) *error
 }
 
 // GetLoginUpgrade log into the system with upgraded permissions
-func (c *Client) GetLoginUpgrade(ctx context.Context) *errors.Error {
+func (c *Client) GetLoginUpgrade(ctx context.Context) error {
 	route := "/login/upgrade"
 
 	tmp := *c.url
@@ -431,7 +431,7 @@ func (c *Client) GetLoginUpgrade(ctx context.Context) *errors.Error {
 }
 
 // GetLogout log out of the system
-func (c *Client) GetLogout(ctx context.Context) *errors.Error {
+func (c *Client) GetLogout(ctx context.Context) error {
 	route := "/logout"
 
 	tmp := *c.url
@@ -481,7 +481,7 @@ func (c *Client) GetLogout(ctx context.Context) *errors.Error {
 }
 
 // GetRepositoriesCiAddOwnerRepo add a specific repository to c i
-func (c *Client) GetRepositoriesCiAddOwnerRepo(ctx context.Context, owner string, repo string) *errors.Error {
+func (c *Client) GetRepositoriesCiAddOwnerRepo(ctx context.Context, owner string, repo string) error {
 	route := "/repositories/ci/add/{owner}/{repo}"
 	route = strings.Replace(route, "{owner}", url.PathEscape(fmt.Sprintf("%v", owner)), -1)
 
@@ -534,7 +534,7 @@ func (c *Client) GetRepositoriesCiAddOwnerRepo(ctx context.Context, owner string
 }
 
 // GetRepositoriesCiDelOwnerRepo removes a specific repository from c i
-func (c *Client) GetRepositoriesCiDelOwnerRepo(ctx context.Context, owner string, repo string) *errors.Error {
+func (c *Client) GetRepositoriesCiDelOwnerRepo(ctx context.Context, owner string, repo string) error {
 	route := "/repositories/ci/del/{owner}/{repo}"
 	route = strings.Replace(route, "{owner}", url.PathEscape(fmt.Sprintf("%v", owner)), -1)
 
@@ -587,7 +587,7 @@ func (c *Client) GetRepositoriesCiDelOwnerRepo(ctx context.Context, owner string
 }
 
 // GetRepositoriesMy fetch all the writable repositories for the user
-func (c *Client) GetRepositoriesMy(ctx context.Context, search string) (models.RepositoryList, *errors.Error) {
+func (c *Client) GetRepositoriesMy(ctx context.Context, search string) (models.RepositoryList, error) {
 	route := "/repositories/my"
 
 	tmp := *c.url
@@ -644,7 +644,7 @@ func (c *Client) GetRepositoriesMy(ctx context.Context, search string) (models.R
 }
 
 // GetRepositoriesScan scan repositories from the remote resource
-func (c *Client) GetRepositoriesScan(ctx context.Context) *errors.Error {
+func (c *Client) GetRepositoriesScan(ctx context.Context) error {
 	route := "/repositories/scan"
 
 	tmp := *c.url
@@ -694,7 +694,7 @@ func (c *Client) GetRepositoriesScan(ctx context.Context) *errors.Error {
 }
 
 // GetRepositoriesSubAddOwnerRepo subscribe to a repository running c i
-func (c *Client) GetRepositoriesSubAddOwnerRepo(ctx context.Context, owner string, repo string) *errors.Error {
+func (c *Client) GetRepositoriesSubAddOwnerRepo(ctx context.Context, owner string, repo string) error {
 	route := "/repositories/sub/add/{owner}/{repo}"
 	route = strings.Replace(route, "{owner}", url.PathEscape(fmt.Sprintf("%v", owner)), -1)
 
@@ -747,7 +747,7 @@ func (c *Client) GetRepositoriesSubAddOwnerRepo(ctx context.Context, owner strin
 }
 
 // GetRepositoriesSubDelOwnerRepo unsubscribe from a repository
-func (c *Client) GetRepositoriesSubDelOwnerRepo(ctx context.Context, owner string, repo string) *errors.Error {
+func (c *Client) GetRepositoriesSubDelOwnerRepo(ctx context.Context, owner string, repo string) error {
 	route := "/repositories/sub/del/{owner}/{repo}"
 	route = strings.Replace(route, "{owner}", url.PathEscape(fmt.Sprintf("%v", owner)), -1)
 
@@ -800,7 +800,7 @@ func (c *Client) GetRepositoriesSubDelOwnerRepo(ctx context.Context, owner strin
 }
 
 // GetRepositoriesSubscribed list all subscribed repositories
-func (c *Client) GetRepositoriesSubscribed(ctx context.Context, search string) (models.RepositoryList, *errors.Error) {
+func (c *Client) GetRepositoriesSubscribed(ctx context.Context, search string) (models.RepositoryList, error) {
 	route := "/repositories/subscribed"
 
 	tmp := *c.url
@@ -857,7 +857,7 @@ func (c *Client) GetRepositoriesSubscribed(ctx context.Context, search string) (
 }
 
 // GetRepositoriesVisible fetch all the repositories the user can view
-func (c *Client) GetRepositoriesVisible(ctx context.Context, search string) (models.RepositoryList, *errors.Error) {
+func (c *Client) GetRepositoriesVisible(ctx context.Context, search string) (models.RepositoryList, error) {
 	route := "/repositories/visible"
 
 	tmp := *c.url
@@ -914,7 +914,7 @@ func (c *Client) GetRepositoriesVisible(ctx context.Context, search string) (mod
 }
 
 // GetRunRunID get a run by ID
-func (c *Client) GetRunRunID(ctx context.Context, runID int64) (*models.Run, *errors.Error) {
+func (c *Client) GetRunRunID(ctx context.Context, runID int64) (*models.Run, error) {
 	route := "/run/{run_id}"
 	route = strings.Replace(route, "{run_id}", url.PathEscape(fmt.Sprintf("%v", runID)), -1)
 
@@ -971,7 +971,7 @@ func (c *Client) GetRunRunID(ctx context.Context, runID int64) (*models.Run, *er
 }
 
 // GetRuns obtain the run list for the user
-func (c *Client) GetRuns(ctx context.Context, page int64, perPage int64, repository string, sha string) (models.RunList, *errors.Error) {
+func (c *Client) GetRuns(ctx context.Context, page int64, perPage int64, repository string, sha string) (models.RunList, error) {
 	route := "/runs"
 
 	tmp := *c.url
@@ -1034,7 +1034,7 @@ func (c *Client) GetRuns(ctx context.Context, page int64, perPage int64, reposit
 }
 
 // GetRunsCount count the runs
-func (c *Client) GetRunsCount(ctx context.Context, repository string, sha string) (int64, *errors.Error) {
+func (c *Client) GetRunsCount(ctx context.Context, repository string, sha string) (int64, error) {
 	route := "/runs/count"
 
 	tmp := *c.url
@@ -1093,7 +1093,7 @@ func (c *Client) GetRunsCount(ctx context.Context, repository string, sha string
 }
 
 // GetSubmissionID get a submission by ID
-func (c *Client) GetSubmissionID(ctx context.Context, id int64) (*models.ModelSubmission, *errors.Error) {
+func (c *Client) GetSubmissionID(ctx context.Context, id int64) (*models.ModelSubmission, error) {
 	route := "/submission/{id}"
 	route = strings.Replace(route, "{id}", url.PathEscape(fmt.Sprintf("%v", id)), -1)
 
@@ -1150,7 +1150,7 @@ func (c *Client) GetSubmissionID(ctx context.Context, id int64) (*models.ModelSu
 }
 
 // GetSubmissionIDRuns get submission runs by ID
-func (c *Client) GetSubmissionIDRuns(ctx context.Context, id int64, page int64, perPage int64) (models.RunList, *errors.Error) {
+func (c *Client) GetSubmissionIDRuns(ctx context.Context, id int64, page int64, perPage int64) (models.RunList, error) {
 	route := "/submission/{id}/runs"
 	route = strings.Replace(route, "{id}", url.PathEscape(fmt.Sprintf("%v", id)), -1)
 
@@ -1211,7 +1211,7 @@ func (c *Client) GetSubmissionIDRuns(ctx context.Context, id int64, page int64, 
 }
 
 // GetSubmissionIDTasks get submission tasks by ID
-func (c *Client) GetSubmissionIDTasks(ctx context.Context, id int64, page int64, perPage int64) (models.TaskList, *errors.Error) {
+func (c *Client) GetSubmissionIDTasks(ctx context.Context, id int64, page int64, perPage int64) (models.TaskList, error) {
 	route := "/submission/{id}/tasks"
 	route = strings.Replace(route, "{id}", url.PathEscape(fmt.Sprintf("%v", id)), -1)
 
@@ -1272,7 +1272,7 @@ func (c *Client) GetSubmissionIDTasks(ctx context.Context, id int64, page int64,
 }
 
 // GetSubmissions list submisssions
-func (c *Client) GetSubmissions(ctx context.Context, page int64, perPage int64, repository string, sha string) (models.ModelSubmissionList, *errors.Error) {
+func (c *Client) GetSubmissions(ctx context.Context, page int64, perPage int64, repository string, sha string) (models.ModelSubmissionList, error) {
 	route := "/submissions"
 
 	tmp := *c.url
@@ -1335,7 +1335,7 @@ func (c *Client) GetSubmissions(ctx context.Context, page int64, perPage int64, 
 }
 
 // GetSubmissionsCount count submisssions
-func (c *Client) GetSubmissionsCount(ctx context.Context, repository string, sha string) (int64, *errors.Error) {
+func (c *Client) GetSubmissionsCount(ctx context.Context, repository string, sha string) (int64, error) {
 	route := "/submissions/count"
 
 	tmp := *c.url
@@ -1394,7 +1394,7 @@ func (c *Client) GetSubmissionsCount(ctx context.Context, repository string, sha
 }
 
 // GetSubmit perform a manual submission to tiny c i
-func (c *Client) GetSubmit(ctx context.Context, all bool, repository string, sha string) *errors.Error {
+func (c *Client) GetSubmit(ctx context.Context, all bool, repository string, sha string) error {
 	route := "/submit"
 
 	tmp := *c.url
@@ -1449,7 +1449,7 @@ func (c *Client) GetSubmit(ctx context.Context, all bool, repository string, sha
 }
 
 // GetTasks obtain the task list optionally filtering by repository and sha
-func (c *Client) GetTasks(ctx context.Context, page int64, perPage int64, repository string, sha string) (models.TaskList, *errors.Error) {
+func (c *Client) GetTasks(ctx context.Context, page int64, perPage int64, repository string, sha string) (models.TaskList, error) {
 	route := "/tasks"
 
 	tmp := *c.url
@@ -1512,7 +1512,7 @@ func (c *Client) GetTasks(ctx context.Context, page int64, perPage int64, reposi
 }
 
 // GetTasksCount count the tasks
-func (c *Client) GetTasksCount(ctx context.Context, repository string, sha string) (int64, *errors.Error) {
+func (c *Client) GetTasksCount(ctx context.Context, repository string, sha string) (int64, error) {
 	route := "/tasks/count"
 
 	tmp := *c.url
@@ -1571,7 +1571,7 @@ func (c *Client) GetTasksCount(ctx context.Context, repository string, sha strin
 }
 
 // GetTasksRunsID obtain the run list based on the task ID
-func (c *Client) GetTasksRunsID(ctx context.Context, id int64, page int64, perPage int64) (models.RunList, *errors.Error) {
+func (c *Client) GetTasksRunsID(ctx context.Context, id int64, page int64, perPage int64) (models.RunList, error) {
 	route := "/tasks/runs/{id}"
 	route = strings.Replace(route, "{id}", url.PathEscape(fmt.Sprintf("%v", id)), -1)
 
@@ -1632,7 +1632,7 @@ func (c *Client) GetTasksRunsID(ctx context.Context, id int64, page int64, perPa
 }
 
 // GetTasksRunsIDCount count the runs corresponding to the task ID
-func (c *Client) GetTasksRunsIDCount(ctx context.Context, id int64) (int64, *errors.Error) {
+func (c *Client) GetTasksRunsIDCount(ctx context.Context, id int64) (int64, error) {
 	route := "/tasks/runs/{id}/count"
 	route = strings.Replace(route, "{id}", url.PathEscape(fmt.Sprintf("%v", id)), -1)
 
@@ -1689,7 +1689,7 @@ func (c *Client) GetTasksRunsIDCount(ctx context.Context, id int64) (int64, *err
 }
 
 // GetTasksSubscribed obtain the list of tasks that belong to repositories you are subscribed to
-func (c *Client) GetTasksSubscribed(ctx context.Context, page int64, perPage int64) (models.TaskList, *errors.Error) {
+func (c *Client) GetTasksSubscribed(ctx context.Context, page int64, perPage int64) (models.TaskList, error) {
 	route := "/tasks/subscribed"
 
 	tmp := *c.url
@@ -1748,7 +1748,7 @@ func (c *Client) GetTasksSubscribed(ctx context.Context, page int64, perPage int
 }
 
 // GetToken get a tiny c i access token
-func (c *Client) GetToken(ctx context.Context) (string, *errors.Error) {
+func (c *Client) GetToken(ctx context.Context) (string, error) {
 	route := "/token"
 
 	tmp := *c.url
@@ -1804,7 +1804,7 @@ func (c *Client) GetToken(ctx context.Context) (string, *errors.Error) {
 }
 
 // GetUserProperties get information about the current user
-func (c *Client) GetUserProperties(ctx context.Context) (interface{}, *errors.Error) {
+func (c *Client) GetUserProperties(ctx context.Context) (interface{}, error) {
 	route := "/user/properties"
 
 	tmp := *c.url
@@ -1860,7 +1860,7 @@ func (c *Client) GetUserProperties(ctx context.Context) (interface{}, *errors.Er
 }
 
 // PostCancelRunID cancel by run ID
-func (c *Client) PostCancelRunID(ctx context.Context, runID int64) *errors.Error {
+func (c *Client) PostCancelRunID(ctx context.Context, runID int64) error {
 	route := "/cancel/{run_id}"
 	route = strings.Replace(route, "{run_id}", url.PathEscape(fmt.Sprintf("%v", runID)), -1)
 
@@ -1916,7 +1916,7 @@ func (c *Client) PostCancelRunID(ctx context.Context, runID int64) *errors.Error
 }
 
 // PostCapabilitiesUsernameCapability add a named capability
-func (c *Client) PostCapabilitiesUsernameCapability(ctx context.Context, capability string, username string) *errors.Error {
+func (c *Client) PostCapabilitiesUsernameCapability(ctx context.Context, capability string, username string) error {
 	route := "/capabilities/{username}/{capability}"
 	route = strings.Replace(route, "{capability}", url.PathEscape(fmt.Sprintf("%v", capability)), -1)
 
@@ -1974,7 +1974,7 @@ func (c *Client) PostCapabilitiesUsernameCapability(ctx context.Context, capabil
 }
 
 // PostSubmissionIDCancel cancel a submission by ID
-func (c *Client) PostSubmissionIDCancel(ctx context.Context, id int64) *errors.Error {
+func (c *Client) PostSubmissionIDCancel(ctx context.Context, id int64) error {
 	route := "/submission/{id}/cancel"
 	route = strings.Replace(route, "{id}", url.PathEscape(fmt.Sprintf("%v", id)), -1)
 
@@ -2030,7 +2030,7 @@ func (c *Client) PostSubmissionIDCancel(ctx context.Context, id int64) *errors.E
 }
 
 // PostTasksCancelID cancel by task ID
-func (c *Client) PostTasksCancelID(ctx context.Context, id int64) *errors.Error {
+func (c *Client) PostTasksCancelID(ctx context.Context, id int64) error {
 	route := "/tasks/cancel/{id}"
 	route = strings.Replace(route, "{id}", url.PathEscape(fmt.Sprintf("%v", id)), -1)
 

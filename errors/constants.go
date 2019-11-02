@@ -1,18 +1,19 @@
 package errors
 
-var errorMapping = map[string]*Error{
+var errorMapping = map[string]error{
 	"record not found": ErrNotFound,
 }
 
-// MapError finds an error by string and returns an appropriate *Error for it.
+// MapError finds an error by string and returns an appropriate Error for it.
 // The stack will NOT be preserved in the error and you will want to Wrap() it.
-// If there is no potential mapping, a new *Error is returned.
-func MapError(err interface{}) *Error {
+// If there is no potential mapping, a new Error is returned.
+func MapError(err error) error {
 	if err == nil {
 		return nil
 	}
 
-	if e, ok := errorMapping[err.(error).Error()]; ok {
+	// FIXME this is terrible. Should at least take variable input
+	if e, ok := errorMapping[err.Error()]; ok {
 		return e
 	}
 

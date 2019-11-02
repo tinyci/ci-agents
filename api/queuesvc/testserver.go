@@ -12,7 +12,7 @@ import (
 
 // MakeQueueServer makes an instance of the queuesvc on port 6001. It returns a
 // chan which can be closed to terminate it, and any boot-time errors.
-func MakeQueueServer() (*handler.H, chan struct{}, *errors.Error) {
+func MakeQueueServer() (*handler.H, chan struct{}, error) {
 	h := &handler.H{
 		Service: config.Service{
 			Name: "queuesvc",

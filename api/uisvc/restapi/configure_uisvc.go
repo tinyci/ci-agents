@@ -18,7 +18,7 @@ func MakeHandlerConfig(sc config.ServiceConfig) *HandlerConfig {
 }
 
 // Validate allows you to perform your own custom validations on the configuration.
-func (hc HandlerConfig) Validate(h *handlers.H) *errors.Error {
+func (hc HandlerConfig) Validate(h *handlers.H) error {
 	if h.ClientConfig.Data == "" {
 		return errors.New("no datasvc url specified")
 	}
@@ -35,7 +35,7 @@ func (hc HandlerConfig) Validate(h *handlers.H) *errors.Error {
 }
 
 // CustomInit allows you to perform any final magic before boot.
-func (hc HandlerConfig) CustomInit(h *handlers.H) *errors.Error {
+func (hc HandlerConfig) CustomInit(h *handlers.H) error {
 	h.NoTLSServer = true
 	h.UseSessions = true
 	h.Port = 6010
@@ -45,13 +45,13 @@ func (hc HandlerConfig) CustomInit(h *handlers.H) *errors.Error {
 }
 
 // DBConfigure configures the database if necessary.
-func (hc HandlerConfig) DBConfigure(h *handlers.H) *errors.Error {
+func (hc HandlerConfig) DBConfigure(h *handlers.H) error {
 	return nil
 }
 
 // Configure allows you to configure the routes, in particular. Setting the
 // processing functions here will be a big part of your day job.
-func (hc HandlerConfig) Configure(router handlers.Routes) *errors.Error {
+func (hc HandlerConfig) Configure(router handlers.Routes) error {
 	router.SetProcessor("/errors", "get", Errors)
 	router.SetProcessor("/login", "get", Login)
 	router.SetProcessor("/login/upgrade", "get", Upgrade)

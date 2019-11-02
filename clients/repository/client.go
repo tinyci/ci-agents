@@ -17,11 +17,11 @@ type Client struct {
 }
 
 // New creates a new *Client.
-func New(addr string, cert *transport.Cert, trace bool) (*Client, *errors.Error) {
+func New(addr string, cert *transport.Cert, trace bool) (*Client, error) {
 	var (
 		closer  io.Closer
 		options []grpc.DialOption
-		eErr    *errors.Error
+		eErr    error
 	)
 
 	if trace {

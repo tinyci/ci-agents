@@ -17,7 +17,7 @@ import (
 func (ds *DataServer) QueueCount(ctx context.Context, empty *empty.Empty) (*data.Count, error) {
 	res, err := ds.H.Model.QueueTotalCount()
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &data.Count{Count: res}, nil
@@ -27,12 +27,12 @@ func (ds *DataServer) QueueCount(ctx context.Context, empty *empty.Empty) (*data
 func (ds *DataServer) QueueCountForRepository(ctx context.Context, repo *data.Name) (*data.Count, error) {
 	r, err := ds.H.Model.GetRepositoryByName(repo.Name)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	res, err := ds.H.Model.QueueTotalCountForRepository(r)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &data.Count{Count: res}, nil
@@ -42,17 +42,17 @@ func (ds *DataServer) QueueCountForRepository(ctx context.Context, repo *data.Na
 func (ds *DataServer) QueueListForRepository(ctx context.Context, qlr *data.QueueListRequest) (*data.QueueList, error) {
 	r, err := ds.H.Model.GetRepositoryByName(qlr.Name)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	page, perPage, err := utils.ScopePaginationInt(qlr.Page, qlr.PerPage)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	list, err := ds.H.Model.QueueListForRepository(r, page, perPage)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	retList := &data.QueueList{}
@@ -71,15 +71,15 @@ func (ds *DataServer) QueueAdd(ctx context.Context, list *data.QueueList) (*data
 	for _, item := range list.Items {
 		it, err := model.NewQueueItemFromProto(item)
 		if err != nil {
-			return nil, err.ToGRPC(codes.FailedPrecondition)
+			return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 		}
 
 		modelItems = append(modelItems, it)
 	}
 
-	var err *errors.Error
+	var err error
 	if modelItems, err = ds.H.Model.QueuePipelineAdd(modelItems); err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	retList := &data.QueueList{}
@@ -95,8 +95,15 @@ func (ds *DataServer) QueueAdd(ctx context.Context, list *data.QueueList) (*data
 func (ds *DataServer) QueueNext(ctx context.Context, r *types.QueueRequest) (*types.QueueItem, error) {
 	qi, err := ds.H.Model.NextQueueItem(r.RunningOn, r.QueueName)
 	if err != nil {
-		if err.Contains(errors.ErrNotFound) {
-			err.SetLog(false)
+		switch err.(type) {
+		case errors.Error, *errors.Error:
+			var e2 *errors.Error
+			if e, ok := err.(errors.Error); ok {
+				e2 = &e
+			}
+			if e2.Contains(errors.ErrNotFound) {
+				e2.SetLog(false)
+			}
 		}
 		return nil, err
 	}
@@ -107,7 +114,7 @@ func (ds *DataServer) QueueNext(ctx context.Context, r *types.QueueRequest) (*ty
 // PutStatus sets the status for the given run_id
 func (ds *DataServer) PutStatus(ctx context.Context, s *types.Status) (*empty.Empty, error) {
 	if err := ds.H.Model.SetRunStatus(s.Id, config.DefaultGithubClient(), s.Status, false, ds.H.URL, s.AdditionalMessage); err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -117,7 +124,7 @@ func (ds *DataServer) PutStatus(ctx context.Context, s *types.Status) (*empty.Em
 // canceled. Will fail on finished tasks.
 func (ds *DataServer) SetCancel(ctx context.Context, id *types.IntID) (*empty.Empty, error) {
 	if err := ds.H.Model.CancelRun(id.ID, ds.H.URL, config.DefaultGithubClient()); err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -128,7 +135,7 @@ func (ds *DataServer) GetCancel(ctx context.Context, id *types.IntID) (*types.St
 	s := &types.Status{Id: id.ID}
 	res, err := ds.H.Model.GetCancelForRun(id.ID)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	s.Status = res

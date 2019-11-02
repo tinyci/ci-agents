@@ -14,7 +14,7 @@ import (
 )
 
 // MakeUIServer makes a uisvc.
-func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Client, *tinyci.Client, *errors.Error) {
+func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Client, *tinyci.Client, error) {
 	h := &handlers.H{
 		Config: HandlerConfig{},
 		Service: config.Service{

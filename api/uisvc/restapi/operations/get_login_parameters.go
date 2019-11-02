@@ -8,7 +8,7 @@ import (
 
 // GetLoginValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func GetLoginValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
+func GetLoginValidateURLParams(h *handlers.H, ctx *gin.Context) error {
 	code := ctx.Query("code")
 
 	if len(code) == 0 {

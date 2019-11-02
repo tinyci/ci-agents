@@ -12,7 +12,7 @@ import (
 
 // MakeDataServer makes an instance of the datasvc on port 6000. It returns a
 // chan which can be closed to terminate it, and any boot-time errors.
-func MakeDataServer() (*handler.H, chan struct{}, *errors.Error) {
+func MakeDataServer() (*handler.H, chan struct{}, error) {
 	h := &handler.H{
 		Service: config.Service{
 			UseDB: true,

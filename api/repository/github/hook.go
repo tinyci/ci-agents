@@ -15,12 +15,12 @@ import (
 func (rs *RepositoryServer) SetupHook(ctx context.Context, hsr *repository.HookSetupRequest) (*empty.Empty, error) {
 	owner, repo, err := utils.OwnerRepo(hsr.RepoName)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	gh, err := rs.getClientForRepo(ctx, hsr.RepoName)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	_, _, eErr := gh.Repositories.CreateHook(ctx, owner, repo, &github.Hook{
@@ -35,7 +35,7 @@ func (rs *RepositoryServer) SetupHook(ctx context.Context, hsr *repository.HookS
 	})
 
 	if eErr != nil {
-		return nil, errors.New(eErr).Wrapf("configuring hook on repo %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
+		return nil, errors.New(eErr).(errors.Error).Wrapf("configuring hook on repo %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -45,12 +45,12 @@ func (rs *RepositoryServer) SetupHook(ctx context.Context, hsr *repository.HookS
 func (rs *RepositoryServer) TeardownHook(ctx context.Context, htr *repository.HookTeardownRequest) (*empty.Empty, error) {
 	owner, repo, err := utils.OwnerRepo(htr.RepoName)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	gh, err := rs.getClientForRepo(ctx, htr.RepoName)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	var id int64
@@ -74,7 +74,7 @@ finish:
 	if id != 0 {
 		_, err := gh.Repositories.DeleteHook(context.Background(), owner, repo, id)
 		if err != nil {
-			return nil, errors.New(err).ToGRPC(codes.FailedPrecondition)
+			return nil, errors.New(err).(errors.Error).ToGRPC(codes.FailedPrecondition)
 		}
 	}
 

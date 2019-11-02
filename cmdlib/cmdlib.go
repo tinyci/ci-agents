@@ -10,7 +10,6 @@ import (
 	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
 )
@@ -22,7 +21,7 @@ type GRPCServer struct {
 	AppVersion      string
 	TinyCIVersion   string
 	DefaultService  config.ServiceAddress
-	RegisterService func(*grpc.Server, *handler.H) *errors.Error
+	RegisterService func(*grpc.Server, *handler.H) error
 	UseDB           bool
 	UseSessions     bool
 }

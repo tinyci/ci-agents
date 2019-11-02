@@ -49,7 +49,7 @@ func (as *AssetServer) GetLog(id *types.IntID, ag asset.Asset_GetLogServer) erro
 func (as *AssetServer) submit(ap asset.Asset_PutLogServer, p string) (retErr error) {
 	defer func() {
 		if retErr != nil {
-			retErr = errors.New(retErr).ToGRPC(codes.FailedPrecondition)
+			retErr = errors.New(retErr).(errors.Error).ToGRPC(codes.FailedPrecondition)
 			md := metadata.New(nil)
 			md.Append("errors", retErr.Error())
 			ap.SetTrailer(md)
@@ -106,7 +106,7 @@ func write(ag asset.Asset_GetLogServer, buf []byte) error {
 func (as *AssetServer) attach(id int64, ag asset.Asset_GetLogServer, p string) (retErr error) {
 	defer func() {
 		if retErr != nil {
-			retErr = errors.New(retErr).ToGRPC(codes.FailedPrecondition)
+			retErr = errors.New(retErr).(errors.Error).ToGRPC(codes.FailedPrecondition)
 		} else {
 			retErr = write(ag, []byte(color.New(color.FgGreen).Sprintln("---- LOG COMPLETE ----")))
 		}

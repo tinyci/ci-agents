@@ -11,7 +11,7 @@ import (
 )
 
 // Upgrade upgrades the user's api keys.
-func Upgrade(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func Upgrade(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	handlers.CORS(ctx)
 	if err := h.OAuthRedirect(ctx, config.OAuthRepositoryScope); err != nil {
 		return nil, 500, err
@@ -21,14 +21,14 @@ func Upgrade(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}
 }
 
 // LoggedIn handles the process of signaling javascript whether or not to login.
-func LoggedIn(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func LoggedIn(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	handlers.CORS(ctx)
 
 	res := "true"
 
 	_, err := h.GetGithub(ctx)
 	if err != nil {
-		var err *errors.Error
+		var err error
 		res, err = h.Clients.Auth.GetOAuthURL(ctx, nil)
 		if err != nil {
 			return nil, 500, err
@@ -39,12 +39,12 @@ func LoggedIn(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{
 }
 
 // Logout logs the user out of the tinyCI system.
-func Logout(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func Logout(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	sess := sessions.Default(ctx)
 	sess.Delete(handlers.SessionUsername)
 
 	if err := sess.Save(); err != nil {
-		return nil, 500, errors.New(err).Wrap("could not persist session while logging out")
+		return nil, 500, errors.New(err).(errors.Error).Wrap("could not persist session while logging out")
 	}
 
 	ctx.Redirect(302, "/")
@@ -53,7 +53,7 @@ func Logout(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{},
 
 // Login processes the oauth response and optionally redirects the user if not
 // logged in already.
-func Login(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func Login(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	oauthinfo, err := h.Clients.Auth.OAuthChallenge(ctx, ctx.Query("state"), ctx.Query("code"))
 	if err != nil {
 		return nil, 500, err
@@ -68,7 +68,7 @@ func Login(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, 
 	sess.Set(handlers.SessionUsername, oauthinfo.Username)
 	err2 := sess.Save()
 	if err2 != nil {
-		return nil, 500, errors.New(err2).Wrapf("could not persist session for %s", oauthinfo.Username)
+		return nil, 500, errors.New(err2).(errors.Error).Wrapf("could not persist session for %s", oauthinfo.Username)
 	}
 
 	ctx.Redirect(302, "/")
@@ -77,7 +77,7 @@ func Login(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, 
 }
 
 // GetUserProperties gives an object containing information about the user.
-func GetUserProperties(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func GetUserProperties(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err

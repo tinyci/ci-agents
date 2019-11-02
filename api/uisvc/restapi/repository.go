@@ -11,7 +11,7 @@ import (
 )
 
 // ListRepositoriesSubscribed lists all subscribed repos as JSON.
-func ListRepositoriesSubscribed(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func ListRepositoriesSubscribed(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -23,7 +23,7 @@ func ListRepositoriesSubscribed(pCtx context.Context, h *handlers.H, ctx *gin.Co
 }
 
 // ScanRepositories scans for owned and managed repositories for Add-to-CI operations.
-func ScanRepositories(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func ScanRepositories(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -58,7 +58,7 @@ func ScanRepositories(pCtx context.Context, h *handlers.H, ctx *gin.Context) (in
 }
 
 // ListRepositoriesMy lists the repositories the user can modify.
-func ListRepositoriesMy(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func ListRepositoriesMy(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -73,7 +73,7 @@ func ListRepositoriesMy(pCtx context.Context, h *handlers.H, ctx *gin.Context) (
 }
 
 // ListRepositoriesVisible returns all the repos the user can see.
-func ListRepositoriesVisible(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func ListRepositoriesVisible(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -84,7 +84,7 @@ func ListRepositoriesVisible(pCtx context.Context, h *handlers.H, ctx *gin.Conte
 }
 
 // DeleteRepositoryFromCI removes the repository from CI. that's it.
-func DeleteRepositoryFromCI(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func DeleteRepositoryFromCI(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -112,7 +112,7 @@ func DeleteRepositoryFromCI(pCtx context.Context, h *handlers.H, ctx *gin.Contex
 }
 
 // AddRepositoryToCI adds the repository to CI and subscribes the user to it.
-func AddRepositoryToCI(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func AddRepositoryToCI(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -158,7 +158,7 @@ func AddRepositoryToCI(pCtx context.Context, h *handlers.H, ctx *gin.Context) (i
 }
 
 // AddRepositorySubscription adds a subscription for the user to the repo
-func AddRepositorySubscription(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func AddRepositorySubscription(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
@@ -168,7 +168,7 @@ func AddRepositorySubscription(pCtx context.Context, h *handlers.H, ctx *gin.Con
 }
 
 // DeleteRepositorySubscription removes the subscription to the repository from the user account.
-func DeleteRepositorySubscription(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func DeleteRepositorySubscription(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err

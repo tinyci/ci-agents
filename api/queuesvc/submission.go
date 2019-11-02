@@ -59,20 +59,20 @@ func (qs *QueueServer) newSubmissionProcessor() *submissionProcessor {
 	return &submissionProcessor{repoInfo: &repoInfo{}, handler: qs.H}
 }
 
-func (sp *submissionProcessor) process(ctx context.Context, sub *types.Submission) ([]*model.QueueItem, *errors.Error) {
+func (sp *submissionProcessor) process(ctx context.Context, sub *types.Submission) ([]*model.QueueItem, error) {
 	sp.logger = getLogger(sub, sp.handler)
 	if err := sp.configureRepositories(ctx, sub); err != nil {
-		return nil, err.Wrap("configuring repositories for submission")
+		return nil, err.(errors.Error).Wrap("configuring repositories for submission")
 	}
 
 	client, err := sp.repoInfo.client(sp.handler)
 	if err != nil {
-		return nil, err.Wrap("fetching client for parent repository")
+		return nil, err.(errors.Error).Wrap("fetching client for parent repository")
 	}
 
 	sp.repoInfo.repoConfig, err = sp.getRepoConfig(ctx, client)
 	if err != nil {
-		return nil, err.Wrap("obtaining repository configuration")
+		return nil, err.(errors.Error).Wrap("obtaining repository configuration")
 	}
 
 	tp := sp.newTaskPicker()
@@ -80,22 +80,22 @@ func (sp *submissionProcessor) process(ctx context.Context, sub *types.Submissio
 	return tp.pick(ctx, sub, sp.repoInfo)
 }
 
-func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *types.Submission) *errors.Error {
+func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *types.Submission) error {
 	if err := sub.Validate(); err != nil {
-		return err.Wrap("validating submission")
+		return err.(errors.Error).Wrap("validating submission")
 	}
 
 	if sub.Manual {
-		var err *errors.Error
+		var err error
 		sp.repoInfo.user, err = sp.resolveParent(ctx, sub)
 		if err != nil {
-			return err.Wrap("resolving parent information")
+			return err.(errors.Error).Wrap("resolving parent information")
 		}
 	}
 
 	parent, err := sp.parentRepository(ctx, sub.Parent)
 	if err != nil {
-		return err.Wrap("obtaining parent repository")
+		return err.(errors.Error).Wrap("obtaining parent repository")
 	}
 
 	if parent.Disabled {
@@ -104,17 +104,17 @@ func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *t
 
 	client, err := sp.repoInfo.client(sp.handler)
 	if err != nil {
-		return err.Wrap("obtaining github client for parent repo owner")
+		return err.(errors.Error).Wrap("obtaining github client for parent repo owner")
 	}
 
 	sp.repoInfo.ghParent, err = client.GetRepository(ctx, parent.Name)
 	if err != nil {
-		return err.Wrap("checking access to parent repository on github")
+		return err.(errors.Error).Wrap("checking access to parent repository on github")
 	}
 
 	fork, err := sp.makeFork(ctx, client, parent, sub.Fork)
 	if err != nil {
-		return err.Wrap("locating or creating fork record")
+		return err.(errors.Error).Wrap("locating or creating fork record")
 	}
 
 	sp.repoInfo.forkRef, err = sp.manageRefs(ctx, client, fork, sub.HeadSHA)
@@ -132,7 +132,7 @@ func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *t
 	return nil
 }
 
-func (sp *submissionProcessor) manageRefs(ctx context.Context, client github.Client, repo *model.Repository, sha string) (*model.Ref, *errors.Error) {
+func (sp *submissionProcessor) manageRefs(ctx context.Context, client github.Client, repo *model.Repository, sha string) (*model.Ref, error) {
 	refs, err := client.GetRefs(ctx, repo.Name, sha)
 	if err != nil {
 		return nil, err
@@ -153,7 +153,7 @@ func (sp *submissionProcessor) manageRefs(ctx context.Context, client github.Cli
 
 	ref, err := sp.handler.Clients.Data.GetRefByNameAndSHA(ctx, repo.Name, sha)
 	if err != nil {
-		if err.Contains(errors.ErrNotFound) {
+		if err.(errors.Error).Contains(errors.ErrNotFound) {
 			ref = &model.Ref{Repository: repo, RefName: refName, SHA: sha}
 
 			id, err := sp.handler.Clients.Data.PutRef(ctx, ref)
@@ -170,21 +170,21 @@ func (sp *submissionProcessor) manageRefs(ctx context.Context, client github.Cli
 	return ref, nil
 }
 
-func (sp *submissionProcessor) makeFork(ctx context.Context, client github.Client, parent *model.Repository, fork string) (*model.Repository, *errors.Error) {
-	var err *errors.Error
+func (sp *submissionProcessor) makeFork(ctx context.Context, client github.Client, parent *model.Repository, fork string) (*model.Repository, error) {
+	var err error
 	sp.repoInfo.ghFork, err = client.GetRepository(ctx, fork)
 	if err != nil {
-		return nil, err.Wrap("obtaining fork information from github")
+		return nil, err.(errors.Error).Wrap("obtaining fork information from github")
 	}
 
 	if _, _, err := utils.OwnerRepo(sp.repoInfo.ghFork.GetFullName()); err != nil {
-		return nil, err.Wrap("validating name of fork repository")
+		return nil, err.(errors.Error).Wrap("validating name of fork repository")
 	}
 
 retry:
 	forkRepo, err := sp.forkRepository(ctx, sp.repoInfo.ghFork.GetFullName())
 	if err != nil {
-		if !err.Contains(errors.ErrNotFound) {
+		if !err.(errors.Error).Contains(errors.ErrNotFound) {
 			return nil, err
 		}
 
@@ -197,7 +197,7 @@ retry:
 	return forkRepo, nil
 }
 
-func (ri *repoInfo) client(h *handler.H) (github.Client, *errors.Error) {
+func (ri *repoInfo) client(h *handler.H) (github.Client, error) {
 	repoOwner := ri.parent.Owner
 	if repoOwner == nil {
 		return nil, errors.New("No owner for target repository")
@@ -206,19 +206,19 @@ func (ri *repoInfo) client(h *handler.H) (github.Client, *errors.Error) {
 	return h.OAuth.GithubClient(repoOwner.Token), nil
 }
 
-func (sp *submissionProcessor) getSubmittedUserClient(ctx context.Context, submittedBy string) (*model.User, github.Client, *errors.Error) {
+func (sp *submissionProcessor) getSubmittedUserClient(ctx context.Context, submittedBy string) (*model.User, github.Client, error) {
 	if submittedBy == "" {
 		return nil, nil, errors.New("invalid submission -- no `submitted by` field supplied")
 	}
 
 	user, err := sp.handler.Clients.Data.GetUser(ctx, submittedBy)
 	if err != nil {
-		return nil, nil, err.Wrap("obtaining user information for submitter")
+		return nil, nil, err.(errors.Error).Wrap("obtaining user information for submitter")
 	}
 
 	token := &types.OAuthToken{}
 	if err := utils.JSONIO(user.Token, token); err != nil {
-		return nil, nil, err.Wrap("Decoding token from user account")
+		return nil, nil, err.(errors.Error).Wrap("Decoding token from user account")
 	}
 
 	client := sp.handler.OAuth.GithubClient(token)
@@ -226,8 +226,8 @@ func (sp *submissionProcessor) getSubmittedUserClient(ctx context.Context, submi
 	return user, client, nil
 }
 
-func (sp *submissionProcessor) parentRepository(ctx context.Context, parent string) (*model.Repository, *errors.Error) {
-	var err *errors.Error
+func (sp *submissionProcessor) parentRepository(ctx context.Context, parent string) (*model.Repository, error) {
+	var err error
 	if sp.repoInfo.parent == nil {
 		sp.repoInfo.parent, err = sp.handler.Clients.Data.GetRepository(ctx, parent)
 	}
@@ -235,8 +235,8 @@ func (sp *submissionProcessor) parentRepository(ctx context.Context, parent stri
 	return sp.repoInfo.parent, err
 }
 
-func (sp *submissionProcessor) forkRepository(ctx context.Context, fork string) (*model.Repository, *errors.Error) {
-	var err *errors.Error
+func (sp *submissionProcessor) forkRepository(ctx context.Context, fork string) (*model.Repository, error) {
+	var err error
 	if sp.repoInfo.fork == nil {
 		sp.repoInfo.fork, err = sp.handler.Clients.Data.GetRepository(ctx, fork)
 	}
@@ -244,10 +244,10 @@ func (sp *submissionProcessor) forkRepository(ctx context.Context, fork string) 
 	return sp.repoInfo.fork, err
 }
 
-func (sp *submissionProcessor) selectParentOrFork(ctx context.Context, client github.Client, fork string) (string, *errors.Error) {
+func (sp *submissionProcessor) selectParentOrFork(ctx context.Context, client github.Client, fork string) (string, error) {
 	repo, err := client.GetRepository(ctx, fork)
 	if err != nil {
-		return "", err.Wrap("obtaining fork repository for submission")
+		return "", err.(errors.Error).Wrap("obtaining fork repository for submission")
 	}
 
 	forkRepo, err := sp.forkRepository(ctx, fork)
@@ -264,7 +264,7 @@ func (sp *submissionProcessor) selectParentOrFork(ctx context.Context, client gi
 	}
 
 	if _, _, err := utils.OwnerRepo(ret); err != nil {
-		return "", err.Wrap("validating structure of parent repo name")
+		return "", err.(errors.Error).Wrap("validating structure of parent repo name")
 	}
 
 	return ret, nil
@@ -273,20 +273,20 @@ func (sp *submissionProcessor) selectParentOrFork(ctx context.Context, client gi
 // manual submissions must be resolvable by the submitter to avoid security
 // leaks, so this uses the user's account to look up the parent info and
 // returns it so that it can be added to the submission data.
-func (sp *submissionProcessor) resolveParent(ctx context.Context, sub *types.Submission) (*model.User, *errors.Error) {
+func (sp *submissionProcessor) resolveParent(ctx context.Context, sub *types.Submission) (*model.User, error) {
 	user, client, err := sp.getSubmittedUserClient(ctx, sub.SubmittedBy)
 	if err != nil {
-		return nil, err.Wrap("getting submitting user account info")
+		return nil, err.(errors.Error).Wrap("getting submitting user account info")
 	}
 
 	sub.Parent, err = sp.selectParentOrFork(ctx, client, sub.Fork)
 	if err != nil {
-		return nil, err.Wrap("during discovery of parent")
+		return nil, err.(errors.Error).Wrap("during discovery of parent")
 	}
 
 	parentRepo, err := sp.parentRepository(ctx, sub.Parent)
 	if err != nil {
-		return nil, err.Wrap("looking up parent repository")
+		return nil, err.(errors.Error).Wrap("looking up parent repository")
 	}
 	if parentRepo.Disabled {
 		return nil, errors.New("repository is disabled")
@@ -303,7 +303,7 @@ func (sp *submissionProcessor) resolveParent(ctx context.Context, sub *types.Sub
 	return user, err
 }
 
-func (sp *submissionProcessor) getRepoConfig(ctx context.Context, client github.Client) (*types.RepoConfig, *errors.Error) {
+func (sp *submissionProcessor) getRepoConfig(ctx context.Context, client github.Client) (*types.RepoConfig, error) {
 	masterBranch := sp.repoInfo.ghParent.GetMasterBranch()
 	if masterBranch == "" {
 		masterBranch = defaultMasterBranch

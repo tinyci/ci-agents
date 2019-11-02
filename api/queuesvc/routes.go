@@ -26,7 +26,7 @@ type QueueServer struct {
 // SetCancel mirrors the cancel in datasvc -- just easier to access by runners.
 func (qs *QueueServer) SetCancel(ctx context.Context, id *gtypes.IntID) (*empty.Empty, error) {
 	if err := qs.H.Clients.Data.SetCancel(ctx, id.ID); err != nil {
-		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
+		return &empty.Empty{}, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -36,7 +36,7 @@ func (qs *QueueServer) SetCancel(ctx context.Context, id *gtypes.IntID) (*empty.
 func (qs *QueueServer) GetCancel(ctx context.Context, id *gtypes.IntID) (*gtypes.Status, error) {
 	state, err := qs.H.Clients.Data.GetCancel(ctx, id.ID)
 	if err != nil {
-		return &gtypes.Status{}, err.ToGRPC(codes.FailedPrecondition)
+		return &gtypes.Status{}, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &gtypes.Status{Status: state}, nil
@@ -46,7 +46,7 @@ func (qs *QueueServer) GetCancel(ctx context.Context, id *gtypes.IntID) (*gtypes
 // datasvc.
 func (qs *QueueServer) PutStatus(ctx context.Context, status *gtypes.Status) (*empty.Empty, error) {
 	if err := qs.H.Clients.Data.PutStatus(ctx, status.Id, status.Status, status.AdditionalMessage); err != nil {
-		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
+		return &empty.Empty{}, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -58,10 +58,10 @@ func (qs *QueueServer) PutStatus(ctx context.Context, status *gtypes.Status) (*e
 func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueRequest) (*gtypes.QueueItem, error) {
 	qi, err := qs.H.Clients.Data.NextQueueItem(ctx, qr.QueueName, qr.RunningOn)
 	if err != nil {
-		if err.Contains(errors.ErrNotFound) {
-			err.SetLog(false)
+		if err.(errors.Error).Contains(errors.ErrNotFound) {
+			err.(*errors.Error).SetLog(false)
 		}
-		return &gtypes.QueueItem{}, err.ToGRPC(codes.FailedPrecondition)
+		return &gtypes.QueueItem{}, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	if qi.Run.Task.Submission.BaseRef.Repository.Owner == nil {
@@ -72,18 +72,18 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 			"ran_on":     qr.RunningOn,
 		}).Error(ctx, err)
 
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	token := &types.OAuthToken{}
 	if err := utils.JSONIO(qi.Run.Task.Submission.BaseRef.Repository.Owner.Token, token); err != nil {
-		return &gtypes.QueueItem{}, err.ToGRPC(codes.FailedPrecondition)
+		return &gtypes.QueueItem{}, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	github := qs.H.OAuth.GithubClient(token)
 	parts := strings.SplitN(qi.Run.Task.Submission.BaseRef.Repository.Name, "/", 2)
 	if len(parts) != 2 {
-		return &gtypes.QueueItem{}, errors.New("invalid repository").ToGRPC(codes.FailedPrecondition)
+		return &gtypes.QueueItem{}, errors.New("invalid repository").(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	go func() {
@@ -95,7 +95,7 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 	return qi.ToProto(), nil
 }
 
-func doSubmit(ctx context.Context, h *handler.H, qis []*model.QueueItem) (retErr *errors.Error) {
+func doSubmit(ctx context.Context, h *handler.H, qis []*model.QueueItem) (retErr error) {
 	since := time.Now()
 	defer func() {
 		if retErr == nil {
@@ -142,7 +142,7 @@ func (qs *QueueServer) Submit(ctx context.Context, sub *queue.Submission) (*empt
 	qis, err := sp.process(processCtx, submission)
 	if err != nil {
 		submissionLogger.Errorf(ctx, "Post-processing error: %v", err)
-		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
+		return &empty.Empty{}, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	submissionLogger.Infof(ctx, "Putting %d queue items from submissions", len(qis))
@@ -153,7 +153,7 @@ func (qs *QueueServer) Submit(ctx context.Context, sub *queue.Submission) (*empt
 			}
 		}
 
-		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
+		return &empty.Empty{}, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil

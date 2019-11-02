@@ -15,7 +15,7 @@ type Model struct {
 }
 
 // New returns the model structure after the db connection work has taken place.
-func New(sqlURL string) (*Model, *errors.Error) {
+func New(sqlURL string) (*Model, error) {
 	db, err := gorm.Open("postgres", sqlURL)
 	if err != nil {
 		return nil, errors.New(err)
@@ -38,6 +38,10 @@ func New(sqlURL string) (*Model, *errors.Error) {
 // stack-annotated error with the msg if there is one; otherwise it will return
 // nil. It also uses the errors package to normalize common errors returned
 // from the DB.
-func (m *Model) WrapError(call *gorm.DB, msg string) *errors.Error {
-	return errors.MapError(call.Error).Wrap(msg)
+func (m *Model) WrapError(call *gorm.DB, msg string) error {
+	if call.Error == nil {
+		return nil
+	}
+
+	return errors.MapError(call.Error).(errors.Error).Wrap(msg)
 }

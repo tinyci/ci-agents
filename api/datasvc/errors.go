@@ -14,7 +14,7 @@ import (
 func (ds *DataServer) GetErrors(ctx context.Context, name *data.Name) (*types.UserErrors, error) {
 	u, err := ds.H.Model.FindUserByName(name.Name)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	errors := &types.UserErrors{}
@@ -29,13 +29,13 @@ func (ds *DataServer) GetErrors(ctx context.Context, name *data.Name) (*types.Us
 func (ds *DataServer) AddError(ctx context.Context, ue *types.UserError) (*empty.Empty, error) {
 	u, err := ds.H.Model.FindUserByID(ue.UserID)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	u.AddError(errors.New(ue.Error))
 
 	if err := ds.H.Model.Save(u).Error; err != nil {
-		return nil, errors.New(err).ToGRPC(codes.FailedPrecondition)
+		return nil, errors.New(err).(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -45,11 +45,11 @@ func (ds *DataServer) AddError(ctx context.Context, ue *types.UserError) (*empty
 func (ds *DataServer) DeleteError(ctx context.Context, ue *types.UserError) (*empty.Empty, error) {
 	u, err := ds.H.Model.FindUserByID(ue.UserID)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	if err := ds.H.Model.DeleteError(u, ue.Id); err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil

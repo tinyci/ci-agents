@@ -13,7 +13,7 @@ const defaultPerPage int64 = 10
 
 // ScopePaginationInt applies constraints to pagination; it sets a maximum and a
 // default if not supplied to perPage. Integer-only version.
-func ScopePaginationInt(page, perPage int64) (int64, int64, *errors.Error) {
+func ScopePaginationInt(page, perPage int64) (int64, int64, error) {
 	if page < 0 {
 		return 0, 0, errors.New("invalid page")
 	}
@@ -35,7 +35,7 @@ func ScopePaginationInt(page, perPage int64) (int64, int64, *errors.Error) {
 
 // ScopePagination applies constraints to pagination; it sets a maximum and a
 // default if not supplied to perPage. String version.
-func ScopePagination(pg, ppg string) (int64, int64, *errors.Error) {
+func ScopePagination(pg, ppg string) (int64, int64, error) {
 	var (
 		err           error
 		page, perPage int64

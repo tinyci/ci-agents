@@ -7,7 +7,6 @@ import (
 	"syscall"
 
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 	"github.com/urfave/cli"
 
@@ -36,9 +35,6 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		if e, ok := err.(*errors.Error); ok && e == nil {
-			return
-		}
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

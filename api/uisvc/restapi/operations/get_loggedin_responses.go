@@ -1,7 +1,6 @@
 package operations
 
 import (
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 
 	"github.com/gin-gonic/gin"
@@ -11,7 +10,7 @@ import (
 // Editing this file might prove futile when you re-run the swagger generate command
 
 // GetLoggedinResponse responds for GetLoggedin.
-func GetLoggedinResponse(h *handlers.H, ctx *gin.Context, resp interface{}, code int, err *errors.Error) *errors.Error {
+func GetLoggedinResponse(h *handlers.H, ctx *gin.Context, resp interface{}, code int, err error) error {
 	if err != nil {
 		h.LogError(err, ctx, code)
 		return err
