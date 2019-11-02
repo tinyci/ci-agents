@@ -10,7 +10,6 @@ import (
 	gh "github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/clients/queue"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/mocks/github"
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
@@ -35,7 +34,7 @@ func (qc *QueueClient) Client() *queue.Client {
 
 // SetUpSubmissionRepo takes a name of a repo; and configures the submission
 // repo and a user belonging to it. Returns the name of the owner and any error.
-func (qc *QueueClient) SetUpSubmissionRepo(name string, forkOf string) *errors.Error {
+func (qc *QueueClient) SetUpSubmissionRepo(name string, forkOf string) error {
 	parentUser, _, err := utils.OwnerRepo(name)
 	if err != nil {
 		return err

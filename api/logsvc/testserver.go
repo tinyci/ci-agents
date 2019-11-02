@@ -11,7 +11,7 @@ import (
 )
 
 // MakeLogServer makes a logsvc.
-func MakeLogServer() (*handler.H, chan struct{}, *LogJournal, *errors.Error) {
+func MakeLogServer() (*handler.H, chan struct{}, *LogJournal, error) {
 	journal := &LogJournal{Journal: map[string][]*log.LogMessage{}}
 
 	logDispatch := DispatchTable{

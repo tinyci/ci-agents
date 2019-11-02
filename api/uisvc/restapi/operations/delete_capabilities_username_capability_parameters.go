@@ -8,7 +8,7 @@ import (
 
 // DeleteCapabilitiesUsernameCapabilityValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func DeleteCapabilitiesUsernameCapabilityValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
+func DeleteCapabilitiesUsernameCapabilityValidateURLParams(h *handlers.H, ctx *gin.Context) error {
 	capability := ctx.Param("capability")
 
 	if len(capability) == 0 {

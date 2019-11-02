@@ -11,7 +11,7 @@ import (
 // Editing this file might prove futile when you re-run the swagger generate command
 
 // {{ pascalize .Name }}Response responds for {{ pascalize .Name }}.
-func {{ .Name }}Response(h *handlers.H, ctx *gin.Context, resp interface{}, code int, err *errors.Error) *errors.Error {
+func {{ .Name }}Response(h *handlers.H, ctx *gin.Context, resp interface{}, code int, err error) error {
   if err != nil {
     h.LogError(err, ctx, code)
     return err

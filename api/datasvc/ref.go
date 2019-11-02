@@ -7,6 +7,7 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/config"
+	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"google.golang.org/grpc/codes"
 )
@@ -15,7 +16,7 @@ import (
 func (ds *DataServer) GetRefByNameAndSHA(ctx context.Context, rp *data.RefPair) (*types.Ref, error) {
 	ref, err := ds.H.Model.GetRefByNameAndSHA(rp.RepoName, rp.Sha)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 	return ref.ToProto(), nil
 }
@@ -24,11 +25,11 @@ func (ds *DataServer) GetRefByNameAndSHA(ctx context.Context, rp *data.RefPair) 
 func (ds *DataServer) PutRef(ctx context.Context, ref *types.Ref) (*types.Ref, error) {
 	ret, err := model.NewRefFromProto(ref)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	if err := ds.H.Model.PutRef(ret); err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return ret.ToProto(), nil
@@ -39,7 +40,7 @@ func (ds *DataServer) PutRef(ctx context.Context, ref *types.Ref) (*types.Ref, e
 // cancel runs as new ones are being submitted.
 func (ds *DataServer) CancelRefByName(ctx context.Context, rr *data.RepoRef) (*empty.Empty, error) {
 	if err := ds.H.Model.CancelRefByName(rr.Repository, rr.RefName, ds.H.URL, config.DefaultGithubClient()); err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil

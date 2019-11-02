@@ -27,7 +27,7 @@ func main() {
 	app.Action = serve
 
 	if err := app.Run(os.Args); err != nil {
-		errors.New(err).Exit()
+		errors.New(err).(errors.Error).Exit()
 	}
 }
 

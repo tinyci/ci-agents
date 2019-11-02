@@ -8,7 +8,7 @@ import (
 
 // GetSubmitValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func GetSubmitValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
+func GetSubmitValidateURLParams(h *handlers.H, ctx *gin.Context) error {
 	all := ctx.Query("all")
 
 	ctx.Set("all", all)

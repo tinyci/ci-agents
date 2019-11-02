@@ -11,7 +11,7 @@ import (
 )
 
 // GetErrors retrieves all the errors for the user.
-func (c *Client) GetErrors(ctx context.Context, name string) ([]*model.UserError, *errors.Error) {
+func (c *Client) GetErrors(ctx context.Context, name string) ([]*model.UserError, error) {
 	errs, err := c.client.GetErrors(ctx, &data.Name{Name: name}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
@@ -27,7 +27,7 @@ func (c *Client) GetErrors(ctx context.Context, name string) ([]*model.UserError
 }
 
 // AddError adds an error.
-func (c *Client) AddError(ctx context.Context, msg, username string) *errors.Error {
+func (c *Client) AddError(ctx context.Context, msg, username string) error {
 	u, err := c.client.UserByName(ctx, &data.Name{Name: username}, grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)
@@ -42,7 +42,7 @@ func (c *Client) AddError(ctx context.Context, msg, username string) *errors.Err
 }
 
 // DeleteError removes an error.
-func (c *Client) DeleteError(ctx context.Context, id, userID int64) *errors.Error {
+func (c *Client) DeleteError(ctx context.Context, id, userID int64) error {
 	_, err := c.client.DeleteError(ctx, &types.UserError{Id: id, UserID: userID}, grpc.WaitForReady(true))
 	return errors.New(err)
 }

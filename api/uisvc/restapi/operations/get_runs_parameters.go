@@ -2,13 +2,12 @@ package operations
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 )
 
 // GetRunsValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func GetRunsValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
+func GetRunsValidateURLParams(h *handlers.H, ctx *gin.Context) error {
 	page := ctx.Query("page")
 
 	if len(page) == 0 {

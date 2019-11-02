@@ -47,10 +47,10 @@ var (
 // HandlerConfig provides an interface to managing the HandlerConfig.
 type HandlerConfig interface {
 	SetRoutes(*H)
-	DBConfigure(*H) *errors.Error
-	Configure(Routes) *errors.Error
-	CustomInit(*H) *errors.Error
-	Validate(*H) *errors.Error
+	DBConfigure(*H) error
+	Configure(Routes) error
+	CustomInit(*H) error
+	Validate(*H) error
 }
 
 // H is a series of HTTP handlers for the UI service
@@ -63,7 +63,7 @@ type H struct {
 }
 
 // GetUser retrieves the user based on information in the gin context.
-func (h *H) GetUser(ctx *gin.Context) (*model.User, *errors.Error) {
+func (h *H) GetUser(ctx *gin.Context) (*model.User, error) {
 	client, err := h.GetClient(ctx)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (h *H) GetUser(ctx *gin.Context) (*model.User, *errors.Error) {
 				}
 			}
 		} else {
-			var err *errors.Error
+			var err error
 			name, err = client.MyLogin(ctx)
 			if err != nil {
 				return nil, errors.New(err)
@@ -119,7 +119,7 @@ func (h *H) GetUser(ctx *gin.Context) (*model.User, *errors.Error) {
 }
 
 // GetClient returns a github client that works with the credentials in the given context.
-func (h *H) GetClient(ctx *gin.Context) (github.Client, *errors.Error) {
+func (h *H) GetClient(ctx *gin.Context) (github.Client, error) {
 	user, err := h.GetGithub(ctx)
 	if err != nil {
 		return nil, err
@@ -135,7 +135,7 @@ func (h *H) GetClient(ctx *gin.Context) (github.Client, *errors.Error) {
 }
 
 // OAuthRedirect redirects the user to the OAuth redirection URL.
-func (h *H) OAuthRedirect(ctx *gin.Context, scopes []string) *errors.Error {
+func (h *H) OAuthRedirect(ctx *gin.Context, scopes []string) error {
 	url, err := h.Clients.Auth.GetOAuthURL(ctx, scopes)
 	if err != nil {
 		return err
@@ -151,18 +151,18 @@ func (h *H) GithubClient(token *types.OAuthToken) github.Client {
 }
 
 // CreateClients creates the clients to be used based on configuration values.
-func (h *H) CreateClients() *errors.Error {
-	var err *errors.Error
+func (h *H) CreateClients() error {
+	var err error
 	h.Clients, err = h.ClientConfig.CreateClients(h.UserConfig, h.Name)
 
 	return err
 }
 
 // CreateTransport creates a transport with optional certification information.
-func (h *H) CreateTransport() (*transport.HTTP, *errors.Error) {
+func (h *H) CreateTransport() (*transport.HTTP, error) {
 	var cert *transport.Cert
 	if !h.NoTLSServer {
-		var err *errors.Error
+		var err error
 		cert, err = h.TLS.Load()
 		if err != nil {
 			return nil, err
@@ -181,7 +181,7 @@ func (h *H) CreateTransport() (*transport.HTTP, *errors.Error) {
 // service. At shutdown time, this routine will close the finished channel when
 // it is finished shutting everything down, so the program can safely
 // terminate.
-func Boot(t *transport.HTTP, handler *H, finished chan struct{}) (chan struct{}, *errors.Error) {
+func Boot(t *transport.HTTP, handler *H, finished chan struct{}) (chan struct{}, error) {
 	handler.Formats = strfmt.NewFormats()
 
 	if err := handler.Init(); err != nil {
@@ -190,7 +190,7 @@ func Boot(t *transport.HTTP, handler *H, finished chan struct{}) (chan struct{},
 
 	var (
 		closer io.Closer
-		err    *errors.Error
+		err    error
 	)
 
 	if handler.EnableTracing {
@@ -206,7 +206,7 @@ func Boot(t *transport.HTTP, handler *H, finished chan struct{}) (chan struct{},
 	}
 
 	if t == nil {
-		var err *errors.Error
+		var err error
 		t, err = handler.CreateTransport()
 		if err != nil {
 			return nil, err
@@ -250,12 +250,12 @@ func (h *H) NewTracingSpan(ctx *gin.Context, operation string) opentracing.Span 
 	return span
 }
 
-func (h *H) createGlobalTracer() (io.Closer, *errors.Error) {
+func (h *H) createGlobalTracer() (io.Closer, error) {
 	return utils.CreateTracer("uisvc")
 }
 
 // Init initialize the handler and makes it available for requests.
-func (h *H) Init() *errors.Error {
+func (h *H) Init() error {
 	if err := h.Config.Validate(h); err != nil {
 		return err
 	}
@@ -281,9 +281,9 @@ func (h *H) Init() *errors.Error {
 	return h.dbConnect()
 }
 
-func (h *H) dbConnect() *errors.Error {
+func (h *H) dbConnect() error {
 	if h.UseDB {
-		var err *errors.Error
+		var err error
 		h.Model, err = model.New(h.DSN)
 		if err != nil {
 			return err
@@ -303,7 +303,7 @@ func CORS(ctx *gin.Context) {
 }
 
 // GetGithub gets the github user from the session and loads it.
-func (h *H) GetGithub(ctx *gin.Context) (u *model.User, outErr *errors.Error) {
+func (h *H) GetGithub(ctx *gin.Context) (u *model.User, outErr error) {
 	sess := sessions.Default(ctx)
 
 	defer func() {
@@ -326,11 +326,11 @@ func (h *H) GetGithub(ctx *gin.Context) (u *model.User, outErr *errors.Error) {
 	return nil, errInvalidCookie
 }
 
-func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error, cap model.Capability, scope string) func(h *H, ctx *gin.Context, processor HandlerFunc) *errors.Error {
-	return func(h *H, ctx *gin.Context, processor HandlerFunc) *errors.Error {
+func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) error, cap model.Capability, scope string) func(h *H, ctx *gin.Context, processor HandlerFunc) error {
+	return func(h *H, ctx *gin.Context, processor HandlerFunc) error {
 		var (
 			u            *model.User
-			err          *errors.Error
+			err          error
 			span         opentracing.Span
 			spanFinished bool
 		)
@@ -392,7 +392,7 @@ func (h *H) authed(gatewayFunc func(*H, *gin.Context, HandlerFunc) *errors.Error
 	}
 }
 
-func (h *H) inWebsocket(key string, paramHandler func(*H, *gin.Context) *errors.Error, handler WebsocketFunc) func(ctx *gin.Context) {
+func (h *H) inWebsocket(key string, paramHandler func(*H, *gin.Context) error, handler WebsocketFunc) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		if h.EnableTracing {
 			span := h.NewTracingSpan(ctx, key)
@@ -426,7 +426,7 @@ func TransformSwaggerRoute(route string) string {
 	})
 }
 
-func (h *H) configureSessions(r *gin.Engine) *errors.Error {
+func (h *H) configureSessions(r *gin.Engine) error {
 	sessdb := apiSess.New(h.Clients.Data, nil, h.Auth.ParsedSessionCryptKey())
 	r.Use(sessions.Sessions(config.SessionKey, sessdb))
 
@@ -453,7 +453,7 @@ func (h *H) configureRestHandler(r *gin.Engine, key string, route *Route, option
 		dispatchFunc = r.HEAD
 	}
 
-	var handler func(*H, *gin.Context, HandlerFunc) *errors.Error = route.Handler
+	var handler func(*H, *gin.Context, HandlerFunc) error = route.Handler
 
 	if route.UseAuth {
 		handler = h.authed(handler, route.Capability, route.TokenScope)
@@ -469,7 +469,7 @@ func (h *H) configureRestHandler(r *gin.Engine, key string, route *Route, option
 }
 
 // CreateRouter creates a *mux.Router capable of serving the UI server.
-func (h *H) CreateRouter() (*gin.Engine, *errors.Error) {
+func (h *H) CreateRouter() (*gin.Engine, error) {
 	r := gin.New()
 	r.Use(ginhttp.Middleware(opentracing.GlobalTracer()))
 
@@ -494,7 +494,7 @@ func (h *H) CreateRouter() (*gin.Engine, *errors.Error) {
 	return r, nil
 }
 
-func (h *H) wrapHandler(key string, handler func(*H, *gin.Context, HandlerFunc) *errors.Error, processor HandlerFunc) func(ctx *gin.Context) {
+func (h *H) wrapHandler(key string, handler func(*H, *gin.Context, HandlerFunc) error, processor HandlerFunc) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		if h.EnableTracing {
 			span := h.NewTracingSpan(ctx, key)
@@ -502,8 +502,10 @@ func (h *H) wrapHandler(key string, handler func(*H, *gin.Context, HandlerFunc) 
 		}
 
 		if err := handler(h, ctx, processor); err != nil {
-			if err == ErrRedirect {
-				return
+			if e, ok := err.(errors.Error); ok {
+				if e.Contains(ErrRedirect) {
+					return
+				}
 			}
 			h.WriteError(ctx, err)
 		}
@@ -513,7 +515,7 @@ func (h *H) wrapHandler(key string, handler func(*H, *gin.Context, HandlerFunc) 
 // WriteError standardizes the writing of error states for easier typing. It is
 // not intended to be used to write specific statuses, only 500 errors with JSON output.
 // If UseSessions is on, it will populate the errors session store.
-func (h *H) WriteError(ctx *gin.Context, err *errors.Error) {
+func (h *H) WriteError(ctx *gin.Context, err error) {
 	ctx.AbortWithStatusJSON(500, err)
 }
 
@@ -532,7 +534,7 @@ func (h *H) LogError(err error, ctx *gin.Context, code int) {
 
 	content, jsonErr := json.Marshal(ctx.Params)
 	if jsonErr != nil {
-		logger.Error(context.Background(), errors.New(jsonErr).Wrap("encoding params for log message"))
+		logger.Error(context.Background(), errors.New(jsonErr).(errors.Error).Wrap("encoding params for log message"))
 	}
 
 	var doLog bool
@@ -540,6 +542,10 @@ func (h *H) LogError(err error, ctx *gin.Context, code int) {
 	switch err := err.(type) {
 	case *errors.Error:
 		if err.GetLog() {
+			doLog = true
+		}
+	case errors.Error:
+		if (&err).GetLog() {
 			doLog = true
 		}
 	default:

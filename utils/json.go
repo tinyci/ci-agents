@@ -9,7 +9,7 @@ import (
 )
 
 // JSONIO is a copy function that uses JSON as an intermediary.
-func JSONIO(from, to interface{}) *errors.Error {
+func JSONIO(from, to interface{}) error {
 	// Yes. I know it sucks. I blame go-swagger.
 	content, err := json.Marshal(from)
 	if err != nil {
@@ -20,7 +20,7 @@ func JSONIO(from, to interface{}) *errors.Error {
 }
 
 // JSONContext provides an easy method to extract json from gin parameters.
-func JSONContext(ctx *gin.Context, parameter string, obj interface{}) *errors.Error {
+func JSONContext(ctx *gin.Context, parameter string, obj interface{}) error {
 	content, ok := ctx.Get(parameter)
 	if !ok {
 		return errors.New(fmt.Sprintf("parameter %q not found", parameter))

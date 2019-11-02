@@ -33,5 +33,5 @@ func (ms *modelSuite) TestBasicToken(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(retUser.Username, check.Equals, u.Username)
 	_, err = ms.model.ValidateToken(token)
-	c.Assert(err, check.Equals, errors.ErrInvalidAuth)
+	c.Assert(err, check.DeepEquals, errors.ErrInvalidAuth)
 }

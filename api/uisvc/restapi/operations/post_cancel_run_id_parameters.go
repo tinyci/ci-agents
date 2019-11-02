@@ -8,7 +8,7 @@ import (
 
 // PostCancelRunIDValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func PostCancelRunIDValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
+func PostCancelRunIDValidateURLParams(h *handlers.H, ctx *gin.Context) error {
 	runID := ctx.Param("run_id")
 
 	if len(runID) == 0 {

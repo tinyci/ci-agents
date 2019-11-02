@@ -103,14 +103,14 @@ func (f *Fields) ToLogrus() map[string]interface{} {
 }
 
 // ConfigureRemote configures the remote endpoint with a provided URL.
-func ConfigureRemote(addr string, cert *transport.Cert, trace bool) *errors.Error {
+func ConfigureRemote(addr string, cert *transport.Cert, trace bool) error {
 	remoteMutex.Lock()
 	defer remoteMutex.Unlock()
 
 	var (
 		closer  io.Closer
 		options []grpc.DialOption
-		eErr    *errors.Error
+		eErr    error
 	)
 
 	if trace {
@@ -262,7 +262,7 @@ func (sub *SubLogger) Log(ctx context.Context, level string, msg interface{}, lo
 	}
 
 	switch msg := msg.(type) {
-	case *errors.Error:
+	case errors.Error:
 		if msg.Log {
 			localLog(msg)
 		}

@@ -18,13 +18,9 @@ type Error struct {
 }
 
 // New constructs a new error
-func New(res interface{}) *Error {
-	if res == nil {
-		return nil
-	}
-
-	if _, ok := res.(*Error); ok {
-		return res.(*Error)
+func New(res interface{}) error {
+	if _, ok := res.(Error); ok {
+		return res.(Error)
 	}
 
 	switch res := res.(type) {
@@ -32,18 +28,18 @@ func New(res interface{}) *Error {
 		return doinit(res.Error(), true)
 	case string:
 		return doinit(res, true)
+	default:
+		return nil
 	}
-
-	return nil
 }
 
 // Errorf is the formatted version of New().
-func Errorf(f string, args ...interface{}) *Error {
+func Errorf(f string, args ...interface{}) error {
 	return New(fmt.Sprintf(f, args...))
 }
 
-func doinit(str string, log bool) *Error {
-	return &Error{
+func doinit(str string, log bool) Error {
+	return Error{
 		Errs:   []string{str},
 		Frames: []xerrors.Frame{xerrors.Caller(2)},
 		Log:    log,
@@ -51,12 +47,12 @@ func doinit(str string, log bool) *Error {
 }
 
 // NewNoLog returns an error which will not be logged.
-func NewNoLog(str string) *Error {
+func NewNoLog(str string) Error {
 	return doinit(str, false)
 }
 
 // ToGRPC converts an error to a coded GRPC error, useful in returns from API handlers.
-func (e *Error) ToGRPC(code codes.Code) error {
+func (e Error) ToGRPC(code codes.Code) error {
 	return status.Errorf(code, "%v", e)
 }
 
@@ -71,35 +67,31 @@ func (e *Error) GetLog() bool {
 }
 
 // Copy makes a copy of the error: for great justice
-func (e *Error) Copy() *Error {
-	e2 := *e
+func (e Error) Copy() Error {
+	e2 := e
 	e2.Errs = []string{}
 	e2.Frames = []xerrors.Frame{}
 	e2.Errs = append(e2.Errs, e.Errs...)
 	e2.Frames = append(e2.Frames, e.Frames...)
 
-	return &e2
+	return e2
 }
 
-func (e *Error) Error() string {
-	if e == nil {
-		return "<invalid nil error!>"
-	}
-
+func (e Error) Error() string {
 	return strings.Join(e.Errs, ": ")
 }
 
-func (e *Error) String() string {
+func (e Error) String() string {
 	return e.Error()
 }
 
 // Format formats the errors implementing fmt.Formatter
-func (e *Error) Format(f fmt.State, c rune) {
+func (e Error) Format(f fmt.State, c rune) {
 	xerrors.FormatError(e, f, c)
 }
 
 // FormatError implements xerrors.Formatter and allows it to provide extended detail.
-func (e *Error) FormatError(p xerrors.Printer) error {
+func (e Error) FormatError(p xerrors.Printer) error {
 	p.Print(e.Error())
 
 	if p.Detail() {
@@ -112,15 +104,11 @@ func (e *Error) FormatError(p xerrors.Printer) error {
 }
 
 // Wrap wraps an error string. If the original error is nil, no wrapping occurs and nil is returned.
-func (e *Error) Wrap(err interface{}) *Error {
-	if e == nil {
-		return nil
-	}
-
+func (e Error) Wrap(err interface{}) Error {
 	e2 := e.Copy()
 
 	switch err := err.(type) {
-	case *Error:
+	case Error:
 		if e.Contains(err) {
 			return e
 		}
@@ -132,7 +120,7 @@ func (e *Error) Wrap(err interface{}) *Error {
 		if e.Contains(err) {
 			return e
 		}
-		e2.Errs = append(New(err).Errs, e2.Errs...)
+		e2.Errs = append(New(err).(Error).Errs, e2.Errs...)
 	default:
 		panic("invalid value passed to errors.Wrap: must be string or error")
 	}
@@ -142,16 +130,16 @@ func (e *Error) Wrap(err interface{}) *Error {
 }
 
 // Wrapf wraps an error with formatting
-func (e *Error) Wrapf(str string, args ...interface{}) *Error {
+func (e Error) Wrapf(str string, args ...interface{}) Error {
 	e2 := e.Copy()
 	wrapped := New(fmt.Sprintf(str, args...))
-	e2.Errs = append(wrapped.Errs, e2.Errs...)
-	e2.Frames = append(wrapped.Frames, e2.Frames...)
+	e2.Errs = append(wrapped.(Error).Errs, e2.Errs...)
+	e2.Frames = append(wrapped.(Error).Frames, e2.Frames...)
 	return e2
 }
 
 // Contains checks if e contains err. Strings and errors are supported; otherwise it will return false.
-func (e *Error) Contains(err interface{}) bool {
+func (e Error) Contains(err interface{}) bool {
 	for _, e2 := range e.Errs {
 		if s, ok := err.(string); ok {
 			if e2 == s {
@@ -171,7 +159,7 @@ func (e *Error) Contains(err interface{}) bool {
 
 // Exit exits the program leveraging the error for output before exiting with
 // error code 1. If DEBUG is set, it will output a stack trace.
-func (e *Error) Exit() {
+func (e Error) Exit() {
 	if os.Getenv("DEBUG") != "" {
 		fmt.Fprintf(os.Stderr, "%+v\n", e)
 	} else {

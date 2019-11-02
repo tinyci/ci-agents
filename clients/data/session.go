@@ -10,7 +10,7 @@ import (
 )
 
 // GetSession retrieves a session from the database by id.
-func (c *Client) GetSession(ctx context.Context, id string) (*model.Session, *errors.Error) {
+func (c *Client) GetSession(ctx context.Context, id string) (*model.Session, error) {
 	s, err := c.client.LoadSession(ctx, &types.StringID{ID: id}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
@@ -20,7 +20,7 @@ func (c *Client) GetSession(ctx context.Context, id string) (*model.Session, *er
 }
 
 // PutSession adds a session to the database.
-func (c *Client) PutSession(ctx context.Context, s *model.Session) *errors.Error {
+func (c *Client) PutSession(ctx context.Context, s *model.Session) error {
 	_, err := c.client.PutSession(ctx, s.ToProto(), grpc.WaitForReady(true))
 	return errors.New(err)
 }

@@ -48,7 +48,7 @@ func NewWrapper(rw io.ReadWriter) *Wrapper {
 
 // Send sends a message by writing through the Wrapper. The outgoing message will be of
 // type websocket.TypeMessage.
-func (w *Wrapper) Send(message string) *errors.Error {
+func (w *Wrapper) Send(message string) error {
 	if err := w.enc.Encode(Message{Type: TypeMessage, Payload: message}); err != nil {
 		return errors.New(err)
 	}
@@ -57,7 +57,7 @@ func (w *Wrapper) Send(message string) *errors.Error {
 }
 
 // SendError is like Send, but for errors.
-func (w *Wrapper) SendError(err error) *errors.Error {
+func (w *Wrapper) SendError(err error) error {
 	return errors.New(w.enc.Encode(Message{Type: TypeError, Payload: err.Error()}))
 }
 

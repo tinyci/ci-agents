@@ -18,7 +18,7 @@ func TestErrors(t *testing.T) {
 }
 
 func (es *errorSuite) TestWrap(c *check.C) {
-	err := New("hi")
+	err := New("hi").(Error)
 
 	c.Assert(err.Wrapf("foobar: %v", errors.New("hey there")).Error(), check.Equals, "foobar: hey there: hi")
 	c.Assert(err.Wrap("hey there").Error(), check.Equals, "hey there: hi")
@@ -26,7 +26,7 @@ func (es *errorSuite) TestWrap(c *check.C) {
 }
 
 func (es *errorSuite) TestLog(c *check.C) {
-	err := New("hi")
+	err := New("hi").(Error)
 	err.SetLog(true)
 	c.Assert(err.GetLog(), check.Equals, true)
 
@@ -38,7 +38,7 @@ func (es *errorSuite) TestLog(c *check.C) {
 }
 
 func (es *errorSuite) TestFormat(c *check.C) {
-	err := New("hi")
+	err := New("hi").(Error)
 	e2 := foo(err)
 
 	buf := fmt.Sprintf("%v", e2)
@@ -50,12 +50,12 @@ func (es *errorSuite) TestFormat(c *check.C) {
 }
 
 func (es *errorSuite) TestContains(c *check.C) {
-	err := New("hi")
+	err := New("hi").(Error)
 	e2 := foo(err)
 	c.Assert(e2.Contains(err), check.Equals, true)
 	c.Assert(e2.Contains(New("nope")), check.Equals, false)
 }
 
-func foo(err *Error) *Error {
+func foo(err Error) Error {
 	return err.Wrap("in foo")
 }

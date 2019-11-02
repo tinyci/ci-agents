@@ -8,7 +8,6 @@ import (
 
 	check "github.com/erikh/check"
 	"github.com/jinzhu/gorm"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 )
@@ -75,6 +74,6 @@ func RandString(len int) string {
 
 // JSONIO uses json serialization to convert from one struct to another
 // p.s. this is terrible
-func JSONIO(from, to interface{}) *errors.Error {
+func JSONIO(from, to interface{}) error {
 	return utils.JSONIO(from, to)
 }

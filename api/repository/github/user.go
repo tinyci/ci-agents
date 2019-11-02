@@ -19,7 +19,7 @@ func (rs *RepositoryServer) MyLogin(ctx context.Context, token *repository.Strin
 
 	u, _, err := gh.Users.Get(ctx, "")
 	if err != nil {
-		return nil, errors.New(err).Wrap("trying to get login username for token").ToGRPC(codes.FailedPrecondition)
+		return nil, errors.New(err).(errors.Error).Wrap("trying to get login username for token").ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &repository.String{Name: u.GetLogin()}, nil

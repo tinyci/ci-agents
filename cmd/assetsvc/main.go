@@ -25,13 +25,13 @@ func main() {
 		AppVersion:     Version,
 		TinyCIVersion:  TinyCIVersion,
 		DefaultService: config.DefaultServices.Asset,
-		RegisterService: func(s *grpc.Server, h *handler.H) *errors.Error {
+		RegisterService: func(s *grpc.Server, h *handler.H) error {
 			asset.RegisterAssetServer(s, &assetsvc.AssetServer{H: h})
 			return nil
 		},
 	}
 
 	if err := s.Make().Run(os.Args); err != nil {
-		errors.New(err).Exit()
+		errors.New(err).(errors.Error).Exit()
 	}
 }

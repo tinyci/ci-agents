@@ -27,13 +27,13 @@ func main() {
 		UseDB:          true,
 		UseSessions:    true,
 		DefaultService: config.DefaultServices.Data,
-		RegisterService: func(s *grpc.Server, h *handler.H) *errors.Error {
+		RegisterService: func(s *grpc.Server, h *handler.H) error {
 			data.RegisterDataServer(s, &datasvc.DataServer{H: h})
 			return nil
 		},
 	}
 
 	if err := s.Make().Run(os.Args); err != nil {
-		errors.New(err).Exit()
+		errors.New(err).(errors.Error).Exit()
 	}
 }

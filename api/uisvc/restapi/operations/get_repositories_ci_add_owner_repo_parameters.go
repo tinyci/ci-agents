@@ -8,7 +8,7 @@ import (
 
 // GetRepositoriesCiAddOwnerRepoValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func GetRepositoriesCiAddOwnerRepoValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
+func GetRepositoriesCiAddOwnerRepoValidateURLParams(h *handlers.H, ctx *gin.Context) error {
 	owner := ctx.Param("owner")
 
 	if len(owner) == 0 {

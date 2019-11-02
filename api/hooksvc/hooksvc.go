@@ -66,7 +66,7 @@ type Handler struct {
 }
 
 // Init initializes the handler.
-func (h *Handler) Init() *errors.Error {
+func (h *Handler) Init() error {
 	cert, err := h.Config.TLS.Load()
 	if err != nil {
 		return err
