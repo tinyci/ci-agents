@@ -59,7 +59,8 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 	qi, err := qs.H.Clients.Data.NextQueueItem(ctx, qr.QueueName, qr.RunningOn)
 	if err != nil {
 		if err.(errors.Error).Contains(errors.ErrNotFound) {
-			err.(*errors.Error).SetLog(false)
+			e := err.(errors.Error)
+			(&e).SetLog(false)
 		}
 		return &gtypes.QueueItem{}, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
 	}
