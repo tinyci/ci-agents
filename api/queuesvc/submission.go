@@ -93,6 +93,15 @@ func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *t
 		}
 	}
 
+	if sub.BaseSHA == "0000000000000000000000000000000000000000" {
+		if sub.Fork == sub.Parent {
+			// new branch; set to head ref
+			sub.BaseSHA = sub.HeadSHA
+		} else {
+			return errors.New("base SHA was blank but this was not a new branch")
+		}
+	}
+
 	parent, err := sp.parentRepository(ctx, sub.Parent)
 	if err != nil {
 		return err.(errors.Error).Wrap("obtaining parent repository")
