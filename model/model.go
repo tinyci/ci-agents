@@ -45,3 +45,7 @@ func (m *Model) WrapError(call *gorm.DB, msg string) error {
 
 	return errors.MapError(call.Error).(errors.Error).Wrap(msg)
 }
+
+func doThing() error {
+	return nil
+}
