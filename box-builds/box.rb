@@ -1,4 +1,4 @@
-GO_VERSION = "1.14"
+GO_VERSION = "1.14.4"
 POSTGRES_VERSION = "11"
 SWAGGER_VERSION = "v0.18.0"
 PROTOC_VERSION = "3.7.1"
@@ -28,7 +28,7 @@ after do
 end
 
 env TZ: TIMEZONE
-run "ln -s /usr/share/zoneinfo/#{TIMEZONE} /etc/localtime"
+run "ln -fs /usr/share/zoneinfo/#{TIMEZONE} /etc/localtime"
 
 run %Q[perl -i.bak -pe 's!//(security|archive).ubuntu.com!//#{getenv("APT_MIRROR").length > 0 ? getenv("APT_MIRROR") : "mirror.pnl.gov"}!g' /etc/apt/sources.list]
 

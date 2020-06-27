@@ -4,7 +4,7 @@ package types;
 
 option go_package = "github.com/tinyci/ci-agents/ci-gen/grpc/types";
 
-import "github.com/golang/protobuf/ptypes/timestamp/timestamp.proto";
+import "google/protobuf/timestamp.proto";
 
 // Session is a session key/value pair as well as an expiry time for the
 // session. All values are encrypted with the session key.

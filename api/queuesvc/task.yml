@@ -4,7 +4,7 @@ env:
   - TESTING=1
   - GIN_MODE=release
 mountpoint: "/go/src/github.com/tinyci/ci-agents"
-default_image: tinyci/ci-agents:09.30.2019
+default_image: tinyci/ci-agents:06.27.2020
 dependencies:
   - api/datasvc
 runs:

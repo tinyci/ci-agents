@@ -4,7 +4,7 @@ package types;
 
 option go_package = "github.com/tinyci/ci-agents/ci-gen/grpc/types";
 
-import "github.com/golang/protobuf/ptypes/struct/struct.proto";
+import "google/protobuf/struct.proto";
 
 // RunSettings covers all the features that tinyCI supports to manage runs and
 // execute them.
