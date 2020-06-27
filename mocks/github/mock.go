@@ -11,30 +11,30 @@ import (
 	reflect "reflect"
 )
 
-// MockClient is a mock of Client interface
+// MockClient is a mock of Client interface.
 type MockClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientMockRecorder
 }
 
-// MockClientMockRecorder is the mock recorder for MockClient
+// MockClientMockRecorder is the mock recorder for MockClient.
 type MockClientMockRecorder struct {
 	mock *MockClient
 }
 
-// NewMockClient creates a new mock instance
+// NewMockClient creates a new mock instance.
 func NewMockClient(ctrl *gomock.Controller) *MockClient {
 	mock := &MockClient{ctrl: ctrl}
 	mock.recorder = &MockClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// ClearStates mocks base method
+// ClearStates mocks base method.
 func (m *MockClient) ClearStates(arg0 context.Context, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ClearStates", arg0, arg1, arg2)
@@ -42,13 +42,13 @@ func (m *MockClient) ClearStates(arg0 context.Context, arg1, arg2 string) error 
 	return ret0
 }
 
-// ClearStates indicates an expected call of ClearStates
+// ClearStates indicates an expected call of ClearStates.
 func (mr *MockClientMockRecorder) ClearStates(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearStates", reflect.TypeOf((*MockClient)(nil).ClearStates), arg0, arg1, arg2)
 }
 
-// CommentError mocks base method
+// CommentError mocks base method.
 func (m *MockClient) CommentError(arg0 context.Context, arg1 string, arg2 int64, arg3 error) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CommentError", arg0, arg1, arg2, arg3)
@@ -56,13 +56,13 @@ func (m *MockClient) CommentError(arg0 context.Context, arg1 string, arg2 int64,
 	return ret0
 }
 
-// CommentError indicates an expected call of CommentError
+// CommentError indicates an expected call of CommentError.
 func (mr *MockClientMockRecorder) CommentError(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CommentError", reflect.TypeOf((*MockClient)(nil).CommentError), arg0, arg1, arg2, arg3)
 }
 
-// ErrorStatus mocks base method
+// ErrorStatus mocks base method.
 func (m *MockClient) ErrorStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string, arg6 error) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ErrorStatus", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
@@ -70,13 +70,13 @@ func (m *MockClient) ErrorStatus(arg0 context.Context, arg1, arg2, arg3, arg4, a
 	return ret0
 }
 
-// ErrorStatus indicates an expected call of ErrorStatus
+// ErrorStatus indicates an expected call of ErrorStatus.
 func (mr *MockClientMockRecorder) ErrorStatus(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ErrorStatus", reflect.TypeOf((*MockClient)(nil).ErrorStatus), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
-// FinishedStatus mocks base method
+// FinishedStatus mocks base method.
 func (m *MockClient) FinishedStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string, arg6 bool, arg7 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FinishedStatus", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
@@ -84,13 +84,13 @@ func (m *MockClient) FinishedStatus(arg0 context.Context, arg1, arg2, arg3, arg4
 	return ret0
 }
 
-// FinishedStatus indicates an expected call of FinishedStatus
+// FinishedStatus indicates an expected call of FinishedStatus.
 func (mr *MockClientMockRecorder) FinishedStatus(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinishedStatus", reflect.TypeOf((*MockClient)(nil).FinishedStatus), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 }
 
-// GetDiffFiles mocks base method
+// GetDiffFiles mocks base method.
 func (m *MockClient) GetDiffFiles(arg0 context.Context, arg1, arg2, arg3 string) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDiffFiles", arg0, arg1, arg2, arg3)
@@ -99,13 +99,13 @@ func (m *MockClient) GetDiffFiles(arg0 context.Context, arg1, arg2, arg3 string)
 	return ret0, ret1
 }
 
-// GetDiffFiles indicates an expected call of GetDiffFiles
+// GetDiffFiles indicates an expected call of GetDiffFiles.
 func (mr *MockClientMockRecorder) GetDiffFiles(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDiffFiles", reflect.TypeOf((*MockClient)(nil).GetDiffFiles), arg0, arg1, arg2, arg3)
 }
 
-// GetFile mocks base method
+// GetFile mocks base method.
 func (m *MockClient) GetFile(arg0 context.Context, arg1, arg2, arg3 string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFile", arg0, arg1, arg2, arg3)
@@ -114,13 +114,13 @@ func (m *MockClient) GetFile(arg0 context.Context, arg1, arg2, arg3 string) ([]b
 	return ret0, ret1
 }
 
-// GetFile indicates an expected call of GetFile
+// GetFile indicates an expected call of GetFile.
 func (mr *MockClientMockRecorder) GetFile(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockClient)(nil).GetFile), arg0, arg1, arg2, arg3)
 }
 
-// GetFileList mocks base method
+// GetFileList mocks base method.
 func (m *MockClient) GetFileList(arg0 context.Context, arg1, arg2 string) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFileList", arg0, arg1, arg2)
@@ -129,13 +129,13 @@ func (m *MockClient) GetFileList(arg0 context.Context, arg1, arg2 string) ([]str
 	return ret0, ret1
 }
 
-// GetFileList indicates an expected call of GetFileList
+// GetFileList indicates an expected call of GetFileList.
 func (mr *MockClientMockRecorder) GetFileList(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileList", reflect.TypeOf((*MockClient)(nil).GetFileList), arg0, arg1, arg2)
 }
 
-// GetRefs mocks base method
+// GetRefs mocks base method.
 func (m *MockClient) GetRefs(arg0 context.Context, arg1, arg2 string) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRefs", arg0, arg1, arg2)
@@ -144,13 +144,13 @@ func (m *MockClient) GetRefs(arg0 context.Context, arg1, arg2 string) ([]string,
 	return ret0, ret1
 }
 
-// GetRefs indicates an expected call of GetRefs
+// GetRefs indicates an expected call of GetRefs.
 func (mr *MockClientMockRecorder) GetRefs(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRefs", reflect.TypeOf((*MockClient)(nil).GetRefs), arg0, arg1, arg2)
 }
 
-// GetRepository mocks base method
+// GetRepository mocks base method.
 func (m *MockClient) GetRepository(arg0 context.Context, arg1 string) (*github.Repository, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRepository", arg0, arg1)
@@ -159,13 +159,13 @@ func (m *MockClient) GetRepository(arg0 context.Context, arg1 string) (*github.R
 	return ret0, ret1
 }
 
-// GetRepository indicates an expected call of GetRepository
+// GetRepository indicates an expected call of GetRepository.
 func (mr *MockClientMockRecorder) GetRepository(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRepository", reflect.TypeOf((*MockClient)(nil).GetRepository), arg0, arg1)
 }
 
-// GetSHA mocks base method
+// GetSHA mocks base method.
 func (m *MockClient) GetSHA(arg0 context.Context, arg1, arg2 string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSHA", arg0, arg1, arg2)
@@ -174,13 +174,13 @@ func (m *MockClient) GetSHA(arg0 context.Context, arg1, arg2 string) (string, er
 	return ret0, ret1
 }
 
-// GetSHA indicates an expected call of GetSHA
+// GetSHA indicates an expected call of GetSHA.
 func (mr *MockClientMockRecorder) GetSHA(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSHA", reflect.TypeOf((*MockClient)(nil).GetSHA), arg0, arg1, arg2)
 }
 
-// MyLogin mocks base method
+// MyLogin mocks base method.
 func (m *MockClient) MyLogin(arg0 context.Context) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MyLogin", arg0)
@@ -189,13 +189,13 @@ func (m *MockClient) MyLogin(arg0 context.Context) (string, error) {
 	return ret0, ret1
 }
 
-// MyLogin indicates an expected call of MyLogin
+// MyLogin indicates an expected call of MyLogin.
 func (mr *MockClientMockRecorder) MyLogin(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MyLogin", reflect.TypeOf((*MockClient)(nil).MyLogin), arg0)
 }
 
-// MyRepositories mocks base method
+// MyRepositories mocks base method.
 func (m *MockClient) MyRepositories(arg0 context.Context) ([]*github.Repository, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MyRepositories", arg0)
@@ -204,13 +204,13 @@ func (m *MockClient) MyRepositories(arg0 context.Context) ([]*github.Repository,
 	return ret0, ret1
 }
 
-// MyRepositories indicates an expected call of MyRepositories
+// MyRepositories indicates an expected call of MyRepositories.
 func (mr *MockClientMockRecorder) MyRepositories(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MyRepositories", reflect.TypeOf((*MockClient)(nil).MyRepositories), arg0)
 }
 
-// PendingStatus mocks base method
+// PendingStatus mocks base method.
 func (m *MockClient) PendingStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PendingStatus", arg0, arg1, arg2, arg3, arg4, arg5)
@@ -218,13 +218,13 @@ func (m *MockClient) PendingStatus(arg0 context.Context, arg1, arg2, arg3, arg4,
 	return ret0
 }
 
-// PendingStatus indicates an expected call of PendingStatus
+// PendingStatus indicates an expected call of PendingStatus.
 func (mr *MockClientMockRecorder) PendingStatus(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PendingStatus", reflect.TypeOf((*MockClient)(nil).PendingStatus), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-// SetupHook mocks base method
+// SetupHook mocks base method.
 func (m *MockClient) SetupHook(arg0 context.Context, arg1, arg2, arg3, arg4 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetupHook", arg0, arg1, arg2, arg3, arg4)
@@ -232,13 +232,13 @@ func (m *MockClient) SetupHook(arg0 context.Context, arg1, arg2, arg3, arg4 stri
 	return ret0
 }
 
-// SetupHook indicates an expected call of SetupHook
+// SetupHook indicates an expected call of SetupHook.
 func (mr *MockClientMockRecorder) SetupHook(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetupHook", reflect.TypeOf((*MockClient)(nil).SetupHook), arg0, arg1, arg2, arg3, arg4)
 }
 
-// StartedStatus mocks base method
+// StartedStatus mocks base method.
 func (m *MockClient) StartedStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StartedStatus", arg0, arg1, arg2, arg3, arg4, arg5)
@@ -246,13 +246,13 @@ func (m *MockClient) StartedStatus(arg0 context.Context, arg1, arg2, arg3, arg4,
 	return ret0
 }
 
-// StartedStatus indicates an expected call of StartedStatus
+// StartedStatus indicates an expected call of StartedStatus.
 func (mr *MockClientMockRecorder) StartedStatus(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartedStatus", reflect.TypeOf((*MockClient)(nil).StartedStatus), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-// TeardownHook mocks base method
+// TeardownHook mocks base method.
 func (m *MockClient) TeardownHook(arg0 context.Context, arg1, arg2, arg3 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TeardownHook", arg0, arg1, arg2, arg3)
@@ -260,7 +260,7 @@ func (m *MockClient) TeardownHook(arg0 context.Context, arg1, arg2, arg3 string)
 	return ret0
 }
 
-// TeardownHook indicates an expected call of TeardownHook
+// TeardownHook indicates an expected call of TeardownHook.
 func (mr *MockClientMockRecorder) TeardownHook(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TeardownHook", reflect.TypeOf((*MockClient)(nil).TeardownHook), arg0, arg1, arg2, arg3)

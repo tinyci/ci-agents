@@ -4,7 +4,7 @@ package queue;
 
 option go_package = "github.com/tinyci/ci-agents/ci-gen/grpc/services/queue";
 
-import "github.com/golang/protobuf/ptypes/empty/empty.proto";
+import "google/protobuf/empty.proto";
 
 import "github.com/tinyci/ci-agents/ci-gen/grpc/types/queue_item.proto";
 import "github.com/tinyci/ci-agents/ci-gen/grpc/types/id.proto";

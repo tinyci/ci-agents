@@ -9,6 +9,6 @@ Name | Type | Description | Notes
 **_private** | **Boolean** |  | [optional] 
 **disabled** | **Boolean** |  | [optional] 
 **autoCreated** | **Boolean** |  | [optional] 
-**github** | [**Object**](.md) |  | [optional] 
+**github** | **Object** |  | [optional] 
 
 

@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 **defaultTimeout** | **Number** | the default timeout; in nanoseconds | [optional] 
 **defaultQueue** | **String** |  | [optional] 
 **defaultImage** | **String** |  | [optional] 
-**metadata** | [**Object**](.md) |  | [optional] 
+**metadata** | **Object** |  | [optional] 
 **config** | [**RepoConfig**](RepoConfig.md) |  | [optional] 
 **env** | **[String]** |  | [optional] 
 

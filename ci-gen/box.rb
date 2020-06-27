@@ -1,6 +1,7 @@
 GO_VERSION = "1.13"
 SWAGGER_VERSION = "v0.18.0"
 PROTOC_VERSION = "3.7.1"
+TIMEZONE = "Etc/UTC"
 
 EXTRA_PACKAGES = %w[
   curl 
@@ -15,7 +16,10 @@ EXTRA_PACKAGES = %w[
   unzip
 ]
 
-from "ubuntu:19.04"
+from "ubuntu:20.04"
+
+env TZ: TIMEZONE
+run "ln -sf /usr/share/zoneinfo/#{TIMEZONE} /etc/localtime"
 
 after do
   if getenv("PACKAGE_FOR_CI") != ""
@@ -28,8 +32,6 @@ end
 run %Q[perl -i.bak -pe 's!//(security|archive).ubuntu.com!//#{getenv("APT_MIRROR").length > 0 ? getenv("APT_MIRROR") : "mirror.pnl.gov"}!g' /etc/apt/sources.list]
 
 run "apt-get update && apt-get dist-upgrade -y && apt-get install #{EXTRA_PACKAGES.join(" ")} -y"
-
-run "ln -s /usr/share/zoneinfo/Etc/UTC /etc/localtime"
 
 env GOPATH: "/go",
     PATH: %w[
