@@ -27,16 +27,16 @@ $ cp .config/services.yaml.example .config/services.yaml
 $ make demo
 ```
 
+You will need `docker` and `docker-compose` installed.
+
 Then hit port 3000 of that host on your browser. If you have configured OAuth,
 you will be presented with a confirmation screen. If you are running in no auth
 mode, you will be teleported to the UI directly.
 
 ### Jaeger Tracing mode
 
-If `USE_JAEGER=1` is supplied at either `demo` or `test-debug` targets, it will
-attempt to link to a jaeger tracing instance you can create with `make jaeger`.
-Please note that `enable_tracing` must be set in the services config for this
-to be effective.
+`make demo` starts a jaeger container. Please note that `enable_tracing` must
+be set in the services config for this to be effective.
 
 ### Configuring it
 
