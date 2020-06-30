@@ -83,7 +83,7 @@ test-debug-attach:
 	docker exec -it $(DEBUG_DOCKER_IMAGE) bash
 
 demo-shell:
-	docker exec -it $(DEMO_DOCKER_IMAGE) bash
+	docker-compose exec tinyci bash
 
 demo-sql-shell:
 	docker exec -it $(DEMO_DOCKER_IMAGE) psql tinyci
