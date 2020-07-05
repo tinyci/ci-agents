@@ -32,8 +32,16 @@ else
   service postgresql start
 fi
 
-sleep 1
-bash -c '/go/bin/migrator -q -u tinyci -p tinyci migrations/tinyci'
+while ! bash -c '/go/bin/migrator -q -u tinyci -p tinyci migrations/tinyci'
+do 
+  sleep 1
+  i=$(($i + 1));
+  if [ "$i" -gt 10 ]
+  then
+    echo >&2 Timed out
+    exit 1
+  fi
+done
 
 if [ -z "${TESTING}" ]
 then
