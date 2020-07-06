@@ -1,3 +1,7 @@
+## 0.2.5 -- Mon 06 Jul 2020 05:20:25 PM UTC
+
+0.2.5 allows changes to come from non-master branches
+
 ## 0.2.0 -- Mon Nov 04 09:11:42 PDT 2019
 
 0.2.0 represents a lot of bugfixes and a few large features:
