@@ -18,8 +18,8 @@ import (
 
 var (
 	// DefaultGithubClient if set, will override any requested github client.
-	defaultGithubClient github.Client
-	githubClientMutex   sync.RWMutex
+	defaultGithubClientMap = map[string]github.Client{}
+	githubClientMutex      = sync.RWMutex{}
 )
 
 // TestClientConfig is a default test client configuration

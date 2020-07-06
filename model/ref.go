@@ -119,8 +119,8 @@ func (m *Model) CancelRefByName(repoID int64, refName, baseURL string, gh github
 		return errors.New(err)
 	}
 
-	mb := repo.Github.GetMasterBranch()
-	if refName == mb || (mb == "" && refName == "heads/master") {
+	mb := repo.Github.GetDefaultBranch()
+	if refName == mb || (mb == "" && refName == "heads/master") { // FIXME constantize this reference.
 		return nil
 	}
 

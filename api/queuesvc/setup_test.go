@@ -68,5 +68,5 @@ func (qs *queuesvcSuite) TearDownTest(c *check.C) {
 }
 
 func (qs *queuesvcSuite) mkGithubClient(client *github.MockClient) {
-	config.SetDefaultGithubClient(client)
+	config.SetDefaultGithubClient(client, "")
 }

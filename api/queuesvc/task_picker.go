@@ -26,17 +26,12 @@ func (sp *submissionProcessor) newTaskPicker() *taskPicker {
 func (tp *taskPicker) pick(ctx context.Context, sub *types.Submission, repoInfo *repoInfo) ([]*model.QueueItem, error) {
 	process := map[string]struct{}{}
 
-	mb := repoInfo.parent.Github.GetMasterBranch()
-	if mb == "" {
-		mb = defaultMasterBranch
-	}
-
 	dirs, taskdirs, err := tp.toProcess(ctx, repoInfo)
 	if err != nil {
 		return nil, err.(errors.Error).Wrap("determining what to process")
 	}
 
-	if (sub.All && sub.Manual) || (repoInfo.forkRef.Repository.ID == repoInfo.parent.ID && repoInfo.parentRef.RefName == mb) {
+	if (sub.All && sub.Manual) || (repoInfo.forkRef.Repository.ID == repoInfo.parent.ID && repoInfo.parentRef.RefName == repoInfo.mainBranch()) {
 		for _, dir := range taskdirs {
 			process[dir] = struct{}{}
 		}

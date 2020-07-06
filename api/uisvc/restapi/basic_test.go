@@ -10,6 +10,7 @@ import (
 
 	check "github.com/erikh/check"
 	"github.com/golang/mock/gomock"
+	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/mocks/github"
 	"github.com/tinyci/ci-agents/types"
@@ -107,11 +108,13 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
-	client.EXPECT().GetRepository(gomock.Any(), "erikh/not-real").Return(nil, errors.New("not found"))
+	erikhClient := github.NewMockClient(gomock.NewController(c))
+	config.SetDefaultGithubClient(erikhClient, "erikh")
 
+	erikhClient.EXPECT().GetRepository(gomock.Any(), "erikh/not-real").Return(nil, errors.New("not found"))
 	c.Assert(tc.Submit(ctx, "erikh/not-real", "master", true), check.ErrorMatches, ".* not found")
 
-	client.EXPECT().MyRepositories(gomock.Any()).Return([]*gh.Repository{{FullName: gh.String("erikh/parent")}}, nil)
+	erikhClient.EXPECT().MyRepositories(gomock.Any()).Return([]*gh.Repository{{FullName: gh.String("erikh/parent")}}, nil)
 
 	repos, err := tc.LoadRepositories(ctx, "")
 	c.Assert(err, check.IsNil)
@@ -119,7 +122,7 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 
 	c.Assert(us.datasvcClient.Client().EnableRepository(ctx, "erikh", "erikh/parent"), check.IsNil)
 
-	client.EXPECT().GetRepository(gomock.Any(), "erikh/not-real").Return(nil, errors.New("not found"))
+	erikhClient.EXPECT().GetRepository(gomock.Any(), "erikh/not-real").Return(nil, errors.New("not found"))
 	c.Assert(tc.Submit(ctx, "erikh/not-real", "master", true), check.ErrorMatches, ".* not found")
 
 	sub := &types.Submission{
@@ -131,30 +134,38 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 		All:     true,
 	}
 
-	c.Assert(us.queuesvcClient.SetMockSubmissionSuccess(client.EXPECT(), sub, "../"), check.IsNil)
-
-	client.EXPECT().GetSHA(gomock.Any(), "erikh/parent", "heads/master").Return("", errors.New("not found"))
-	client.EXPECT().GetSHA(gomock.Any(), "erikh/test", "heads/master").Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", nil)
+	erikhClient.EXPECT().GetRepository(gomock.Any(), sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
+	erikhClient.EXPECT().GetRepository(gomock.Any(), sub.Fork).Return(&gh.Repository{FullName: gh.String(sub.Fork), Fork: gh.Bool(true), Parent: &gh.Repository{FullName: gh.String(sub.Parent)}}, nil)
+	erikhClient.EXPECT().GetRepository(gomock.Any(), sub.Fork).Return(&gh.Repository{FullName: gh.String(sub.Fork), Fork: gh.Bool(true), Parent: &gh.Repository{FullName: gh.String(sub.Parent)}}, nil)
+	erikhClient.EXPECT().GetSHA(gomock.Any(), sub.Fork, "heads/master").Return("", errors.New("not found"))
+	client.EXPECT().GetSHA(gomock.Any(), sub.Fork, "heads/master").Return("", errors.New("not found"))
+	client.EXPECT().GetRepository(gomock.Any(), sub.Fork).Return(&gh.Repository{FullName: gh.String(sub.Fork), Fork: gh.Bool(true), Parent: &gh.Repository{FullName: gh.String(sub.Parent)}}, nil)
+	client.EXPECT().GetRepository(gomock.Any(), sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
+	client.EXPECT().GetSHA(gomock.Any(), sub.Parent, "heads/master").Return(sub.HeadSHA, nil)
+	client.EXPECT().ClearStates(gomock.Any(), "erikh/parent", sub.HeadSHA).Return(nil)
 
 	c.Assert(tc.Submit(ctx, "erikh/test", "master", true), check.ErrorMatches, ".*not found")
 
-	client.EXPECT().GetSHA(gomock.Any(), "erikh/parent", "heads/master").Return("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nil)
+	erikhClient.EXPECT().GetRepository(gomock.Any(), sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
+	erikhClient.EXPECT().GetRepository(gomock.Any(), sub.Fork).Return(&gh.Repository{FullName: gh.String(sub.Fork), Fork: gh.Bool(true), Parent: &gh.Repository{FullName: gh.String(sub.Parent)}}, nil)
+	erikhClient.EXPECT().GetRepository(gomock.Any(), sub.Fork).Return(&gh.Repository{FullName: gh.String(sub.Fork), Fork: gh.Bool(true), Parent: &gh.Repository{FullName: gh.String(sub.Parent)}}, nil)
+	erikhClient.EXPECT().GetSHA(gomock.Any(), "erikh/test", "heads/master").Return("", errors.New("not found"))
 	client.EXPECT().GetSHA(gomock.Any(), "erikh/test", "heads/master").Return("", errors.New("not found"))
+	client.EXPECT().GetSHA(gomock.Any(), "erikh/parent", "heads/master").Return("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nil)
+	client.EXPECT().ClearStates(gomock.Any(), "erikh/parent", sub.HeadSHA).Return(nil)
 
 	c.Assert(tc.Submit(ctx, "erikh/test", "master", true), check.ErrorMatches, ".*not found")
 
-	c.Assert(us.queuesvcClient.SetMockSubmissionSuccess(client.EXPECT(), sub, "../"), check.IsNil)
-	client.EXPECT().GetSHA(gomock.Any(), "erikh/parent", "heads/master").Return("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nil)
-	client.EXPECT().GetSHA(gomock.Any(), "erikh/test", "heads/master").Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", nil)
-	client.EXPECT().ClearStates(gomock.Any(), "erikh/parent", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb").Return(nil)
+	erikhClient.EXPECT().ClearStates(gomock.Any(), "erikh/parent", sub.HeadSHA).Return(nil)
+	c.Assert(us.queuesvcClient.SetMockSubmissionSuccess(erikhClient.EXPECT(), sub, "heads/master", "../"), check.IsNil)
 
 	c.Assert(utc.Submit(ctx, "erikh/test", "master", true), check.NotNil)
 	c.Assert(tc.Submit(ctx, "erikh/test", "master", true), check.IsNil)
 
-	tasks, err := tc.Tasks(ctx, "erikh/test", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 0, 200)
+	tasks, err := tc.Tasks(ctx, "erikh/test", sub.HeadSHA, 0, 200)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(tasks), check.Not(check.Equals), 0)
-	count, err := tc.TaskCount(ctx, "erikh/test", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+	count, err := tc.TaskCount(ctx, "erikh/test", sub.HeadSHA)
 	c.Assert(err, check.IsNil)
 	c.Assert(int(count), check.Equals, len(tasks))
 
@@ -167,11 +178,11 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 		c.Assert(len(runs), check.Equals, int(count))
 	}
 
-	runs, err := tc.Runs(ctx, "erikh/test", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 0, 200)
+	runs, err := tc.Runs(ctx, "erikh/test", sub.HeadSHA, 0, 200)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Not(check.Equals), 0)
 
-	count, err = tc.RunsCount(ctx, "erikh/test", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+	count, err = tc.RunsCount(ctx, "erikh/test", sub.HeadSHA)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, int(count))
 
@@ -192,7 +203,7 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 			"erikh",
 			"parent",
 			gomock.Any(),
-			"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			sub.HeadSHA,
 			gomock.Any(),
 			gomock.Any()).Return(nil)
 	}
@@ -211,6 +222,8 @@ func (us *uisvcSuite) TestAddDeleteCI(c *check.C) {
 	defer close(doneChan)
 
 	c.Assert(tc.AddToCI(ctx, "f7u12"), check.NotNil)
+
+	config.SetDefaultGithubClient(client, "erikh")
 
 	client.EXPECT().MyRepositories(gomock.Any()).Return([]*gh.Repository{{FullName: gh.String("erikh/test")}}, nil)
 
@@ -266,10 +279,13 @@ func (us *uisvcSuite) TestSubscriptions(c *check.C) {
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
+	erikhClient := github.NewMockClient(gomock.NewController(c))
+	config.SetDefaultGithubClient(erikhClient, "erikh")
+
 	c.Assert(tc.Subscribe(ctx, "erikh/test"), check.NotNil)
 	c.Assert(tc.Unsubscribe(ctx, "erikh/test"), check.NotNil)
 
-	client.EXPECT().MyRepositories(gomock.Any()).Return([]*gh.Repository{{FullName: gh.String("erikh/test")}}, nil)
+	erikhClient.EXPECT().MyRepositories(gomock.Any()).Return([]*gh.Repository{{FullName: gh.String("erikh/test")}}, nil)
 
 	repos, err := tc.LoadRepositories(ctx, "")
 	c.Assert(err, check.IsNil)

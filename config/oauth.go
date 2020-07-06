@@ -51,23 +51,31 @@ func (oc OAuthConfig) Validate() error {
 
 // SetDefaultGithubClient sets the default github client which is necessary for
 // many testing scenarios. Not to be used in typical code.
-func SetDefaultGithubClient(client github.Client) {
+func SetDefaultGithubClient(client github.Client, username string) {
+	if username == "" {
+		username = "default"
+	}
+
 	githubClientMutex.Lock()
 	defer githubClientMutex.Unlock()
-	defaultGithubClient = client
+	defaultGithubClientMap[username] = client
 }
 
 // DefaultGithubClient returns the default github client set by SetDefaultGithubClient, if any.
-func DefaultGithubClient() github.Client {
+func DefaultGithubClient(username string) github.Client {
 	githubClientMutex.RLock()
 	defer githubClientMutex.RUnlock()
-	return defaultGithubClient
+
+	if username == "" {
+		username = "default"
+	}
+
+	return defaultGithubClientMap[username]
 }
 
-// GithubClient either returns the client for the token, or if NoAuth is set
-// returns the default client.
+// GithubClient either returns the client for the token.
 func (oc OAuthConfig) GithubClient(token *types.OAuthToken) github.Client {
-	client := DefaultGithubClient()
+	client := DefaultGithubClient(token.Username)
 	if client != nil {
 		return client
 	}
