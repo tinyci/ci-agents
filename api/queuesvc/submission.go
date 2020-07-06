@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	defaultMasterBranch = "heads/master"
-	repoConfigFilename  = "tinyci.yml"
-	taskConfigFilename  = "task.yml"
+	defaultMainBranch  = "heads/master"
+	repoConfigFilename = "tinyci.yml"
+	taskConfigFilename = "task.yml"
 )
 
 // small cache of repository information we need
@@ -85,21 +85,26 @@ func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *t
 		return err.(errors.Error).Wrap("validating submission")
 	}
 
+	// manual submissions must be resolvable by the submitter to avoid security
+	// leaks, so this uses the user's account to look up the parent info and
+	// returns it so that it can be added to the submission data.
 	if sub.Manual {
-		var err error
-		sp.repoInfo.user, err = sp.resolveParent(ctx, sub)
+		user, userClient, err := sp.getSubmittedUserClient(ctx, sub.SubmittedBy)
 		if err != nil {
-			return err.(errors.Error).Wrap("resolving parent information")
+			return err.(errors.Error).Wrap("getting submitting user account info")
 		}
-	}
 
-	if sub.BaseSHA == "0000000000000000000000000000000000000000" {
-		if sub.Fork == sub.Parent {
-			// new branch; set to head ref
-			sub.BaseSHA = sub.HeadSHA
-		} else {
-			return errors.New("base SHA was blank but this was not a new branch")
+		repo, err := userClient.GetRepository(ctx, sub.Fork)
+		if err != nil {
+			return err.(errors.Error).Wrap("obtaining fork repository for submission -- probably no access")
 		}
+
+		sub.Parent, err = sp.selectParentOrFork(ctx, userClient, repo)
+		if err != nil {
+			return err.(errors.Error).Wrap("while deriving parent information from fork")
+		}
+
+		sp.repoInfo.user = user
 	}
 
 	parent, err := sp.parentRepository(ctx, sub.Parent)
@@ -107,13 +112,13 @@ func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *t
 		return err.(errors.Error).Wrap("obtaining parent repository")
 	}
 
-	if parent.Disabled {
-		return errors.New("repository is not enabled")
-	}
-
 	client, err := sp.repoInfo.client(sp.handler)
 	if err != nil {
 		return err.(errors.Error).Wrap("obtaining github client for parent repo owner")
+	}
+
+	if parent.Disabled {
+		return errors.New("repository is not enabled")
 	}
 
 	sp.repoInfo.ghParent, err = client.GetRepository(ctx, parent.Name)
@@ -126,6 +131,30 @@ func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *t
 		return err.(errors.Error).Wrap("locating or creating fork record")
 	}
 
+	sp.repoInfo.ticketID = sub.TicketID
+
+	if len(sub.HeadSHA) != 40 { // FIXME could be trumped with long branch names
+		sub.HeadSHA, err = client.GetSHA(ctx, sub.Fork, sub.HeadSHA)
+		if err != nil {
+			return err.(errors.Error).Wrap("while obtaining the HEAD SHA for the head repo/branch")
+		}
+	}
+
+	sub.BaseSHA, err = client.GetSHA(ctx, sub.Parent, sp.repoInfo.mainBranch())
+	if err != nil {
+		return err.(errors.Error).Wrap("while selecting HEAD SHA for base repo/branch")
+	}
+
+	if sub.BaseSHA == "0000000000000000000000000000000000000000" {
+		fmt.Println("here")
+		if sub.Fork == sub.Parent {
+			// new branch; set to head ref
+			sub.BaseSHA = sub.HeadSHA
+		} else {
+			return errors.New("base SHA was blank but this was not a new branch")
+		}
+	}
+
 	sp.repoInfo.forkRef, err = sp.manageRefs(ctx, client, fork, sub.HeadSHA)
 	if err != nil {
 		return err
@@ -135,9 +164,6 @@ func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *t
 	if err != nil {
 		return err
 	}
-
-	sp.repoInfo.ticketID = sub.TicketID
-
 	return nil
 }
 
@@ -253,20 +279,15 @@ func (sp *submissionProcessor) forkRepository(ctx context.Context, fork string) 
 	return sp.repoInfo.fork, err
 }
 
-func (sp *submissionProcessor) selectParentOrFork(ctx context.Context, client github.Client, fork string) (string, error) {
-	repo, err := client.GetRepository(ctx, fork)
-	if err != nil {
-		return "", err.(errors.Error).Wrap("obtaining fork repository for submission")
-	}
-
-	forkRepo, err := sp.forkRepository(ctx, fork)
+func (sp *submissionProcessor) selectParentOrFork(ctx context.Context, client github.Client, fork *gh.Repository) (string, error) {
+	forkRepo, err := sp.forkRepository(ctx, fork.GetFullName())
 	// this is ok; if modelRepo is nil then it's disabled.
 	enabled := err == nil && !forkRepo.Disabled
 
-	ret := fork
+	ret := fork.GetFullName()
 
-	if !enabled && repo.GetFork() {
-		ret = repo.GetParent().GetFullName()
+	if !enabled && fork.GetFork() {
+		ret = fork.GetParent().GetFullName()
 		sp.logger.Info(ctx, "Selected parent of fork")
 	} else {
 		sp.logger.Info(ctx, "Selected fork; is directly enabled")
@@ -279,47 +300,21 @@ func (sp *submissionProcessor) selectParentOrFork(ctx context.Context, client gi
 	return ret, nil
 }
 
-// manual submissions must be resolvable by the submitter to avoid security
-// leaks, so this uses the user's account to look up the parent info and
-// returns it so that it can be added to the submission data.
-func (sp *submissionProcessor) resolveParent(ctx context.Context, sub *types.Submission) (*model.User, error) {
-	user, client, err := sp.getSubmittedUserClient(ctx, sub.SubmittedBy)
-	if err != nil {
-		return nil, err.(errors.Error).Wrap("getting submitting user account info")
+func (ri *repoInfo) mainBranch() string {
+	defaultBranch := ri.ghParent.GetDefaultBranch()
+
+	if defaultBranch == "" {
+		defaultBranch = defaultMainBranch
+	} else {
+		defaultBranch = "heads/" + defaultBranch
 	}
 
-	sub.Parent, err = sp.selectParentOrFork(ctx, client, sub.Fork)
-	if err != nil {
-		return nil, err.(errors.Error).Wrap("during discovery of parent")
-	}
-
-	parentRepo, err := sp.parentRepository(ctx, sub.Parent)
-	if err != nil {
-		return nil, err.(errors.Error).Wrap("looking up parent repository")
-	}
-	if parentRepo.Disabled {
-		return nil, errors.New("repository is disabled")
-	}
-
-	if len(sub.HeadSHA) != 40 {
-		sub.HeadSHA, err = client.GetSHA(ctx, sub.Fork, sub.HeadSHA)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	sub.BaseSHA, err = client.GetSHA(ctx, sub.Parent, "heads/master")
-	return user, err
+	return defaultBranch
 }
 
 func (sp *submissionProcessor) getRepoConfig(ctx context.Context, client github.Client) (*types.RepoConfig, error) {
-	masterBranch := sp.repoInfo.ghParent.GetMasterBranch()
-	if masterBranch == "" {
-		masterBranch = defaultMasterBranch
-	}
-
 	// FIXME move this string.
-	content, err := client.GetFile(ctx, sp.repoInfo.parent.Name, fmt.Sprintf("refs/%s", masterBranch), repoConfigFilename)
+	content, err := client.GetFile(ctx, sp.repoInfo.parent.Name, fmt.Sprintf("refs/%s", sp.repoInfo.mainBranch()), repoConfigFilename)
 	if err != nil {
 		return nil, err
 	}

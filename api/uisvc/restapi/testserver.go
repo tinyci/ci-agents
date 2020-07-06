@@ -45,14 +45,14 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 		return nil, nil, nil, nil, errors.New(err)
 	}
 
-	config.SetDefaultGithubClient(client)
+	config.SetDefaultGithubClient(client, "")
 	finished := make(chan struct{})
 	doneChan, err := handlers.Boot(nil, h, finished)
 	if err != nil {
 		return nil, nil, nil, nil, errors.New(err)
 	}
 
-	u, err := d.PutUser(context.Background(), &model.User{Username: "erikh", Token: &types.OAuthToken{Token: "dummy", Scopes: []string{"repo"}}})
+	u, err := d.PutUser(context.Background(), &model.User{Username: "erikh", Token: &types.OAuthToken{Username: "erikh", Token: "dummy", Scopes: []string{"repo"}}})
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -81,6 +81,8 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
+
+	config.SetDefaultGithubClient(client, "")
 
 	token, err = d.GetToken(context.Background(), "erikh2")
 	if err != nil {
