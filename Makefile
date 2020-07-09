@@ -108,7 +108,7 @@ dist: build
 release: distclean dist
 	VERSION="$(VERSION)" box -t "tinyci/release:$(VERSION)" $(RELEASE_BOXFILE)
 
-demo: build-demo-image
+demo: stop-demo build-demo-image
 	docker-compose up
 
 stop-demo:
