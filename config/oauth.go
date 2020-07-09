@@ -28,7 +28,7 @@ type OAuthConfig struct {
 }
 
 // Validate validates the oauth configuration
-func (oc OAuthConfig) Validate() error {
+func (oc OAuthConfig) Validate() *errors.Error {
 	if strings.TrimSpace(oc.ClientID) == "" {
 		return errors.New("oauth2 client_id was missing")
 	}
@@ -43,7 +43,7 @@ func (oc OAuthConfig) Validate() error {
 
 	_, err := url.Parse(oc.RedirectURL)
 	if err != nil {
-		return errors.New(err).(errors.Error).Wrap("parsing oauth2 redirect_url")
+		return errors.New(err).Wrap("parsing oauth2 redirect_url")
 	}
 
 	return nil

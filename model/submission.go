@@ -75,30 +75,30 @@ func (s *Submission) ToProto() *gtypes.Submission {
 }
 
 // NewSubmissionFromProto converts the proto representation to the task type.
-func NewSubmissionFromProto(gt *gtypes.Submission) (*Submission, error) {
+func NewSubmissionFromProto(gt *gtypes.Submission) (*Submission, *errors.Error) {
 	var (
 		u       *User
 		headref *Ref
-		err     error
+		err     *errors.Error
 	)
 
 	if gt.User != nil {
 		u, err = NewUserFromProto(gt.User)
 		if err != nil {
-			return nil, err.(errors.Error).Wrap("converting for use in submission")
+			return nil, err.Wrap("converting for use in submission")
 		}
 	}
 
 	if gt.HeadRef != nil {
 		headref, err = NewRefFromProto(gt.HeadRef)
 		if err != nil {
-			return nil, err.(errors.Error).Wrap("converting for use in submission")
+			return nil, err.Wrap("converting for use in submission")
 		}
 	}
 
 	baseref, err := NewRefFromProto(gt.BaseRef)
 	if err != nil {
-		return nil, err.(errors.Error).Wrap("converting for use in submission")
+		return nil, err.Wrap("converting for use in submission")
 	}
 
 	if headref == nil {
@@ -139,34 +139,34 @@ func NewSubmissionFromProto(gt *gtypes.Submission) (*Submission, error) {
 
 // NewSubmissionFromMessage creates a blank record populated by the appropriate data
 // reaped from the message type in types/submission.go.
-func (m *Model) NewSubmissionFromMessage(sub *types.Submission) (*Submission, error) {
+func (m *Model) NewSubmissionFromMessage(sub *types.Submission) (*Submission, *errors.Error) {
 	if err := sub.Validate(); err != nil {
-		return nil, err.(errors.Error).Wrap("did not pass validation")
+		return nil, err.Wrap("did not pass validation")
 	}
 
 	var (
 		u    *User
 		base *Ref
-		err  error
+		err  *errors.Error
 	)
 
 	if sub.SubmittedBy != "" {
 		u, err = m.FindUserByName(sub.SubmittedBy)
 		if err != nil {
-			return nil, err.(errors.Error).Wrap("for use in submission")
+			return nil, err.Wrap("for use in submission")
 		}
 	}
 
 	if sub.BaseSHA != "" {
 		base, err = m.GetRefByNameAndSHA(sub.Parent, sub.BaseSHA)
 		if err != nil {
-			return nil, err.(errors.Error).Wrap("base")
+			return nil, err.Wrap("base")
 		}
 	}
 
 	head, err := m.GetRefByNameAndSHA(sub.Fork, sub.HeadSHA)
 	if err != nil {
-		return nil, err.(errors.Error).Wrap("head")
+		return nil, err.Wrap("head")
 	}
 
 	return &Submission{
@@ -177,7 +177,7 @@ func (m *Model) NewSubmissionFromMessage(sub *types.Submission) (*Submission, er
 }
 
 // SubmissionList returns a list of submissions with pagination and repo/sha filtering.
-func (m *Model) SubmissionList(page, perPage int64, repository, sha string) ([]*Submission, error) {
+func (m *Model) SubmissionList(page, perPage int64, repository, sha string) ([]*Submission, *errors.Error) {
 	subs := []*Submission{}
 
 	page, perPage, err := utils.ScopePaginationInt(page, perPage)
@@ -199,7 +199,7 @@ func (m *Model) SubmissionList(page, perPage int64, repository, sha string) ([]*
 }
 
 // SubmissionCount counts the number of submissions with an optional repo/sha filter
-func (m *Model) SubmissionCount(repository, sha string) (int64, error) {
+func (m *Model) SubmissionCount(repository, sha string) (int64, *errors.Error) {
 	var count int64
 
 	obj, err := m.submissionListQuery(repository, sha)
@@ -210,7 +210,7 @@ func (m *Model) SubmissionCount(repository, sha string) (int64, error) {
 	return count, m.WrapError(obj.Model(&Submission{}).Count(&count), "listing submissions")
 }
 
-func (m *Model) submissionListQuery(repository, sha string) (*gorm.DB, error) {
+func (m *Model) submissionListQuery(repository, sha string) (*gorm.DB, *errors.Error) {
 	obj := m.Group("submissions.id").Order("submissions.id DESC").
 		Joins("inner join refs on refs.id = submissions.base_ref_id or refs.id = submissions.head_ref_id")
 
@@ -221,7 +221,6 @@ func (m *Model) submissionListQuery(repository, sha string) (*gorm.DB, error) {
 		}
 		obj = obj.Where("submissions.base_ref_id = ? or submissions.head_ref_id = ?", ref.ID, ref.ID)
 	} else if repository != "" {
-		var err error
 		repo, err := m.GetRepositoryByName(repository)
 		if err != nil {
 			return nil, err
@@ -232,7 +231,7 @@ func (m *Model) submissionListQuery(repository, sha string) (*gorm.DB, error) {
 	return obj, nil
 }
 
-func (m *Model) assignCountFromQuery(query string, ids []int64) (map[int64]int64, error) {
+func (m *Model) assignCountFromQuery(query string, ids []int64) (map[int64]int64, *errors.Error) {
 	idmap := map[int64]int64{}
 
 	rows, err := m.Raw(query, ids).Rows()
@@ -253,7 +252,7 @@ func (m *Model) assignCountFromQuery(query string, ids []int64) (map[int64]int64
 	return idmap, nil
 }
 
-func (m *Model) assignSubmissionPostFetch(subs []*Submission) error {
+func (m *Model) assignSubmissionPostFetch(subs []*Submission) *errors.Error {
 	idmap := map[int64]*Submission{}
 	ids := []int64{}
 	for _, sub := range subs {
@@ -295,7 +294,7 @@ func (m *Model) assignSubmissionPostFetch(subs []*Submission) error {
 	return m.populateStates(ids, idmap)
 }
 
-func (m *Model) selectOne(query string, id int64, out interface{}) error {
+func (m *Model) selectOne(query string, id int64, out interface{}) *errors.Error {
 	rows, err := m.Raw(query, id).Rows()
 	if err != nil {
 		return errors.New(err)
@@ -311,7 +310,7 @@ func (m *Model) selectOne(query string, id int64, out interface{}) error {
 	return nil
 }
 
-func (m *Model) gatherStates(ids []int64) (map[int64][]*bool, map[int64]bool, error) {
+func (m *Model) gatherStates(ids []int64) (map[int64][]*bool, map[int64]bool, *errors.Error) {
 	rows, err := m.Raw("select submission_id, status, canceled from tasks where submission_id in (?)", ids).Rows()
 	if err != nil {
 		return nil, nil, errors.New(err)
@@ -348,7 +347,7 @@ func (m *Model) gatherStates(ids []int64) (map[int64][]*bool, map[int64]bool, er
 	return overallStatus, submissionCanceled, nil
 }
 
-func (m *Model) populateStates(ids []int64, idmap map[int64]*Submission) error {
+func (m *Model) populateStates(ids []int64, idmap map[int64]*Submission) *errors.Error {
 	overallStatus, submissionCanceled, err := m.gatherStates(ids)
 	if err != nil {
 		return err
@@ -395,7 +394,7 @@ func (m *Model) populateStates(ids []int64, idmap map[int64]*Submission) error {
 
 // SubmissionListForRepository returns a list of submissions with pagination. If ref
 // is non-nil, it will isolate to the ref only and ignore the repo.
-func (m *Model) SubmissionListForRepository(repo, sha string, page, perPage int64) ([]*Submission, error) {
+func (m *Model) SubmissionListForRepository(repo, sha string, page, perPage int64) ([]*Submission, *errors.Error) {
 	subs := []*Submission{}
 
 	page, perPage, err := utils.ScopePaginationInt(page, perPage)
@@ -430,7 +429,7 @@ func (m *Model) submissionRunsQuery(sub *Submission) *gorm.DB {
 }
 
 // TasksForSubmission returns all the tasks for a given submission.
-func (m *Model) TasksForSubmission(sub *Submission, page, perPage int64) ([]*Task, error) {
+func (m *Model) TasksForSubmission(sub *Submission, page, perPage int64) ([]*Task, *errors.Error) {
 	tasks := []*Task{}
 
 	obj := m.submissionTasksQuery(sub).Offset(page * perPage).Limit(perPage)
@@ -442,7 +441,7 @@ func (m *Model) TasksForSubmission(sub *Submission, page, perPage int64) ([]*Tas
 }
 
 // RunsForSubmission returns all the runs that are associated with the given submission.
-func (m *Model) RunsForSubmission(sub *Submission, page, perPage int64) ([]*Run, error) {
+func (m *Model) RunsForSubmission(sub *Submission, page, perPage int64) ([]*Run, *errors.Error) {
 	runs := []*Run{}
 
 	obj := m.submissionRunsQuery(sub).Offset(page * perPage).Limit(perPage)
@@ -454,7 +453,7 @@ func (m *Model) RunsForSubmission(sub *Submission, page, perPage int64) ([]*Run,
 }
 
 // GetSubmissionByID returns a submission by internal identifier
-func (m *Model) GetSubmissionByID(id int64) (*Submission, error) {
+func (m *Model) GetSubmissionByID(id int64) (*Submission, *errors.Error) {
 	sub := &Submission{}
 	if err := m.WrapError(m.Where("submissions.id = ?", id).First(sub), "getting submission by id"); err != nil {
 		return nil, err
@@ -463,7 +462,7 @@ func (m *Model) GetSubmissionByID(id int64) (*Submission, error) {
 }
 
 // CancelSubmissionByID cancels all related tasks (and thusly, runs) in a submission that are outstanding.
-func (m *Model) CancelSubmissionByID(id int64, baseURL string, client github.Client) error {
+func (m *Model) CancelSubmissionByID(id int64, baseURL string, client github.Client) *errors.Error {
 	sub, err := m.GetSubmissionByID(id)
 	if err != nil {
 		return err

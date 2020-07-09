@@ -94,7 +94,7 @@ func (t *TaskSettings) ToProto() *types.TaskSettings {
 }
 
 // NewTaskSettings creates a new task configuration from a byte buffer.
-func NewTaskSettings(buf []byte, requireRuns bool, rc *RepoConfig) (*TaskSettings, error) {
+func NewTaskSettings(buf []byte, requireRuns bool, rc *RepoConfig) (*TaskSettings, *errors.Error) {
 	if rc == nil {
 		rc = &RepoConfig{}
 	}
@@ -102,13 +102,13 @@ func NewTaskSettings(buf []byte, requireRuns bool, rc *RepoConfig) (*TaskSetting
 	t := &TaskSettings{}
 
 	if err := yaml.UnmarshalStrict(buf, t); err != nil {
-		return nil, errors.New(err).(errors.Error).Wrap(ErrTaskParse)
+		return nil, errors.New(err).Wrap(ErrTaskParse)
 	}
 
 	t.Config = rc
 
 	if err := t.Validate(requireRuns); err != nil {
-		return nil, errors.New(err).(errors.Error).Wrap(ErrTaskValidation)
+		return nil, errors.New(err).Wrap(ErrTaskValidation)
 	}
 
 	return t, nil
@@ -188,7 +188,7 @@ func (t *TaskSettings) handleOverrides() {
 }
 
 // Validate validates the task settings.
-func (t *TaskSettings) Validate(requireRuns bool) error {
+func (t *TaskSettings) Validate(requireRuns bool) *errors.Error {
 	if t.Config == nil {
 		t.Config = &RepoConfig{}
 	}
@@ -254,7 +254,7 @@ func (rs *RunSettings) ToProto() *types.RunSettings {
 }
 
 // Validate validates the run settings, returning errors on any found.
-func (rs *RunSettings) Validate() error {
+func (rs *RunSettings) Validate() *errors.Error {
 	if len(rs.Command) == 0 {
 		return errors.New("command was empty")
 	}
@@ -287,7 +287,7 @@ type RepoConfig struct {
 }
 
 // NewRepoConfig creates a new repo config from a byte buffer.
-func NewRepoConfig(buf []byte) (*RepoConfig, error) {
+func NewRepoConfig(buf []byte) (*RepoConfig, *errors.Error) {
 	r := &RepoConfig{}
 
 	if err := yaml.UnmarshalStrict(buf, r); err != nil {
@@ -306,7 +306,7 @@ func (r *RepoConfig) handleOverrides() {
 }
 
 // Validate returns any error if there are validation errors in the repo config.
-func (r *RepoConfig) Validate() error {
+func (r *RepoConfig) Validate() *errors.Error {
 	// it doesn't do much right now..
 	if r.Queue == "" {
 		return errors.New("queue was empty")

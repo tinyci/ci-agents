@@ -18,7 +18,7 @@ type Ref struct {
 }
 
 // NewRefFromProto converts a proto ref to a real ref.
-func NewRefFromProto(r *types.Ref) (*Ref, error) {
+func NewRefFromProto(r *types.Ref) (*Ref, *errors.Error) {
 	repo, err := NewRepositoryFromProto(r.Repository)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (r *Ref) ToProto() *types.Ref {
 }
 
 // Validate validates the ref before saving it and after fetching it.
-func (r *Ref) Validate() error {
+func (r *Ref) Validate() *errors.Error {
 	if r.Repository == nil {
 		return errors.New("invalid repository")
 	}
@@ -67,7 +67,7 @@ func (r *Ref) Validate() error {
 // hook chain
 func (r *Ref) AfterFind(tx *gorm.DB) error {
 	if err := r.Validate(); err != nil {
-		return errors.New(err).(errors.Error).Wrapf("reading ref id %d (%q)", r.ID, r.SHA)
+		return errors.New(err).Wrapf("reading ref id %d (%q)", r.ID, r.SHA)
 	}
 
 	return nil
@@ -81,14 +81,14 @@ func (r *Ref) BeforeCreate(tx *gorm.DB) error {
 // BeforeSave is a gorm hook to marshal the token JSON before saving the record
 func (r *Ref) BeforeSave(tx *gorm.DB) error {
 	if err := r.Validate(); err != nil {
-		return errors.New(err).(errors.Error).Wrapf("saving ref %q (%q)", r.RefName, r.SHA)
+		return errors.New(err).Wrapf("saving ref %q (%q)", r.RefName, r.SHA)
 	}
 
 	return nil
 }
 
 // GetRefByNameAndSHA returns the ref matching the name/sha combination.
-func (m *Model) GetRefByNameAndSHA(repoName string, sha string) (*Ref, error) {
+func (m *Model) GetRefByNameAndSHA(repoName string, sha string) (*Ref, *errors.Error) {
 	ref := &Ref{}
 	err := m.WrapError(
 		m.Joins("inner join repositories on refs.repository_id = repositories.id").
@@ -100,7 +100,7 @@ func (m *Model) GetRefByNameAndSHA(repoName string, sha string) (*Ref, error) {
 }
 
 // PutRef adds the ref to the database.
-func (m *Model) PutRef(ref *Ref) error {
+func (m *Model) PutRef(ref *Ref) *errors.Error {
 	return m.WrapError(m.Create(ref), "creating ref")
 }
 
@@ -110,7 +110,7 @@ func (m *Model) PutRef(ref *Ref) error {
 // Do note that it does not match the SHA; more often than not this is caused
 // by an --amend + force push which updates the SHA, or a new commit which also
 // changes the SHA. The name is the only reliable data in this case.
-func (m *Model) CancelRefByName(repoID int64, refName, baseURL string, gh github.Client) error {
+func (m *Model) CancelRefByName(repoID int64, refName, baseURL string, gh github.Client) *errors.Error {
 	tasks := []*Task{}
 
 	repo := &Repository{}

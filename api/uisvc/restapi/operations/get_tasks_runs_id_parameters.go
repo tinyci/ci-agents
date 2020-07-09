@@ -8,7 +8,7 @@ import (
 
 // GetTasksRunsIDValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func GetTasksRunsIDValidateURLParams(h *handlers.H, ctx *gin.Context) error {
+func GetTasksRunsIDValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
 	id := ctx.Param("id")
 
 	if len(id) == 0 {

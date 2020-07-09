@@ -26,22 +26,22 @@ func MakeHandlerConfig(sc config.ServiceConfig) *HandlerConfig {
 }
 
 // Validate allows you to perform your own custom validations on the configuration.
-func (hc HandlerConfig) Validate(h *handlers.H) error {
+func (hc HandlerConfig) Validate(h *handlers.H) *errors.Error {
   return nil
 }
 
 // CustomInit allows you to perform any final magic before boot.
-func (hc HandlerConfig) CustomInit(h *handlers.H) error {
+func (hc HandlerConfig) CustomInit(h *handlers.H) *errors.Error {
   return nil
 }
 
 // DBConfigure configures the database if necessary.
-func (hc HandlerConfig) DBConfigure(h *handlers.H) error {
+func (hc HandlerConfig) DBConfigure(h *handlers.H) *errors.Error {
   return nil
 }
 
 // Configure allows you to configure the routes, in particular. Setting the
 // processing functions here will be a big part of your day job.
-func (hc HandlerConfig) Configure(router handlers.Routes) error {
+func (hc HandlerConfig) Configure(router handlers.Routes) *errors.Error {
   return nil
 }

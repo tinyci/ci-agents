@@ -42,7 +42,7 @@ type Run struct {
 }
 
 // NewRunFromProto yields a new run from a protobuf message.
-func NewRunFromProto(r *gtypes.Run) (*Run, error) {
+func NewRunFromProto(r *gtypes.Run) (*Run, *errors.Error) {
 	task, err := NewTaskFromProto(r.Task)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (r *Run) ToProto() *gtypes.Run {
 
 // Validate validates the run record, accounting for creation or modification.
 // Returns error on any found.
-func (r *Run) Validate() error {
+func (r *Run) Validate() *errors.Error {
 	if r.Name == "" {
 		return errors.New("missing name")
 	}
@@ -121,11 +121,11 @@ func (r *Run) Validate() error {
 // hook chain
 func (r *Run) AfterFind(tx *gorm.DB) error {
 	if err := json.Unmarshal(r.RunSettingsJSON, &r.RunSettings); err != nil {
-		return errors.New(err).(errors.Error).Wrapf("unpacking task settings for task %d", r.ID)
+		return errors.New(err).Wrapf("unpacking task settings for task %d", r.ID)
 	}
 
 	if err := r.Validate(); err != nil {
-		return errors.New(err).(errors.Error).Wrapf("reading task id %d", r.ID)
+		return errors.New(err).Wrapf("reading task id %d", r.ID)
 	}
 
 	return nil
@@ -139,20 +139,20 @@ func (r *Run) BeforeCreate(tx *gorm.DB) error {
 // BeforeSave is a gorm hook to marshal the token JSON before saving the record
 func (r *Run) BeforeSave(tx *gorm.DB) error {
 	if err := r.Validate(); err != nil {
-		return errors.New(err).(errors.Error).Wrapf("saving task id %d", r.ID)
+		return errors.New(err).Wrapf("saving task id %d", r.ID)
 	}
 
 	var err error
 	r.RunSettingsJSON, err = json.Marshal(r.RunSettings)
 	if err != nil {
-		return errors.New(err).(errors.Error).Wrapf("marshaling settings for task id %d", r.ID)
+		return errors.New(err).Wrapf("marshaling settings for task id %d", r.ID)
 	}
 
 	return nil
 }
 
 // SetRunStatus sets the status for the run; fails if it is already set.
-func (m *Model) SetRunStatus(runID int64, gh github.Client, status, canceled bool, url, addlMessage string) error {
+func (m *Model) SetRunStatus(runID int64, gh github.Client, status, canceled bool, url, addlMessage string) *errors.Error {
 	run := &Run{}
 
 	if err := m.WrapError(m.Where("id = ?", runID).First(run), "finding run to set status"); err != nil {
@@ -166,11 +166,11 @@ func (m *Model) SetRunStatus(runID int64, gh github.Client, status, canceled boo
 	qi := &QueueItem{}
 
 	if err := m.WrapError(m.Where("run_id = ?", runID).First(qi), "finding queue item to clear during status update"); err != nil {
-		return errors.New(err).(errors.Error).Wrapf("locating queue item for run %d", runID)
+		return errors.New(err).Wrapf("locating queue item for run %d", runID)
 	}
 
 	if err := m.WrapError(m.Delete(qi), "deleting queue item during status update"); err != nil {
-		return errors.New(err).(errors.Error).Wrapf("while deleting queue item %d", qi.ID)
+		return errors.New(err).Wrapf("while deleting queue item %d", qi.ID)
 	}
 
 	bits, err := m.getRunBits(runID, gh)
@@ -203,7 +203,7 @@ func (m *Model) SetRunStatus(runID int64, gh github.Client, status, canceled boo
 }
 
 // CancelRun is a thin facade for the CancelTask functionality, loading the record from the ID provided.
-func (m *Model) CancelRun(runID int64, baseURL string, gh github.Client) error {
+func (m *Model) CancelRun(runID int64, baseURL string, gh github.Client) *errors.Error {
 	run := &Run{}
 
 	if err := m.WrapError(m.Where("id = ?", runID).First(run), "locating run for cancel"); err != nil {
@@ -215,7 +215,7 @@ func (m *Model) CancelRun(runID int64, baseURL string, gh github.Client) error {
 
 // GetCancelForRun satisfies the datasvc interface by finding the underlying
 // task's canceled state.
-func (m *Model) GetCancelForRun(runID int64) (bool, error) {
+func (m *Model) GetCancelForRun(runID int64) (bool, *errors.Error) {
 	run := &Run{}
 
 	if err := m.WrapError(m.Where("id = ?", runID).First(run), "locating run to report cancel state"); err != nil {
@@ -225,7 +225,7 @@ func (m *Model) GetCancelForRun(runID int64) (bool, error) {
 	return run.Task.Canceled, nil
 }
 
-func (m *Model) getRunBits(runID int64, gh github.Client) (*runBits, error) {
+func (m *Model) getRunBits(runID int64, gh github.Client) (*runBits, *errors.Error) {
 	run := &Run{}
 
 	load := m.DB
@@ -240,7 +240,7 @@ func (m *Model) getRunBits(runID int64, gh github.Client) (*runBits, error) {
 
 	owner, repo, err := run.Task.Submission.BaseRef.Repository.OwnerRepo()
 	if err != nil {
-		return nil, err.(errors.Error).Wrapf("invalid repository for run %d: %v", run.ID, run.Task.Submission.HeadRef.Repository.Name)
+		return nil, err.Wrapf("invalid repository for run %d: %v", run.ID, run.Task.Submission.HeadRef.Repository.Name)
 	}
 
 	if gh == nil {
@@ -258,7 +258,7 @@ func (m *Model) getRunBits(runID int64, gh github.Client) (*runBits, error) {
 }
 
 // RunList returns a list of runs with pagination.
-func (m *Model) RunList(page, perPage int64, repository, sha string) ([]*Run, error) {
+func (m *Model) RunList(page, perPage int64, repository, sha string) ([]*Run, *errors.Error) {
 	runs := []*Run{}
 
 	page, perPage, err := utils.ScopePaginationInt(page, perPage)
@@ -291,7 +291,7 @@ func (m *Model) RunList(page, perPage int64, repository, sha string) ([]*Run, er
 
 // RunListForRepository returns a list of queue items with pagination. If ref
 // is non-nil, it will isolate to the ref only.
-func (m *Model) RunListForRepository(repo *Repository, ref *Ref, page, perPage int64) ([]*Run, error) {
+func (m *Model) RunListForRepository(repo *Repository, ref *Ref, page, perPage int64) ([]*Run, *errors.Error) {
 	runs := []*Run{}
 
 	page, perPage, err := utils.ScopePaginationInt(page, perPage)
@@ -317,14 +317,14 @@ func (m *Model) RunListForRepository(repo *Repository, ref *Ref, page, perPage i
 }
 
 // RunTotalCount returns the number of items in the runs table
-func (m *Model) RunTotalCount() (int64, error) {
+func (m *Model) RunTotalCount() (int64, *errors.Error) {
 	var ret int64
 	return ret, m.WrapError(m.Table("runs").Count(&ret), "counting runs")
 }
 
 // RunTotalCountForRepository returns the number of items in the queue where
 // the parent fork matches the repository name given
-func (m *Model) RunTotalCountForRepository(repo *Repository) (int64, error) {
+func (m *Model) RunTotalCountForRepository(repo *Repository) (int64, *errors.Error) {
 	var ret int64
 	return ret, m.WrapError(
 		m.Table("runs").
@@ -340,7 +340,7 @@ func (m *Model) RunTotalCountForRepository(repo *Repository) (int64, error) {
 
 // RunTotalCountForRepositoryAndSHA returns the number of items in the queue where
 // the parent fork matches the repository name given
-func (m *Model) RunTotalCountForRepositoryAndSHA(repo *Repository, sha string) (int64, error) {
+func (m *Model) RunTotalCountForRepositoryAndSHA(repo *Repository, sha string) (int64, *errors.Error) {
 	var ret int64
 	return ret, m.WrapError(
 		m.Table("runs").
@@ -355,7 +355,7 @@ func (m *Model) RunTotalCountForRepositoryAndSHA(repo *Repository, sha string) (
 }
 
 // RunsForTicket all the runs that belong to a repository's PR.
-func (m *Model) RunsForTicket(repoName string, ticketID int) ([]*Run, error) {
+func (m *Model) RunsForTicket(repoName string, ticketID int) ([]*Run, *errors.Error) {
 	ret := []*Run{}
 
 	return ret, m.WrapError(

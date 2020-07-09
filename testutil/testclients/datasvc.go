@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/clients/data"
 	"github.com/tinyci/ci-agents/config"
+	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/types"
@@ -30,7 +31,7 @@ func (dc *DataClient) Client() *data.Client {
 }
 
 // MakeUser makes a new user with the name provided. It is given a dummy access token.
-func (dc *DataClient) MakeUser(username string) (*model.User, error) {
+func (dc *DataClient) MakeUser(username string) (*model.User, *errors.Error) {
 	return dc.client.PutUser(context.Background(), &model.User{
 		Username: username,
 		Token:    testutil.DummyToken,
@@ -38,7 +39,7 @@ func (dc *DataClient) MakeUser(username string) (*model.User, error) {
 }
 
 // MakeRepo saves a repo with name, owner, and private state.
-func (dc *DataClient) MakeRepo(fullRepo, owner string, private bool, forkOf string) error {
+func (dc *DataClient) MakeRepo(fullRepo, owner string, private bool, forkOf string) *errors.Error {
 	repos := []interface{}{
 		map[string]interface{}{"full_name": fullRepo, "private": private},
 	}

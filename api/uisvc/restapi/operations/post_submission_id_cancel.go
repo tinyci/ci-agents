@@ -21,14 +21,14 @@ import (
 // PostSubmissionIDCancel swagger:route POST /submission/{id}/cancel postSubmissionIdCancel
 // Cancel a submission by ID
 // Cancel a Submission by ID; this will cancel all sub-tasks and their runs.
-func PostSubmissionIDCancel(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) error {
+func PostSubmissionIDCancel(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()
 		u := uuid.New()
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).(errors.Error).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{

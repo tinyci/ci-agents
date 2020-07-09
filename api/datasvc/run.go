@@ -20,25 +20,25 @@ func (ds *DataServer) RunCount(ctx context.Context, rp *data.RefPair) (*data.Cou
 	if rp.RepoName != "" {
 		repo, err := ds.H.Model.GetRepositoryByName(rp.RepoName)
 		if err != nil {
-			return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+			return nil, err.ToGRPC(codes.FailedPrecondition)
 		}
 
 		if rp.Sha != "" {
 			res, err = ds.H.Model.RunTotalCountForRepositoryAndSHA(repo, rp.Sha)
 			if err != nil {
-				return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+				return nil, err.ToGRPC(codes.FailedPrecondition)
 			}
 		} else {
 			res, err = ds.H.Model.RunTotalCountForRepository(repo)
 			if err != nil {
-				return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+				return nil, err.ToGRPC(codes.FailedPrecondition)
 			}
 		}
 	} else {
-		var err error
+		var err *errors.Error
 		res, err = ds.H.Model.RunTotalCount()
 		if err != nil {
-			return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+			return nil, err.ToGRPC(codes.FailedPrecondition)
 		}
 	}
 
@@ -49,12 +49,12 @@ func (ds *DataServer) RunCount(ctx context.Context, rp *data.RefPair) (*data.Cou
 func (ds *DataServer) RunList(ctx context.Context, rq *data.RunListRequest) (*types.RunList, error) {
 	page, perPage, err := utils.ScopePaginationInt(rq.Page, rq.PerPage)
 	if err != nil {
-		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	list, err := ds.H.Model.RunList(page, perPage, rq.Repository, rq.Sha)
 	if err != nil {
-		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	ret := &types.RunList{}
@@ -71,7 +71,7 @@ func (ds *DataServer) GetRun(ctx context.Context, id *types.IntID) (*types.Run, 
 	run := &model.Run{}
 
 	if err := ds.H.Model.Preload("Task.Parent").Where("id = ?", id.ID).First(run).Error; err != nil {
-		return nil, errors.New(err).(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, errors.New(err).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return run.ToProto(), nil
@@ -82,7 +82,7 @@ func (ds *DataServer) GetRunUI(ctx context.Context, id *types.IntID) (*types.Run
 	run := &model.Run{}
 
 	if err := ds.H.Model.Where("id = ?", id.ID).First(run).Error; err != nil {
-		return nil, errors.New(err).(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, errors.New(err).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return run.ToProto(), nil

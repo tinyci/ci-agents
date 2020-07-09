@@ -50,7 +50,7 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		errors.New(err).(errors.Error).Exit()
+		errors.New(err).Exit()
 	}
 }
 
@@ -66,7 +66,7 @@ func run(ctx *cli.Context) error {
 		// last arg is CRL
 		cert, err = transport.LoadCert(ctx.GlobalString("cacert"), ctx.GlobalString("cert"), ctx.GlobalString("key"), "")
 		if err != nil {
-			return errors.New(err).(errors.Error).Wrap("while loading cert")
+			return errors.New(err).Wrap("while loading cert")
 		}
 	}
 
@@ -104,7 +104,7 @@ func run(ctx *cli.Context) error {
 	return nil
 }
 
-func inspect(token string) (*types.OAuthToken, error) {
+func inspect(token string) (*types.OAuthToken, *errors.Error) {
 	c := github.NewClientFromAccessToken(token)
 
 	login, err := c.MyLogin(context.Background())

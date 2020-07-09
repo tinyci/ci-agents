@@ -8,7 +8,7 @@ import (
 
 // GetLogAttachIDValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func GetLogAttachIDValidateURLParams(h *handlers.H, ctx *gin.Context) error {
+func GetLogAttachIDValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
 	id := ctx.Param("id")
 
 	if len(id) == 0 {

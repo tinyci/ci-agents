@@ -1,13 +1,13 @@
 package errors
 
-var errorMapping = map[string]error{
+var errorMapping = map[string]*Error{
 	"record not found": ErrNotFound,
 }
 
 // MapError finds an error by string and returns an appropriate Error for it.
 // The stack will NOT be preserved in the error and you will want to Wrap() it.
 // If there is no potential mapping, a new Error is returned.
-func MapError(err error) error {
+func MapError(err error) *Error {
 	if err == nil {
 		return nil
 	}

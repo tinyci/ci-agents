@@ -19,11 +19,11 @@ type Client struct {
 }
 
 // NewClient creates a new *Client for use.
-func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, error) {
+func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, *errors.Error) {
 	var (
 		closer  io.Closer
 		options []grpc.DialOption
-		eErr    error
+		eErr    *errors.Error
 	)
 
 	if trace {
@@ -42,16 +42,16 @@ func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, error) {
 }
 
 // Close closes the client's tracing functionality
-func (c *Client) Close() error {
+func (c *Client) Close() *errors.Error {
 	if c.closer != nil {
-		return c.closer.Close()
+		return errors.New(c.closer.Close())
 	}
 
 	return nil
 }
 
 // Capabilities notes what types of auth this server supports.
-func (c *Client) Capabilities(ctx context.Context) ([]string, error) {
+func (c *Client) Capabilities(ctx context.Context) ([]string, *errors.Error) {
 	caps, err := c.ac.Capabilities(ctx, &empty.Empty{})
 	if err != nil {
 		return nil, errors.New(err)

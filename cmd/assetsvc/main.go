@@ -32,6 +32,6 @@ func main() {
 	}
 
 	if err := s.Make().Run(os.Args); err != nil {
-		errors.New(err).(errors.Error).Exit()
+		errors.New(err).Exit()
 	}
 }

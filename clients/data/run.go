@@ -11,7 +11,7 @@ import (
 )
 
 // RunCount returns the count of all items that match the repoName and sha.
-func (c *Client) RunCount(ctx context.Context, repoName, sha string) (int64, error) {
+func (c *Client) RunCount(ctx context.Context, repoName, sha string) (int64, *errors.Error) {
 	count, err := c.client.RunCount(ctx, &data.RefPair{RepoName: repoName, Sha: sha}, grpc.WaitForReady(true))
 	if err != nil {
 		return 0, errors.New(err)
@@ -21,7 +21,7 @@ func (c *Client) RunCount(ctx context.Context, repoName, sha string) (int64, err
 }
 
 // ListRuns lists runs by repository name and sha
-func (c *Client) ListRuns(ctx context.Context, repoName, sha string, page, perPage int64) ([]*model.Run, error) {
+func (c *Client) ListRuns(ctx context.Context, repoName, sha string, page, perPage int64) ([]*model.Run, *errors.Error) {
 	list, err := c.client.RunList(ctx, &data.RunListRequest{Repository: repoName, Sha: sha, Page: page, PerPage: perPage}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
@@ -42,7 +42,7 @@ func (c *Client) ListRuns(ctx context.Context, repoName, sha string, page, perPa
 }
 
 // GetRun retrieves a run by id.
-func (c *Client) GetRun(ctx context.Context, id int64) (*model.Run, error) {
+func (c *Client) GetRun(ctx context.Context, id int64) (*model.Run, *errors.Error) {
 	run, err := c.client.GetRun(ctx, &types.IntID{ID: id}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)
@@ -52,7 +52,7 @@ func (c *Client) GetRun(ctx context.Context, id int64) (*model.Run, error) {
 }
 
 // GetRunUI retrieves a run by id.
-func (c *Client) GetRunUI(ctx context.Context, id int64) (*model.Run, error) {
+func (c *Client) GetRunUI(ctx context.Context, id int64) (*model.Run, *errors.Error) {
 	run, err := c.client.GetRunUI(ctx, &types.IntID{ID: id}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errors.New(err)

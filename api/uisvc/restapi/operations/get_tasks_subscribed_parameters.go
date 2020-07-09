@@ -2,12 +2,13 @@ package operations
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 )
 
 // GetTasksSubscribedValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func GetTasksSubscribedValidateURLParams(h *handlers.H, ctx *gin.Context) error {
+func GetTasksSubscribedValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
 	page := ctx.Query("page")
 
 	if len(page) == 0 {

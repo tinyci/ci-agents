@@ -5,12 +5,13 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 	"github.com/tinyci/ci-agents/types"
 )
 
 // Submit powers a manual submission to the queuesvc.
-func Submit(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
+func Submit(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	repo := ctx.GetString("repository")
 	sha := ctx.GetString("sha")
 

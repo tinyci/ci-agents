@@ -8,7 +8,7 @@ import (
 
 // PostCapabilitiesUsernameCapabilityValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func PostCapabilitiesUsernameCapabilityValidateURLParams(h *handlers.H, ctx *gin.Context) error {
+func PostCapabilitiesUsernameCapabilityValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
 	capability := ctx.Param("capability")
 
 	if len(capability) == 0 {

@@ -22,14 +22,14 @@ import (
 // Removes a specific repository from CI.
 // Will fail if not added to CI already; does not currently clear the hook.
 //
-func GetRepositoriesCiDelOwnerRepo(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) error {
+func GetRepositoriesCiDelOwnerRepo(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()
 		u := uuid.New()
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).(errors.Error).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{
