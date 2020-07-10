@@ -6,7 +6,7 @@ import (
 )
 
 // GetRunsForTask is just a join of all runs that belong to a task.
-func (m *Model) GetRunsForTask(id, page, perPage int64) ([]*Run, error) {
+func (m *Model) GetRunsForTask(id, page, perPage int64) ([]*Run, *errors.Error) {
 	runs := []*Run{}
 
 	page, perPage, err := utils.ScopePaginationInt(page, perPage)
@@ -22,7 +22,7 @@ func (m *Model) GetRunsForTask(id, page, perPage int64) ([]*Run, error) {
 }
 
 // CountRunsForTask retrieves the total count of runs for the given task.
-func (m *Model) CountRunsForTask(id int64) (int64, error) {
+func (m *Model) CountRunsForTask(id int64) (int64, *errors.Error) {
 	var count int64
 
 	if err := m.Model(&Run{}).Where("task_id = ?", id).Count(&count).Error; err != nil {

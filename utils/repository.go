@@ -14,7 +14,7 @@ var (
 
 // OwnerRepo returns the owner and repository parts of a github full repository
 // name. It returns an error if there are issues.
-func OwnerRepo(repoName string) (string, string, error) {
+func OwnerRepo(repoName string) (string, string, *errors.Error) {
 	parts := strings.Split(repoName, "/")
 	if len(parts) != 2 {
 		return "", "", errors.New("parsing repository name: invalid number of parts")
@@ -65,7 +65,7 @@ func IsSHA(sha string) bool {
 
 // QualifyBranch corrects branch data to reflect our internal ref-type/ref-name
 // strategy for tracking branches. It returns an error when it can't figure it out.
-func QualifyBranch(branch string) (string, error) {
+func QualifyBranch(branch string) (string, *errors.Error) {
 	if IsSHA(branch) {
 		return branch, errors.New("is not a branch; is a sha")
 	}

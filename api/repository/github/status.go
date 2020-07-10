@@ -16,11 +16,11 @@ import (
 func (rs *RepositoryServer) CommentError(ctx context.Context, cer *repository.CommentErrorRequest) (*empty.Empty, error) {
 	owner, repo, retErr := utils.OwnerRepo(cer.RepoName)
 	if retErr != nil {
-		return nil, retErr.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, retErr.ToGRPC(codes.FailedPrecondition)
 	}
 	gh, err := rs.getClientForRepo(ctx, cer.RepoName)
 	if err != nil {
-		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	_, _, eerr := gh.Issues.CreateComment(ctx, owner, repo, int(cer.PrID), &github.IssueComment{
@@ -34,7 +34,7 @@ func (rs *RepositoryServer) CommentError(ctx context.Context, cer *repository.Co
 	return &empty.Empty{}, nil
 }
 
-func (rs *RepositoryServer) getStatusInfo(ctx context.Context, repoName string) (*github.Client, string, string, error) {
+func (rs *RepositoryServer) getStatusInfo(ctx context.Context, repoName string) (*github.Client, string, string, *errors.Error) {
 	owner, repo, err := utils.OwnerRepo(repoName)
 	if err != nil {
 		return nil, "", "", err
@@ -52,7 +52,7 @@ func (rs *RepositoryServer) getStatusInfo(ctx context.Context, repoName string) 
 func (rs *RepositoryServer) PendingStatus(ctx context.Context, sr *repository.StatusRequest) (*empty.Empty, error) {
 	gh, owner, repo, err := rs.getStatusInfo(ctx, sr.RepoName)
 	if err != nil {
-		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	_, _, eErr := gh.Repositories.CreateStatus(ctx, owner, repo, sr.Sha, &github.RepoStatus{
@@ -62,7 +62,7 @@ func (rs *RepositoryServer) PendingStatus(ctx context.Context, sr *repository.St
 		Context:     github.String(sr.RunName),
 	})
 	if eErr != nil {
-		return nil, errors.New(eErr).(errors.Error).Wrapf("creating status for %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
+		return nil, errors.New(eErr).Wrapf("creating status for %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -72,7 +72,7 @@ func (rs *RepositoryServer) PendingStatus(ctx context.Context, sr *repository.St
 func (rs *RepositoryServer) StartedStatus(ctx context.Context, sr *repository.StatusRequest) (*empty.Empty, error) {
 	gh, owner, repo, err := rs.getStatusInfo(ctx, sr.RepoName)
 	if err != nil {
-		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	_, _, eErr := gh.Repositories.CreateStatus(ctx, owner, repo, sr.Sha, &github.RepoStatus{
@@ -82,7 +82,7 @@ func (rs *RepositoryServer) StartedStatus(ctx context.Context, sr *repository.St
 		Context:     github.String(sr.RunName),
 	})
 	if eErr != nil {
-		return nil, errors.New(eErr).(errors.Error).Wrapf("creating status for %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
+		return nil, errors.New(eErr).Wrapf("creating status for %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -100,18 +100,18 @@ func capStatus(str string) *string {
 func (rs *RepositoryServer) ErrorStatus(ctx context.Context, esr *repository.ErrorStatusRequest) (*empty.Empty, error) {
 	gh, owner, repo, err := rs.getStatusInfo(ctx, esr.RepoName)
 	if err != nil {
-		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	_, _, eErr := gh.Repositories.CreateStatus(ctx, owner, repo, esr.Sha, &github.RepoStatus{
 		TargetURL: github.String(esr.Url),
 		State:     github.String("error"),
 		// github statuses cap at 140c
-		Description: capStatus(errors.New(esr.Error).(errors.Error).Wrap("The run encountered an error").Error()),
+		Description: capStatus(errors.New(esr.Error).Wrap("The run encountered an error").Error()),
 		Context:     github.String(esr.RunName),
 	})
 	if eErr != nil {
-		return nil, errors.New(eErr).(errors.Error).Wrapf("creating status for %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
+		return nil, errors.New(eErr).Wrapf("creating status for %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -121,7 +121,7 @@ func (rs *RepositoryServer) ErrorStatus(ctx context.Context, esr *repository.Err
 func (rs *RepositoryServer) FinishedStatus(ctx context.Context, fsr *repository.FinishedStatusRequest) (*empty.Empty, error) {
 	gh, owner, repo, err := rs.getStatusInfo(ctx, fsr.RepoName)
 	if err != nil {
-		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	statusString := "failure"
@@ -137,7 +137,7 @@ func (rs *RepositoryServer) FinishedStatus(ctx context.Context, fsr *repository.
 		Context:     github.String(fsr.RunName),
 	})
 	if eErr != nil {
-		return nil, errors.New(eErr).(errors.Error).Wrapf("creating status for %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
+		return nil, errors.New(eErr).Wrapf("creating status for %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &empty.Empty{}, nil
@@ -148,7 +148,7 @@ func (rs *RepositoryServer) FinishedStatus(ctx context.Context, fsr *repository.
 func (rs *RepositoryServer) ClearStates(ctx context.Context, rsp *repository.RepoSHAPair) (*empty.Empty, error) {
 	gh, owner, repo, err := rs.getStatusInfo(ctx, rsp.RepoName)
 	if err != nil {
-		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	statuses := []*github.RepoStatus{}
@@ -158,7 +158,7 @@ func (rs *RepositoryServer) ClearStates(ctx context.Context, rsp *repository.Rep
 	for {
 		states, _, err := gh.Repositories.ListStatuses(ctx, owner, repo, rsp.Sha, &github.ListOptions{Page: i, PerPage: 200})
 		if err != nil {
-			return nil, errors.New(err).(errors.Error).ToGRPC(codes.FailedPrecondition)
+			return nil, errors.New(err).ToGRPC(codes.FailedPrecondition)
 		}
 
 		if len(states) == 0 {
@@ -182,7 +182,7 @@ func (rs *RepositoryServer) ClearStates(ctx context.Context, rsp *repository.Rep
 		status.Description = github.String("The run that this test was a part of has been overridden by a new run. Pushing a new change will remove this error.")
 		_, _, err := gh.Repositories.CreateStatus(ctx, owner, repo, rsp.Sha, status)
 		if err != nil {
-			return nil, errors.New(err).(errors.Error).ToGRPC(codes.FailedPrecondition)
+			return nil, errors.New(err).ToGRPC(codes.FailedPrecondition)
 		}
 	}
 

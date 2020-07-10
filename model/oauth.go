@@ -49,7 +49,7 @@ func (o *OAuth) GetScopes() map[string]struct{} {
 
 // OAuthRegisterState registers a state code in a uniqueness table that tracks
 // it.
-func (m *Model) OAuthRegisterState(state string, scopes []string) error {
+func (m *Model) OAuthRegisterState(state string, scopes []string) *errors.Error {
 	oa := &OAuth{
 		State:     state,
 		ExpiresOn: time.Now().Add(OAuthExpiration),
@@ -61,11 +61,11 @@ func (m *Model) OAuthRegisterState(state string, scopes []string) error {
 
 // OAuthValidateState validates that the state we sent actually exists and is
 // ready to be consumed. In the event it is not, it returns error.
-func (m *Model) OAuthValidateState(state string) (*OAuth, error) {
+func (m *Model) OAuthValidateState(state string) (*OAuth, *errors.Error) {
 	oa := &OAuth{}
 	err := m.WrapError(m.Where("state = ? and expires_on > now()", state).Find(&oa), "validating oauth state")
 	if err != nil {
-		return nil, errors.New(err).(errors.Error).Wrap(errors.ErrNotFound)
+		return nil, errors.New(err).Wrap(errors.ErrNotFound)
 	}
 
 	defer m.Delete(&OAuth{State: state})

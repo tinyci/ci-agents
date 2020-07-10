@@ -19,11 +19,11 @@ type Client struct {
 }
 
 // NewClient creates a new *Client for use.
-func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, error) {
+func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, *errors.Error) {
 	var (
 		closer  io.Closer
 		options []grpc.DialOption
-		eErr    error
+		eErr    *errors.Error
 	)
 
 	if trace {
@@ -41,16 +41,16 @@ func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, error) {
 }
 
 // Close closes the client's tracing functionality
-func (c *Client) Close() error {
+func (c *Client) Close() *errors.Error {
 	if c.closer != nil {
-		return c.closer.Close()
+		return errors.New(c.closer.Close())
 	}
 
 	return nil
 }
 
 // Write writes a log at id with the supplied reader providing the content.
-func (c *Client) Write(ctx context.Context, id int64, f io.Reader) error {
+func (c *Client) Write(ctx context.Context, id int64, f io.Reader) *errors.Error {
 	s, err := c.ac.PutLog(ctx, grpc.WaitForReady(true))
 	if err != nil {
 		return errors.New(err)
@@ -88,7 +88,7 @@ func (c *Client) Write(ctx context.Context, id int64, f io.Reader) error {
 	}
 }
 
-func (c *Client) Read(ctx context.Context, id int64, w io.Writer) error {
+func (c *Client) Read(ctx context.Context, id int64, w io.Writer) *errors.Error {
 	as, err := c.ac.GetLog(ctx, &types.IntID{ID: id}, grpc.WaitForReady(false))
 	if err != nil {
 		return errors.New(err)

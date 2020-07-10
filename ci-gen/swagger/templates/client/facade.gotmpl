@@ -14,6 +14,6 @@ import (
 
 // New creates a new *Client. Passing a cert will enable client/server
 // certificate authentication; otherwise pass nil for no auth.
-func New(baseURL, token string, cert *transport.Cert) (*operations.Client, error) {
+func New(baseURL, token string, cert *transport.Cert) (*operations.Client, *errors.Error) {
   return operations.New(baseURL, token, cert)
 }

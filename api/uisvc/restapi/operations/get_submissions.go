@@ -21,14 +21,14 @@ import (
 // GetSubmissions swagger:route GET /submissions getSubmissions
 // List submisssions
 // Retrieve a list of Submissions; this will return the full Submission object including all relationships.
-func GetSubmissions(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) error {
+func GetSubmissions(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()
 		u := uuid.New()
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).(errors.Error).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{

@@ -89,7 +89,7 @@ type ClientConfig struct {
 	Cert CertConfig `yaml:"tls"`
 }
 
-func parseURL(svc, u string) error {
+func parseURL(svc, u string) *errors.Error {
 	if strings.TrimSpace(u) == "" {
 		// URLs do not need to be supplied for all services, so the services themselves
 		// will validate this later. This is just for ensuring they're actual URLs.
@@ -98,14 +98,14 @@ func parseURL(svc, u string) error {
 
 	_, err := url.Parse(u)
 	if err != nil {
-		return errors.New(err).(errors.Error).Wrapf("url for service %v is invalid: %q", svc, u)
+		return errors.New(err).Wrapf("url for service %v is invalid: %q", svc, u)
 	}
 
 	return nil
 }
 
 // Validate validates the client configuration to ensure basic needs are met.
-func (cc *ClientConfig) Validate() error {
+func (cc *ClientConfig) Validate() *errors.Error {
 	urlmap := map[string]string{
 		"datasvc":   cc.Data,
 		"uisvc":     cc.UI,
@@ -126,7 +126,7 @@ func (cc *ClientConfig) Validate() error {
 
 // CreateClients creates all the clients that are populated in the clients
 // struct. It will also tweak any settings for the github client.
-func (cc *ClientConfig) CreateClients(uc UserConfig, service string) (*Clients, error) {
+func (cc *ClientConfig) CreateClients(uc UserConfig, service string) (*Clients, *errors.Error) {
 	if err := cc.Validate(); err != nil {
 		return nil, err
 	}

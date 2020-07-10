@@ -41,13 +41,13 @@ const (
 )
 
 // Close closes the client's tracing functionality
-func (c *Client) Close() error {
+func (c *Client) Close() *errors.Error {
 	remoteMutex.Lock()
 	defer remoteMutex.Unlock()
 
 	if !c.closed && c.closer != nil {
 		c.closed = true
-		return c.closer.Close()
+		return errors.New(c.closer.Close())
 	}
 
 	return nil
@@ -103,14 +103,14 @@ func (f *Fields) ToLogrus() map[string]interface{} {
 }
 
 // ConfigureRemote configures the remote endpoint with a provided URL.
-func ConfigureRemote(addr string, cert *transport.Cert, trace bool) error {
+func ConfigureRemote(addr string, cert *transport.Cert, trace bool) *errors.Error {
 	remoteMutex.Lock()
 	defer remoteMutex.Unlock()
 
 	var (
 		closer  io.Closer
 		options []grpc.DialOption
-		eErr    error
+		eErr    *errors.Error
 	)
 
 	if trace {

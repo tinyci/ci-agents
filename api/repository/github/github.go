@@ -6,6 +6,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
+	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"golang.org/x/oauth2"
 )
@@ -15,7 +16,7 @@ type RepositoryServer struct {
 	H *handler.H
 }
 
-func (rs *RepositoryServer) getClientForRepo(ctx context.Context, repoName string) (*github.Client, error) {
+func (rs *RepositoryServer) getClientForRepo(ctx context.Context, repoName string) (*github.Client, *errors.Error) {
 	repo, err := rs.H.Clients.Data.GetRepository(ctx, repoName)
 	if err != nil {
 		return nil, err
@@ -29,7 +30,7 @@ func (rs *RepositoryServer) getClientForRepo(ctx context.Context, repoName strin
 	return github.NewClient(tc), nil
 }
 
-func (rs *RepositoryServer) getClientForUser(ctx context.Context, u *types.User) (*github.Client, error) {
+func (rs *RepositoryServer) getClientForUser(ctx context.Context, u *types.User) (*github.Client, *errors.Error) {
 	user, err := model.NewUserFromProto(u)
 	if err != nil {
 		return nil, err

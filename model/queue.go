@@ -22,7 +22,7 @@ type QueueItem struct {
 }
 
 // NewQueueItemFromProto converts in the opposite direction of ToProto.
-func NewQueueItemFromProto(tqi *types.QueueItem) (*QueueItem, error) {
+func NewQueueItemFromProto(tqi *types.QueueItem) (*QueueItem, *errors.Error) {
 	run, err := NewRunFromProto(tqi.Run)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (qi *QueueItem) ToProto() *types.QueueItem {
 // hook chain
 func (qi *QueueItem) AfterFind(tx *gorm.DB) error {
 	if err := qi.Validate(); err != nil {
-		return errors.New(err).(errors.Error).Wrapf("reading queue item %d", qi.ID)
+		return errors.New(err).Wrapf("reading queue item %d", qi.ID)
 	}
 
 	return nil
@@ -79,14 +79,14 @@ func (qi *QueueItem) BeforeCreate(tx *gorm.DB) error {
 // BeforeSave is a gorm hook to marshal the token JSON before saving the record
 func (qi *QueueItem) BeforeSave(tx *gorm.DB) error {
 	if err := qi.Validate(); err != nil {
-		return errors.New(err).(errors.Error).Wrapf("saving queue item %d", qi.ID)
+		return errors.New(err).Wrapf("saving queue item %d", qi.ID)
 	}
 
 	return nil
 }
 
 // Validate the item. if passed true, will validate for creation scenarios
-func (qi *QueueItem) Validate() error {
+func (qi *QueueItem) Validate() *errors.Error {
 	if qi.Run == nil {
 		return errors.New("run was nil")
 	}
@@ -99,14 +99,14 @@ func (qi *QueueItem) Validate() error {
 }
 
 // QueueTotalCount returns the number of items in the queue
-func (m *Model) QueueTotalCount() (int64, error) {
+func (m *Model) QueueTotalCount() (int64, *errors.Error) {
 	var ret int64
 	return ret, m.WrapError(m.Table("queue_items").Count(&ret), "computing total queue count")
 }
 
 // QueueTotalCountForRepository returns the number of items in the queue where
 // the parent fork matches the repository name given
-func (m *Model) QueueTotalCountForRepository(repo *Repository) (int64, error) {
+func (m *Model) QueueTotalCountForRepository(repo *Repository) (int64, *errors.Error) {
 	var ret int64
 	return ret, m.WrapError(
 		m.Table("queue_items").
@@ -122,7 +122,7 @@ func (m *Model) QueueTotalCountForRepository(repo *Repository) (int64, error) {
 
 // NextQueueItem returns the next item in the named queue. If for some reason the
 // queueName is an empty string, the string `default` will be used instead.
-func (m *Model) NextQueueItem(runningOn string, queueName string) (*QueueItem, error) {
+func (m *Model) NextQueueItem(runningOn string, queueName string) (*QueueItem, *errors.Error) {
 	if queueName == "" {
 		queueName = "default"
 	}
@@ -173,7 +173,7 @@ func (m *Model) NextQueueItem(runningOn string, queueName string) (*QueueItem, e
 }
 
 // QueueList returns a list of queue items with pagination.
-func (m *Model) QueueList(page, perPage int64) ([]*QueueItem, error) {
+func (m *Model) QueueList(page, perPage int64) ([]*QueueItem, *errors.Error) {
 	qis := []*QueueItem{}
 
 	page, perPage, err := utils.ScopePaginationInt(page, perPage)
@@ -185,7 +185,7 @@ func (m *Model) QueueList(page, perPage int64) ([]*QueueItem, error) {
 }
 
 // QueueListForRepository returns a list of queue items with pagination.
-func (m *Model) QueueListForRepository(repo *Repository, page, perPage int64) ([]*QueueItem, error) {
+func (m *Model) QueueListForRepository(repo *Repository, page, perPage int64) ([]*QueueItem, *errors.Error) {
 	qis := []*QueueItem{}
 
 	page, perPage, err := utils.ScopePaginationInt(page, perPage)
@@ -209,7 +209,7 @@ func (m *Model) QueueListForRepository(repo *Repository, page, perPage int64) ([
 }
 
 // QueuePipelineAdd adds a group of queue items in a transaction.
-func (m *Model) QueuePipelineAdd(qis []*QueueItem) ([]*QueueItem, error) {
+func (m *Model) QueuePipelineAdd(qis []*QueueItem) ([]*QueueItem, *errors.Error) {
 	db := m.Begin()
 	defer db.Rollback()
 

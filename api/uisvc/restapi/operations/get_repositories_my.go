@@ -21,14 +21,14 @@ import (
 // GetRepositoriesMy swagger:route GET /repositories/my getRepositoriesMy
 // Fetch all the writable repositories for the user.
 // Returns a types.RepositoryList for all the repos a user has write access to.
-func GetRepositoriesMy(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) error {
+func GetRepositoriesMy(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()
 		u := uuid.New()
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).(errors.Error).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{

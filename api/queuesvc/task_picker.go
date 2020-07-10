@@ -23,12 +23,12 @@ func (sp *submissionProcessor) newTaskPicker() *taskPicker {
 	return &taskPicker{handler: sp.handler, logger: sp.logger}
 }
 
-func (tp *taskPicker) pick(ctx context.Context, sub *types.Submission, repoInfo *repoInfo) ([]*model.QueueItem, error) {
+func (tp *taskPicker) pick(ctx context.Context, sub *types.Submission, repoInfo *repoInfo) ([]*model.QueueItem, *errors.Error) {
 	process := map[string]struct{}{}
 
 	dirs, taskdirs, err := tp.toProcess(ctx, repoInfo)
 	if err != nil {
-		return nil, err.(errors.Error).Wrap("determining what to process")
+		return nil, err.Wrap("determining what to process")
 	}
 
 	if (sub.All && sub.Manual) || (repoInfo.forkRef.Repository.ID == repoInfo.parent.ID && repoInfo.parentRef.RefName == repoInfo.mainBranch()) {
@@ -40,19 +40,19 @@ func (tp *taskPicker) pick(ctx context.Context, sub *types.Submission, repoInfo 
 	}
 
 	if err := tp.cancelPreviousRuns(ctx, repoInfo); err != nil {
-		return nil, err.(errors.Error).Wrap("while canceling the previous runs")
+		return nil, err.Wrap("while canceling the previous runs")
 	}
 
 	subRecord, err := tp.handler.Clients.Data.PutSubmission(ctx, &model.Submission{TicketID: repoInfo.ticketID, User: repoInfo.user, HeadRef: repoInfo.forkRef, BaseRef: repoInfo.parentRef})
 	if err != nil {
-		return nil, err.(errors.Error).Wrap("couldn't convert submission")
+		return nil, err.Wrap("couldn't convert submission")
 	}
 
 	// XXX reusing taskdirs here because it serves the same purpose, albeit
 	// slightly different form here.
 	tasks, taskdirs, err := tp.makeTaskDirs(ctx, process, subRecord, repoInfo)
 	if err != nil {
-		return nil, err.(errors.Error).Wrap("computing task directories")
+		return nil, err.Wrap("computing task directories")
 	}
 
 	queueCreateTime := time.Now()
@@ -70,7 +70,7 @@ func (tp *taskPicker) pick(ctx context.Context, sub *types.Submission, repoInfo 
 
 		tmpQIs, err := tp.generateQueueItems(ctx, dir, task, repoInfo)
 		if err != nil {
-			return nil, err.(errors.Error).Wrap("generating queue items")
+			return nil, err.Wrap("generating queue items")
 		}
 
 		qis = append(qis, tmpQIs...)
@@ -80,15 +80,15 @@ func (tp *taskPicker) pick(ctx context.Context, sub *types.Submission, repoInfo 
 	return qis, nil
 }
 
-func (tp *taskPicker) getDiffFiles(ctx context.Context, repoInfo *repoInfo) (map[string]struct{}, []string, error) {
+func (tp *taskPicker) getDiffFiles(ctx context.Context, repoInfo *repoInfo) (map[string]struct{}, []string, *errors.Error) {
 	client, err := repoInfo.client(tp.handler)
 	if err != nil {
-		return nil, nil, err.(errors.Error).Wrap("obtaining parent owner's client")
+		return nil, nil, err.Wrap("obtaining parent owner's client")
 	}
 
 	diffFiles, err := client.GetDiffFiles(ctx, repoInfo.parent.Name, repoInfo.parentRef.SHA, repoInfo.forkRef.SHA)
 	if err != nil {
-		return nil, nil, err.(errors.Error).Wrap("getting file list for diff")
+		return nil, nil, err.Wrap("getting file list for diff")
 	}
 
 	dirs := map[string]struct{}{}
@@ -105,7 +105,7 @@ func (tp *taskPicker) getDiffFiles(ctx context.Context, repoInfo *repoInfo) (map
 	return dirs, allFiles, nil
 }
 
-func (tp *taskPicker) toProcess(ctx context.Context, repoInfo *repoInfo) (map[string]struct{}, []string, error) {
+func (tp *taskPicker) toProcess(ctx context.Context, repoInfo *repoInfo) (map[string]struct{}, []string, *errors.Error) {
 	dirs, allFiles, err := tp.getDiffFiles(ctx, repoInfo)
 	if err != nil {
 		return nil, nil, err
@@ -164,14 +164,14 @@ func (tp *taskPicker) selectTasks(dirs map[string]struct{}, taskdirs []string) m
 	return process
 }
 
-func (tp *taskPicker) cancelPreviousRuns(ctx context.Context, repoInfo *repoInfo) error {
+func (tp *taskPicker) cancelPreviousRuns(ctx context.Context, repoInfo *repoInfo) *errors.Error {
 	if err := tp.handler.Clients.Data.CancelRefByName(ctx, repoInfo.forkRef.Repository.ID, repoInfo.forkRef.RefName); err != nil {
 		tp.logger.Errorf(ctx, "Couldn't cancel ref %q repo %d; will continue anyway: %v\n", repoInfo.forkRef.RefName, repoInfo.parent.ID, err)
 	}
 
 	client, err := repoInfo.client(tp.handler)
 	if err != nil {
-		return err.(errors.Error).Wrap("could not retrieve parent owner's github client")
+		return err.Wrap("could not retrieve parent owner's github client")
 	}
 
 	if err := client.ClearStates(ctx, repoInfo.parent.Name, repoInfo.forkRef.SHA); err != nil {
@@ -181,26 +181,26 @@ func (tp *taskPicker) cancelPreviousRuns(ctx context.Context, repoInfo *repoInfo
 	return nil
 }
 
-func (tp *taskPicker) makeTask(ctx context.Context, subRecord *model.Submission, dir string, repoInfo *repoInfo) (*model.Task, error) {
+func (tp *taskPicker) makeTask(ctx context.Context, subRecord *model.Submission, dir string, repoInfo *repoInfo) (*model.Task, *errors.Error) {
 	client, err := repoInfo.client(tp.handler)
 	if err != nil {
-		return nil, err.(errors.Error).Wrapf("obtaining client for parent owner")
+		return nil, err.Wrapf("obtaining client for parent owner")
 	}
 
 	content, err := client.GetFile(ctx, repoInfo.fork.Name, repoInfo.forkRef.SHA, path.Join(dir, taskConfigFilename))
 	if err != nil {
-		return nil, err.(errors.Error).Wrapf("obtaining task instructions for repo %q sha %q dir %q", repoInfo.fork.Name, repoInfo.forkRef.SHA, dir)
+		return nil, err.Wrapf("obtaining task instructions for repo %q sha %q dir %q", repoInfo.fork.Name, repoInfo.forkRef.SHA, dir)
 	}
 
 	ts, err := types.NewTaskSettings(content, false, repoInfo.repoConfig)
 	if err != nil {
 		if repoInfo.ticketID != 0 {
-			if cerr := client.CommentError(ctx, repoInfo.parent.Name, repoInfo.ticketID, err.(errors.Error).Wrap("tinyCI had an error processing your pull request")); cerr != nil {
-				return nil, cerr.(errors.Error).Wrap("attempting to alert the user about the error in their pull request")
+			if cerr := client.CommentError(ctx, repoInfo.parent.Name, repoInfo.ticketID, err.Wrap("tinyCI had an error processing your pull request")); cerr != nil {
+				return nil, cerr.Wrap("attempting to alert the user about the error in their pull request")
 			}
 		}
 
-		return nil, err.(errors.Error).Wrapf("validating task settings for repo %q sha %q dir %q", repoInfo.fork.Name, repoInfo.forkRef.SHA, dir)
+		return nil, err.Wrapf("validating task settings for repo %q sha %q dir %q", repoInfo.fork.Name, repoInfo.forkRef.SHA, dir)
 	}
 
 	return &model.Task{
@@ -211,7 +211,7 @@ func (tp *taskPicker) makeTask(ctx context.Context, subRecord *model.Submission,
 	}, nil
 }
 
-func (tp *taskPicker) makeTaskDirs(ctx context.Context, process map[string]struct{}, subRecord *model.Submission, repoInfo *repoInfo) (map[string]*model.Task, []string, error) {
+func (tp *taskPicker) makeTaskDirs(ctx context.Context, process map[string]struct{}, subRecord *model.Submission, repoInfo *repoInfo) (map[string]*model.Task, []string, *errors.Error) {
 	tasks := map[string]*model.Task{}
 
 	tp.logger.Info(ctx, "Computing task dirs")
@@ -224,7 +224,7 @@ func (tp *taskPicker) makeTaskDirs(ctx context.Context, process map[string]struc
 	for i := 0; i < len(taskdirs); i++ {
 		task, err := tp.makeTask(ctx, subRecord, taskdirs[i], repoInfo)
 		if err != nil {
-			return nil, nil, err.(errors.Error).Wrap("making task")
+			return nil, nil, err.Wrap("making task")
 		}
 
 		tasks[taskdirs[i]] = task
@@ -241,12 +241,12 @@ func (tp *taskPicker) makeTaskDirs(ctx context.Context, process map[string]struc
 	return tasks, taskdirs, nil
 }
 
-func (tp *taskPicker) generateQueueItems(ctx context.Context, dir string, task *model.Task, repoInfo *repoInfo) ([]*model.QueueItem, error) {
+func (tp *taskPicker) generateQueueItems(ctx context.Context, dir string, task *model.Task, repoInfo *repoInfo) ([]*model.QueueItem, *errors.Error) {
 	qis := []*model.QueueItem{}
 
 	task, err := tp.handler.Clients.Data.PutTask(ctx, task)
 	if err != nil {
-		return nil, err.(errors.Error).Wrap("Could not insert task")
+		return nil, err.Wrap("Could not insert task")
 	}
 
 	names := []string{}
@@ -260,7 +260,7 @@ func (tp *taskPicker) generateQueueItems(ctx context.Context, dir string, task *
 	for _, name := range names {
 		qi, err := tp.makeRunQueue(ctx, name, dir, task, repoInfo)
 		if err != nil {
-			return nil, err.(errors.Error).Wrap("constructing queue item")
+			return nil, err.Wrap("constructing queue item")
 		}
 		qis = append(qis, qi)
 	}
@@ -268,7 +268,7 @@ func (tp *taskPicker) generateQueueItems(ctx context.Context, dir string, task *
 	return qis, nil
 }
 
-func (tp *taskPicker) makeRunQueue(ctx context.Context, name, dir string, task *model.Task, repoInfo *repoInfo) (*model.QueueItem, error) {
+func (tp *taskPicker) makeRunQueue(ctx context.Context, name, dir string, task *model.Task, repoInfo *repoInfo) (*model.QueueItem, *errors.Error) {
 	rs := task.TaskSettings.Runs[name]
 
 	dirStr := dir
@@ -300,10 +300,10 @@ func (tp *taskPicker) setPendingStatus(ctx context.Context, run *model.Run, repo
 
 	client, err := repoInfo.client(tp.handler)
 	if err != nil {
-		tp.logger.Error(ctx, err.(errors.Error).Wrap("could not obtain client for parent owner"))
+		tp.logger.Error(ctx, err.Wrap("could not obtain client for parent owner"))
 	}
 
 	if err := client.PendingStatus(ctx, parts[0], parts[1], run.Name, repoInfo.forkRef.SHA, tp.handler.URL); err != nil {
-		tp.logger.Error(ctx, err.(errors.Error).Wrap("could not set pending status"))
+		tp.logger.Error(ctx, err.Wrap("could not set pending status"))
 	}
 }

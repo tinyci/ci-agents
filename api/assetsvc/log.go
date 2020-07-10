@@ -46,22 +46,21 @@ func (as *AssetServer) GetLog(id *types.IntID, ag asset.Asset_GetLogServer) erro
 	return as.attach(id.ID, ag, as.getLogsRoot())
 }
 
-func (as *AssetServer) submit(ap asset.Asset_PutLogServer, p string) (retErr error) {
+func (as *AssetServer) submit(ap asset.Asset_PutLogServer, p string) (retErr *errors.Error) {
 	defer func() {
 		if retErr != nil {
-			retErr = errors.New(retErr).(errors.Error).ToGRPC(codes.FailedPrecondition)
 			md := metadata.New(nil)
-			md.Append("errors", retErr.Error())
+			md.Append("errors", retErr.ToGRPC(codes.FailedPrecondition).Error())
 			ap.SetTrailer(md)
 		}
 	}()
 	if err := os.MkdirAll(p, 0700); err != nil {
-		return err
+		return errors.New(err)
 	}
 
 	ls, err := ap.Recv()
 	if err != nil {
-		return err
+		return errors.New(err)
 	}
 
 	file := path.Join(p, fmt.Sprintf("%d", ls.ID))
@@ -76,7 +75,7 @@ func (as *AssetServer) submit(ap asset.Asset_PutLogServer, p string) (retErr err
 
 	writing, err := os.Create(file + ".writing")
 	if err != nil {
-		return err
+		return errors.New(err)
 	}
 	defer func() {
 		writing.Close()
@@ -85,16 +84,16 @@ func (as *AssetServer) submit(ap asset.Asset_PutLogServer, p string) (retErr err
 
 	f, err := os.Create(file)
 	if err != nil {
-		return err
+		return errors.New(err)
 	}
 	defer f.Close()
 
 	for {
 		if _, err := f.Write(ls.Chunk); err != nil {
-			return err
+			return errors.New(err)
 		}
 		if ls, err = ap.Recv(); err != nil {
-			return err
+			return errors.New(err)
 		}
 	}
 }
@@ -106,7 +105,13 @@ func write(ag asset.Asset_GetLogServer, buf []byte) error {
 func (as *AssetServer) attach(id int64, ag asset.Asset_GetLogServer, p string) (retErr error) {
 	defer func() {
 		if retErr != nil {
-			retErr = errors.New(retErr).(errors.Error).ToGRPC(codes.FailedPrecondition)
+			switch err := retErr.(type) {
+			case *errors.Error:
+				retErr = err.ToGRPC(codes.FailedPrecondition)
+			default:
+				retErr = errors.New(err).ToGRPC(codes.FailedPrecondition)
+			}
+
 		} else {
 			retErr = write(ag, []byte(color.New(color.FgGreen).Sprintln("---- LOG COMPLETE ----")))
 		}

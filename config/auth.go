@@ -36,7 +36,7 @@ type CertConfig struct {
 }
 
 // Validate the certificate configuration (if supplied)
-func (cc *CertConfig) Validate() error {
+func (cc *CertConfig) Validate() *errors.Error {
 	ca := strings.TrimSpace(cc.CAFile)
 	cert := strings.TrimSpace(cc.CertFile)
 	key := strings.TrimSpace(cc.KeyFile)
@@ -61,7 +61,7 @@ func (cc *CertConfig) Validate() error {
 }
 
 // Validate ensures the auth configuration is sane.
-func (ac *AuthConfig) Validate(parseCrypt bool) error {
+func (ac *AuthConfig) Validate(parseCrypt bool) *errors.Error {
 	if parseCrypt {
 		ac.sessionCryptKey = types.DecodeKey(ac.SessionCryptKey)
 		if err := validateAESKey(ac.sessionCryptKey); err != nil {
@@ -76,7 +76,7 @@ func (ac *AuthConfig) Validate(parseCrypt bool) error {
 	return nil
 }
 
-func validateAESKey(key []byte) error {
+func validateAESKey(key []byte) *errors.Error {
 	switch len(key) {
 	case 16, 24, 32:
 	default:
@@ -87,7 +87,7 @@ func validateAESKey(key []byte) error {
 }
 
 // ParseTokenKey reads the key from the config, validates it, and assigns it to the appropriate variables
-func (ac *AuthConfig) ParseTokenKey() error {
+func (ac *AuthConfig) ParseTokenKey() *errors.Error {
 	ac.tokenCryptKey = types.DecodeKey(ac.TokenCryptKey)
 	if err := validateAESKey(ac.tokenCryptKey); err != nil {
 		return err
@@ -103,7 +103,7 @@ func (ac *AuthConfig) ParsedSessionCryptKey() []byte {
 }
 
 // Load loads the cert based on the provided config and returns it.
-func (cc CertConfig) Load() (*transport.Cert, error) {
+func (cc CertConfig) Load() (*transport.Cert, *errors.Error) {
 	if cc.CAFile == "" || cc.CertFile == "" || cc.KeyFile == "" {
 		fmt.Println("Some TLS parameters were missing; running insecure!")
 		return nil, nil

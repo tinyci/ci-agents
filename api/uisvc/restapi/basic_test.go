@@ -3,7 +3,6 @@ package restapi
 import (
 	"bytes"
 	"context"
-	"io"
 	"sort"
 	"strings"
 	"time"
@@ -55,6 +54,14 @@ func (us *uisvcSuite) TestErrors(c *check.C) {
 	c.Assert(len(errs), check.Equals, 0)
 }
 
+type closeBuffer struct {
+	*bytes.Buffer
+}
+
+func (cb *closeBuffer) Close() error {
+	return nil
+}
+
 func (us *uisvcSuite) TestLogAttach(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
 	_, doneChan, tc, _, err := MakeUIServer(client)
@@ -63,21 +70,10 @@ func (us *uisvcSuite) TestLogAttach(c *check.C) {
 
 	c.Assert(us.assetsvcClient.Write(context.Background(), 1, bytes.NewBufferString("this is a log")), check.IsNil)
 	time.Sleep(100 * time.Millisecond)
+	buf := &closeBuffer{bytes.NewBuffer(nil)}
+	c.Assert(tc.LogAttach(ctx, 1, buf), check.IsNil)
 
-	pr, pw := io.Pipe()
-	buf := bytes.NewBuffer(nil)
-
-	finished := make(chan struct{})
-	go func() {
-		defer close(finished)
-		_, err := io.Copy(buf, pr)
-		c.Assert(err, check.IsNil)
-	}()
-
-	c.Assert(tc.LogAttach(ctx, 1, pw), check.IsNil)
-	pw.Close()
-	<-finished
-	c.Assert(strings.HasPrefix(buf.String(), "this is a log"), check.Equals, true)
+	c.Assert(strings.HasPrefix(buf.String(), "this is a log"), check.Equals, true, check.Commentf("buf: %s", buf))
 }
 
 func (us *uisvcSuite) TestTokenEndpoints(c *check.C) {

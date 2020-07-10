@@ -9,19 +9,19 @@ import (
 )
 
 // Errors processes the /errors GET endpoint
-func Errors(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
+func Errors(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
 	user, err := h.GetUser(ctx)
 	if err != nil {
 		return nil, 500, err
 	}
 
 	errs, err := h.Clients.Data.GetErrors(ctx, user.Username)
-	if err != nil && !err.(errors.Error).Contains(errors.New("record not found")) {
+	if err != nil && !err.Contains(errors.New("record not found")) {
 		return nil, 500, err
 	}
 
 	for _, err := range errs {
-		if err := h.Clients.Data.DeleteError(pCtx, err.ID, user.ID); err != nil && !err.(errors.Error).Contains(errors.New("record not found")) {
+		if err := h.Clients.Data.DeleteError(pCtx, err.ID, user.ID); err != nil && !err.Contains(errors.New("record not found")) {
 			return nil, 500, err
 		}
 	}

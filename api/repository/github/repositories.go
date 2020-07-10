@@ -20,7 +20,7 @@ func (rs *RepositoryServer) MyRepositories(ctx context.Context, user *types.User
 
 	gh, err := rs.getClientForUser(ctx, user)
 	if err != nil {
-		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	for {
@@ -73,17 +73,17 @@ func (rs *RepositoryServer) MyRepositories(ctx context.Context, user *types.User
 func (rs *RepositoryServer) GetRepository(ctx context.Context, uwn *repository.UserWithRepo) (*repository.RepositoryData, error) {
 	owner, repo, err := utils.OwnerRepo(uwn.RepoName)
 	if err != nil {
-		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	gh, err := rs.getClientForUser(ctx, uwn.User)
 	if err != nil {
-		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	r, _, eErr := gh.Repositories.Get(ctx, owner, repo)
 	if eErr != nil {
-		return nil, errors.New(eErr).(errors.Error).Wrapf("Could not fetch repository %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
+		return nil, errors.New(eErr).Wrapf("Could not fetch repository %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
 	}
 
 	outRepo := &repository.RepositoryData{

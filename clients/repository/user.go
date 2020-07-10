@@ -9,7 +9,7 @@ import (
 
 // MyLogin returns the username calling out to the API with its key. Can either
 // be seeded by OAuth or Personal Token.
-func (c *Client) MyLogin(ctx context.Context, token string) (string, error) {
+func (c *Client) MyLogin(ctx context.Context, token string) (string, *errors.Error) {
 	res, err := c.client.MyLogin(ctx, &repository.String{Name: token})
 	if err != nil {
 		return "", errors.New(err)

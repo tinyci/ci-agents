@@ -3,12 +3,13 @@ package utils
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/tinyci/ci-agents/errors"
 )
 
 var (
@@ -21,9 +22,7 @@ var (
 // slowly over several polls. If a channel is provided, it will return to the
 // channel when the operation succeeds with any error if relevant, but only
 // calling it sync will return the response.
-func RetryRequest(ctx context.Context, client *http.Client, req *http.Request, returnChan chan error) (*http.Response, error) {
-	var retErr error
-
+func RetryRequest(ctx context.Context, client *http.Client, req *http.Request, returnChan chan error) (resp *http.Response, retErr error) {
 	defer func() {
 		if returnChan != nil {
 			returnChan <- retErr
@@ -35,14 +34,12 @@ func RetryRequest(ctx context.Context, client *http.Client, req *http.Request, r
 	for {
 		select {
 		case <-ctx.Done():
-			retErr = ctx.Err()
-			return nil, retErr
+			return nil, ctx.Err()
 		default:
 		}
 
 		resp, err := client.Do(req)
 		if err != nil {
-			retErr = err
 			return nil, err
 		}
 

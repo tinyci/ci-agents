@@ -50,7 +50,7 @@ func NewWrapper(rw io.ReadWriter) *Wrapper {
 // type websocket.TypeMessage.
 func (w *Wrapper) Send(message string) error {
 	if err := w.enc.Encode(Message{Type: TypeMessage, Payload: message}); err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	return nil
@@ -58,7 +58,7 @@ func (w *Wrapper) Send(message string) error {
 
 // SendError is like Send, but for errors.
 func (w *Wrapper) SendError(err error) error {
-	return errors.New(w.enc.Encode(Message{Type: TypeError, Payload: err.Error()}))
+	return w.enc.Encode(Message{Type: TypeError, Payload: err.Error()})
 }
 
 // Recv reads a single message from the reader and returns it. If the type is
@@ -68,7 +68,7 @@ func (w *Wrapper) Recv() (string, error) {
 	var msg Message
 	var eof bool
 	if err := w.dec.Decode(&msg); err != nil && err != io.EOF {
-		return msg.Payload, err
+		return msg.Payload, errors.New(err)
 	} else if err == io.EOF && msg.Type != "" {
 		eof = true
 	} else if err == io.EOF {
@@ -94,7 +94,6 @@ func (w *Wrapper) Recv() (string, error) {
 func (w *Wrapper) Write(buf []byte) (int, error) {
 	err := w.Send(string(buf))
 	if err != nil {
-
 		return len(buf), err
 	}
 
@@ -132,7 +131,7 @@ func (w *Wrapper) Read(buf []byte) (int, error) {
 	}
 
 	if err == io.EOF {
-		return l, io.EOF
+		return l, err
 	}
 
 	return l, nil

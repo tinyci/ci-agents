@@ -23,14 +23,14 @@ import (
 // Validate the logged-in status of the user. Validates the session cookie against the internal database.
 // If the user is logged in, a JSON string of "true" will be sent; otherwise an oauth redirect url will be passed for calling out to by the client.
 //
-func GetLoggedin(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) error {
+func GetLoggedin(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()
 		u := uuid.New()
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).(errors.Error).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{

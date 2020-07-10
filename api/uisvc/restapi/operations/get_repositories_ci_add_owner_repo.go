@@ -22,14 +22,14 @@ import (
 // Add a specific repository to CI.
 // Generates a hook secret and populates the user's repository with it and the hook URL. Returns 200 on success, 500 + error message on failure, or if the repository has already been added to CI.
 //
-func GetRepositoriesCiAddOwnerRepo(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) error {
+func GetRepositoriesCiAddOwnerRepo(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()
 		u := uuid.New()
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).(errors.Error).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{

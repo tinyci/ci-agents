@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func getConfig() (*config.Configuration, error) {
+func getConfig() (*config.Configuration, *errors.Error) {
 	// FIXME Taken from jaeger/opentracing examples; needs tunables.
 	cfg, err := config.FromEnv()
 	if err != nil {
@@ -25,7 +25,7 @@ func getConfig() (*config.Configuration, error) {
 }
 
 // CreateTracer creates an opentracing-compatible jaegertracing client.
-func CreateTracer(serviceName string) (io.Closer, error) {
+func CreateTracer(serviceName string) (io.Closer, *errors.Error) {
 	cfg, eErr := getConfig()
 	if eErr != nil {
 		return nil, eErr
@@ -40,7 +40,7 @@ func CreateTracer(serviceName string) (io.Closer, error) {
 }
 
 // SetUpGRPCTracing configures grpc dial functions for tracing.
-func SetUpGRPCTracing(client string) (io.Closer, []grpc.DialOption, error) {
+func SetUpGRPCTracing(client string) (io.Closer, []grpc.DialOption, *errors.Error) {
 	cfg, eErr := getConfig()
 	if eErr != nil {
 		return nil, nil, eErr

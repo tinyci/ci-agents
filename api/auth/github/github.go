@@ -35,7 +35,7 @@ func (as *AuthServer) Capabilities(ctx context.Context, e *empty.Empty) (*auth.S
 func (as *AuthServer) OAuthChallenge(ctx context.Context, ocr *auth.OAuthChallengeRequest) (*auth.OAuthInfo, error) {
 	scopes, eErr := as.H.Clients.Data.OAuthValidateState(ctx, ocr.State)
 	if eErr != nil {
-		return nil, eErr.(errors.Error).Wrap("Locating state").ToGRPC(codes.FailedPrecondition)
+		return nil, eErr.Wrap("Locating state").ToGRPC(codes.FailedPrecondition)
 	}
 
 	conf := as.H.OAuth.Config(scopes)
@@ -44,12 +44,12 @@ func (as *AuthServer) OAuthChallenge(ctx context.Context, ocr *auth.OAuthChallen
 	if err != nil {
 		switch err.(type) {
 		case *oauth2.RetrieveError:
-			return nil, errors.New(err).(errors.Error).Wrap("exchanging code for a token").ToGRPC(codes.FailedPrecondition)
+			return nil, errors.New(err).Wrap("exchanging code for a token").ToGRPC(codes.FailedPrecondition)
 		default:
 			as.H.Clients.Log.Error(ctx, err)
 			url, err := as.makeOAuthURL(ctx, scopes)
 			if err != nil {
-				return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+				return nil, err.ToGRPC(codes.FailedPrecondition)
 			}
 
 			return &auth.OAuthInfo{Url: url, Redirect: true}, nil
@@ -60,7 +60,7 @@ func (as *AuthServer) OAuthChallenge(ctx context.Context, ocr *auth.OAuthChallen
 	c := github.NewClient(client)
 	u, _, err := c.Users.Get(ctx, "")
 	if err != nil {
-		return nil, errors.New(err).(errors.Error).Wrap("Looking up token user").ToGRPC(codes.FailedPrecondition)
+		return nil, errors.New(err).Wrap("Looking up token user").ToGRPC(codes.FailedPrecondition)
 	}
 
 	user, eErr := as.H.Clients.Data.GetUser(ctx, u.GetLogin())
@@ -74,23 +74,23 @@ func (as *AuthServer) OAuthChallenge(ctx context.Context, ocr *auth.OAuthChallen
 	if eErr != nil { // same check as above; to determine whether to add or patch
 		user, eErr = as.H.Clients.Data.PutUser(ctx, user)
 		if eErr != nil {
-			return nil, eErr.(errors.Error).Wrapf("Could not create user %v", u.GetLogin()).ToGRPC(codes.FailedPrecondition)
+			return nil, eErr.Wrapf("Could not create user %v", u.GetLogin()).ToGRPC(codes.FailedPrecondition)
 		}
 	} else {
 		if err := as.H.Clients.Data.PatchUser(ctx, user); err != nil {
-			return nil, eErr.(errors.Error).Wrapf("Could not patch user %v", u.GetLogin()).ToGRPC(codes.FailedPrecondition)
+			return nil, eErr.Wrapf("Could not patch user %v", u.GetLogin()).ToGRPC(codes.FailedPrecondition)
 		}
 	}
 
 	return &auth.OAuthInfo{Username: user.Username}, nil
 }
 
-func (as *AuthServer) makeOAuthURL(ctx context.Context, scopes []string) (string, error) {
+func (as *AuthServer) makeOAuthURL(ctx context.Context, scopes []string) (string, *errors.Error) {
 	conf := as.H.OAuth.Config(scopes)
 	state := strings.TrimRight(base32.StdEncoding.EncodeToString(securecookie.GenerateRandomKey(64)), "=")
 
 	if err := as.H.Clients.Data.OAuthRegisterState(ctx, state, scopes); err != nil {
-		return "", err.(errors.Error).Wrap("registering state")
+		return "", err.Wrap("registering state")
 	}
 
 	return conf.AuthCodeURL(
@@ -103,7 +103,7 @@ func (as *AuthServer) makeOAuthURL(ctx context.Context, scopes []string) (string
 func (as *AuthServer) GetOAuthURL(ctx context.Context, scopes *auth.Scopes) (*auth.String, error) {
 	url, err := as.makeOAuthURL(ctx, scopes.List)
 	if err != nil {
-		return nil, err.(errors.Error).ToGRPC(codes.FailedPrecondition)
+		return nil, err.ToGRPC(codes.FailedPrecondition)
 	}
 
 	return &auth.String{Str: url}, nil

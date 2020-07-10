@@ -8,7 +8,7 @@ import (
 
 // GetRunRunIDValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func GetRunRunIDValidateURLParams(h *handlers.H, ctx *gin.Context) error {
+func GetRunRunIDValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
 	runID := ctx.Param("run_id")
 
 	if len(runID) == 0 {

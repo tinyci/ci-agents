@@ -24,22 +24,22 @@ var (
 
 // Client is the generic client to github operations.
 type Client interface {
-	CommentError(context.Context, string, int64, error) error
-	MyRepositories(context.Context) ([]*github.Repository, error)
-	GetRepository(context.Context, string) (*github.Repository, error)
-	MyLogin(context.Context) (string, error)
-	GetFileList(context.Context, string, string) ([]string, error)
-	GetSHA(context.Context, string, string) (string, error)
-	GetRefs(context.Context, string, string) ([]string, error)
-	GetFile(context.Context, string, string, string) ([]byte, error)
-	GetDiffFiles(context.Context, string, string, string) ([]string, error)
-	SetupHook(context.Context, string, string, string, string) error
-	TeardownHook(context.Context, string, string, string) error
-	PendingStatus(context.Context, string, string, string, string, string) error
-	StartedStatus(context.Context, string, string, string, string, string) error
-	ErrorStatus(context.Context, string, string, string, string, string, error) error
-	FinishedStatus(context.Context, string, string, string, string, string, bool, string) error
-	ClearStates(context.Context, string, string) error
+	CommentError(context.Context, string, int64, error) *errors.Error
+	MyRepositories(context.Context) ([]*github.Repository, *errors.Error)
+	GetRepository(context.Context, string) (*github.Repository, *errors.Error)
+	MyLogin(context.Context) (string, *errors.Error)
+	GetFileList(context.Context, string, string) ([]string, *errors.Error)
+	GetSHA(context.Context, string, string) (string, *errors.Error)
+	GetRefs(context.Context, string, string) ([]string, *errors.Error)
+	GetFile(context.Context, string, string, string) ([]byte, *errors.Error)
+	GetDiffFiles(context.Context, string, string, string) ([]string, *errors.Error)
+	SetupHook(context.Context, string, string, string, string) *errors.Error
+	TeardownHook(context.Context, string, string, string) *errors.Error
+	PendingStatus(context.Context, string, string, string, string, string) *errors.Error
+	StartedStatus(context.Context, string, string, string, string, string) *errors.Error
+	ErrorStatus(context.Context, string, string, string, string, string, error) *errors.Error
+	FinishedStatus(context.Context, string, string, string, string, string, bool, string) *errors.Error
+	ClearStates(context.Context, string, string) *errors.Error
 }
 
 // HTTPClient encapsulates the "real world", or http client.
@@ -59,7 +59,7 @@ func NewClientFromAccessToken(accessToken string) Client {
 }
 
 // PendingStatus updates the status for the sha for the given repo on github.
-func (c *HTTPClient) PendingStatus(ctx context.Context, owner, repo, name, sha, url string) error {
+func (c *HTTPClient) PendingStatus(ctx context.Context, owner, repo, name, sha, url string) *errors.Error {
 	if Readonly {
 		return nil
 	}
@@ -75,7 +75,7 @@ func (c *HTTPClient) PendingStatus(ctx context.Context, owner, repo, name, sha, 
 }
 
 // StartedStatus updates the status for the sha for the given repo on github.
-func (c *HTTPClient) StartedStatus(ctx context.Context, owner, repo, name, sha, url string) error {
+func (c *HTTPClient) StartedStatus(ctx context.Context, owner, repo, name, sha, url string) *errors.Error {
 	if Readonly {
 		return nil
 	}
@@ -99,7 +99,7 @@ func capStatus(str string) *string {
 }
 
 // ErrorStatus updates the status for the sha for the given repo on github.
-func (c *HTTPClient) ErrorStatus(ctx context.Context, owner, repo, name, sha, url string, outErr error) error {
+func (c *HTTPClient) ErrorStatus(ctx context.Context, owner, repo, name, sha, url string, outErr error) *errors.Error {
 	if Readonly {
 		return nil
 	}
@@ -108,7 +108,7 @@ func (c *HTTPClient) ErrorStatus(ctx context.Context, owner, repo, name, sha, ur
 		TargetURL: github.String(url),
 		State:     github.String("error"),
 		// github statuses cap at 140c
-		Description: capStatus(errors.New(outErr).(errors.Error).Wrap("The run encountered an error").Error()),
+		Description: capStatus(errors.New(outErr).Wrap("The run encountered an error").Error()),
 		Context:     github.String(name),
 	})
 
@@ -116,7 +116,7 @@ func (c *HTTPClient) ErrorStatus(ctx context.Context, owner, repo, name, sha, ur
 }
 
 // FinishedStatus updates the status for the sha for the given repo on github.
-func (c *HTTPClient) FinishedStatus(ctx context.Context, owner, repo, name, sha, url string, status bool, addlMessage string) error {
+func (c *HTTPClient) FinishedStatus(ctx context.Context, owner, repo, name, sha, url string, status bool, addlMessage string) *errors.Error {
 	if Readonly {
 		return nil
 	}
@@ -138,7 +138,7 @@ func (c *HTTPClient) FinishedStatus(ctx context.Context, owner, repo, name, sha,
 }
 
 // SetupHook sets up the pr webhook in github.
-func (c *HTTPClient) SetupHook(ctx context.Context, owner, repo, configAddress, hookSecret string) error {
+func (c *HTTPClient) SetupHook(ctx context.Context, owner, repo, configAddress, hookSecret string) *errors.Error {
 	if Readonly {
 		return nil
 	}
@@ -158,7 +158,7 @@ func (c *HTTPClient) SetupHook(ctx context.Context, owner, repo, configAddress, 
 }
 
 // TeardownHook removes the pr webhook in github.
-func (c *HTTPClient) TeardownHook(ctx context.Context, owner, repo, hookURL string) error {
+func (c *HTTPClient) TeardownHook(ctx context.Context, owner, repo, hookURL string) *errors.Error {
 	if Readonly {
 		return nil
 	}
@@ -191,7 +191,7 @@ finish:
 
 // MyRepositories returns all the writable repositories accessible to user
 // owning the access key
-func (c *HTTPClient) MyRepositories(ctx context.Context) ([]*github.Repository, error) {
+func (c *HTTPClient) MyRepositories(ctx context.Context) ([]*github.Repository, *errors.Error) {
 	var i int
 	ret := map[string]*github.Repository{}
 	order := []string{}
@@ -239,7 +239,7 @@ func (c *HTTPClient) MyRepositories(ctx context.Context) ([]*github.Repository, 
 
 // MyLogin returns the username calling out to the API with its key. Can either
 // be seeded by OAuth or Personal Token.
-func (c *HTTPClient) MyLogin(ctx context.Context) (string, error) {
+func (c *HTTPClient) MyLogin(ctx context.Context) (string, *errors.Error) {
 	if DefaultUsername != "" {
 		return DefaultUsername, nil
 	}
@@ -253,7 +253,7 @@ func (c *HTTPClient) MyLogin(ctx context.Context) (string, error) {
 }
 
 // GetRepository retrieves the github response for a given repository.
-func (c *HTTPClient) GetRepository(ctx context.Context, name string) (*github.Repository, error) {
+func (c *HTTPClient) GetRepository(ctx context.Context, name string) (*github.Repository, *errors.Error) {
 	owner, repo, eErr := utils.OwnerRepo(name)
 	if eErr != nil {
 		return nil, eErr
@@ -264,7 +264,7 @@ func (c *HTTPClient) GetRepository(ctx context.Context, name string) (*github.Re
 }
 
 // GetFileList finds all the files in the tree for the given repository
-func (c *HTTPClient) GetFileList(ctx context.Context, repoName, sha string) ([]string, error) {
+func (c *HTTPClient) GetFileList(ctx context.Context, repoName, sha string) ([]string, *errors.Error) {
 	owner, repo, eErr := utils.OwnerRepo(repoName)
 	if eErr != nil {
 		return nil, eErr
@@ -285,7 +285,7 @@ func (c *HTTPClient) GetFileList(ctx context.Context, repoName, sha string) ([]s
 }
 
 // GetSHA retrieves the SHA for the branch in the given repository
-func (c *HTTPClient) GetSHA(ctx context.Context, repoName, refName string) (string, error) {
+func (c *HTTPClient) GetSHA(ctx context.Context, repoName, refName string) (string, *errors.Error) {
 	owner, repo, eErr := utils.OwnerRepo(repoName)
 	if eErr != nil {
 		return "", eErr
@@ -300,7 +300,7 @@ func (c *HTTPClient) GetSHA(ctx context.Context, repoName, refName string) (stri
 }
 
 // GetRefs gets the refs that match the given SHA. Only heads and tags are considered.
-func (c *HTTPClient) GetRefs(ctx context.Context, repoName, sha string) ([]string, error) {
+func (c *HTTPClient) GetRefs(ctx context.Context, repoName, sha string) ([]string, *errors.Error) {
 	owner, repo, eErr := utils.OwnerRepo(repoName)
 	if eErr != nil {
 		return nil, eErr
@@ -325,7 +325,7 @@ func (c *HTTPClient) GetRefs(ctx context.Context, repoName, sha string) ([]strin
 
 // GetFile retrieves a file from github directly through the api. Used for
 // retrieving our configuration yamls and other stuff.
-func (c *HTTPClient) GetFile(ctx context.Context, repoName, sha, filename string) ([]byte, error) {
+func (c *HTTPClient) GetFile(ctx context.Context, repoName, sha, filename string) ([]byte, *errors.Error) {
 	owner, repo, eErr := utils.OwnerRepo(repoName)
 	if eErr != nil {
 		return nil, eErr
@@ -351,7 +351,7 @@ func (c *HTTPClient) GetFile(ctx context.Context, repoName, sha, filename string
 }
 
 // GetDiffFiles retrieves the files present in the diff between the base and the head.
-func (c *HTTPClient) GetDiffFiles(ctx context.Context, repoName, base, head string) ([]string, error) {
+func (c *HTTPClient) GetDiffFiles(ctx context.Context, repoName, base, head string) ([]string, *errors.Error) {
 	owner, repo, eErr := utils.OwnerRepo(repoName)
 	if eErr != nil {
 		return nil, eErr
@@ -381,7 +381,7 @@ func (c *HTTPClient) GetDiffFiles(ctx context.Context, repoName, base, head stri
 
 // ClearStates removes all status reports from a SHA in an attempt to restart
 // the process.
-func (c *HTTPClient) ClearStates(ctx context.Context, repoName, sha string) error {
+func (c *HTTPClient) ClearStates(ctx context.Context, repoName, sha string) *errors.Error {
 	if Readonly {
 		return nil
 	}
@@ -430,7 +430,7 @@ func (c *HTTPClient) ClearStates(ctx context.Context, repoName, sha string) erro
 }
 
 // CommentError is for commenting on PRs when there is no better means of bubbling up an error.
-func (c *HTTPClient) CommentError(ctx context.Context, repoName string, prID int64, err error) error {
+func (c *HTTPClient) CommentError(ctx context.Context, repoName string, prID int64, err error) *errors.Error {
 	if Readonly {
 		return nil
 	}

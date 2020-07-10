@@ -8,7 +8,7 @@ import (
 
 // GetSubmissionIDValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func GetSubmissionIDValidateURLParams(h *handlers.H, ctx *gin.Context) error {
+func GetSubmissionIDValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
 	id := ctx.Param("id")
 
 	if len(id) == 0 {

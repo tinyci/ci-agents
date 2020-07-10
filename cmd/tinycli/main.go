@@ -28,10 +28,10 @@ type Config struct {
 	Token    string
 }
 
-func getConfigPath(ctx *cli.Context) (string, error) {
+func getConfigPath(ctx *cli.Context) (string, *errors.Error) {
 	if fi, err := os.Stat(tinyCIConfig); err != nil {
 		if mkerr := os.MkdirAll(tinyCIConfig, 0700); mkerr != nil {
-			return "", errors.New("Could not make config dir").(errors.Error).Wrap(mkerr).Wrap(err)
+			return "", errors.New("Could not make config dir").Wrap(mkerr).Wrap(err)
 		}
 	} else if !fi.IsDir() {
 		return "", errors.Errorf("tinycli configuration path %q exists and is not a directory", tinyCIConfig)
@@ -45,7 +45,7 @@ func getConfigPath(ctx *cli.Context) (string, error) {
 	return path.Join(tinyCIConfig, config), nil
 }
 
-func getCert(ctx *cli.Context) (*transport.Cert, error) {
+func getCert(ctx *cli.Context) (*transport.Cert, *errors.Error) {
 	ca, certStr, keyStr := ctx.GlobalString("ca"),
 		ctx.GlobalString("cert"),
 		ctx.GlobalString("key")
@@ -62,7 +62,7 @@ func getCert(ctx *cli.Context) (*transport.Cert, error) {
 	return cert, nil
 }
 
-func loadConfig(ctx *cli.Context) (*tinyci.Client, error) {
+func loadConfig(ctx *cli.Context) (*tinyci.Client, *errors.Error) {
 	filename, e := getConfigPath(ctx)
 	if e != nil {
 		return nil, e
@@ -70,20 +70,20 @@ func loadConfig(ctx *cli.Context) (*tinyci.Client, error) {
 
 	f, err := os.Open(filename) // #nosec
 	if err != nil {
-		return nil, errors.New(err).(errors.Error).Wrapf("Cannot open tinyci configuration file %q", filename)
+		return nil, errors.New(err).Wrapf("Cannot open tinyci configuration file %q", filename)
 	}
 	defer f.Close()
 
 	c := Config{}
 
 	if err := json.NewDecoder(f).Decode(&c); err != nil {
-		return nil, errors.New(err).(errors.Error).Wrapf("Could not decode tinyCI JSON configuration in %q", filename)
+		return nil, errors.New(err).Wrapf("Could not decode tinyCI JSON configuration in %q", filename)
 	}
 
 	return c.mkClient(ctx)
 }
 
-func (c Config) mkClient(ctx *cli.Context) (*tinyci.Client, error) {
+func (c Config) mkClient(ctx *cli.Context) (*tinyci.Client, *errors.Error) {
 	cert, err := getCert(ctx)
 	if err != nil {
 		return nil, errors.New(err)
@@ -280,7 +280,7 @@ You can also specify the TINYCLI_CONFIG environment variable.
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		errors.New(err).(errors.Error).Exit()
+		errors.New(err).Exit()
 	}
 }
 
@@ -330,7 +330,7 @@ func doInit(ctx *cli.Context) error {
 	}
 
 	if _, err := client.Errors(context.Background()); err != nil {
-		return err.(errors.Error).Wrap("Could not retrieve with the client, token or URL issue")
+		return err.Wrap("Could not retrieve with the client, token or URL issue")
 	}
 
 	c := Config{
@@ -344,7 +344,7 @@ func doInit(ctx *cli.Context) error {
 	}
 	f, ferr := os.Create(filename)
 	if ferr != nil {
-		return errors.New(ferr).(errors.Error).Wrapf("Could not create configuration file %v", filename)
+		return errors.New(ferr).Wrapf("Could not create configuration file %v", filename)
 	}
 	defer f.Close()
 	defer fmt.Printf("Created configuration file %q\n", filename)
@@ -608,7 +608,7 @@ func log(ctx *cli.Context) error {
 
 	id, convErr := strconv.ParseInt(ctx.Args()[0], 10, 64)
 	if convErr != nil {
-		return errors.New(convErr).(errors.Error).Wrap("Invalid ID")
+		return errors.New(convErr).Wrap("Invalid ID")
 	}
 
 	return client.LogAttach(context.Background(), id, os.Stdout)

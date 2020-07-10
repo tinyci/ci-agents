@@ -21,14 +21,14 @@ import (
 // PostCapabilitiesUsernameCapability swagger:route POST /capabilities/{username}/{capability} postCapabilitiesUsernameCapability
 // Add a named capability
 // Add a named capability for a provided user ID. Requires the user have the 'modify:user' capability.
-func PostCapabilitiesUsernameCapability(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) error {
+func PostCapabilitiesUsernameCapability(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
 	if h.RequestLogging {
 		start := time.Now()
 		u := uuid.New()
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).(errors.Error).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{

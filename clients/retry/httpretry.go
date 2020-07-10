@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/tinyci/ci-agents/errors"
 )
 
 var defaultInterval = time.Second
@@ -52,7 +54,7 @@ func (c *HTTP) Do(ctx context.Context, req *http.Request) (*http.Response, error
 				case *net.OpError, *url.Error:
 					goto sleep
 				default:
-					return nil, err
+					return nil, errors.New(err)
 				}
 			}
 		}
