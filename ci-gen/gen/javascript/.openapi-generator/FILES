@@ -8,6 +8,7 @@ docs/ModelSubmission.md
 docs/Ref.md
 docs/RepoConfig.md
 docs/Repository.md
+docs/Resources.md
 docs/Run.md
 docs/RunSettings.md
 docs/Task.md
@@ -25,6 +26,7 @@ src/model/ModelSubmission.js
 src/model/Ref.js
 src/model/RepoConfig.js
 src/model/Repository.js
+src/model/Resources.js
 src/model/Run.js
 src/model/RunSettings.js
 src/model/Task.js
@@ -37,6 +39,7 @@ test/model/ModelSubmission.spec.js
 test/model/Ref.spec.js
 test/model/RepoConfig.spec.js
 test/model/Repository.spec.js
+test/model/Resources.spec.js
 test/model/Run.spec.js
 test/model/RunSettings.spec.js
 test/model/Task.spec.js

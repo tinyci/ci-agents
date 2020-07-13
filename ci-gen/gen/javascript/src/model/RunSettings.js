@@ -12,6 +12,7 @@
  */
 
 import ApiClient from '../ApiClient';
+import Resources from './Resources';
 
 /**
  * The RunSettings model module.
@@ -65,6 +66,9 @@ class RunSettings {
             if (data.hasOwnProperty('timeout')) {
                 obj['timeout'] = ApiClient.convertToType(data['timeout'], 'Number');
             }
+            if (data.hasOwnProperty('resources')) {
+                obj['resources'] = Resources.constructFromObject(data['resources']);
+            }
         }
         return obj;
     }
@@ -101,6 +105,11 @@ RunSettings.prototype['name'] = undefined;
  * @member {Number} timeout
  */
 RunSettings.prototype['timeout'] = undefined;
+
+/**
+ * @member {module:model/Resources} resources
+ */
+RunSettings.prototype['resources'] = undefined;
 
 
 

@@ -219,6 +219,9 @@ type TaskListItems0Settings struct {
 	// default queue
 	DefaultQueue string `json:"default_queue,omitempty"`
 
+	// default resources
+	DefaultResources *TaskListItems0SettingsDefaultResources `json:"default_resources,omitempty"`
+
 	// the default timeout; in nanoseconds
 	DefaultTimeout int64 `json:"default_timeout,omitempty"`
 
@@ -246,6 +249,10 @@ func (m *TaskListItems0Settings) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateDefaultResources(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateRuns(formats); err != nil {
 		res = append(res, err)
 	}
@@ -266,6 +273,24 @@ func (m *TaskListItems0Settings) validateConfig(formats strfmt.Registry) error {
 		if err := m.Config.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("settings" + "." + "config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *TaskListItems0Settings) validateDefaultResources(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.DefaultResources) { // not required
+		return nil
+	}
+
+	if m.DefaultResources != nil {
+		if err := m.DefaultResources.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("settings" + "." + "default_resources")
 			}
 			return err
 		}
@@ -357,6 +382,46 @@ func (m *TaskListItems0SettingsConfig) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
+// TaskListItems0SettingsDefaultResources task list items0 settings default resources
+// swagger:model TaskListItems0SettingsDefaultResources
+type TaskListItems0SettingsDefaultResources struct {
+
+	// cpu
+	CPU int64 `json:"cpu,omitempty"`
+
+	// disk
+	Disk int64 `json:"disk,omitempty"`
+
+	// iops
+	Iops int64 `json:"iops,omitempty"`
+
+	// memory
+	Memory int64 `json:"memory,omitempty"`
+}
+
+// Validate validates this task list items0 settings default resources
+func (m *TaskListItems0SettingsDefaultResources) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *TaskListItems0SettingsDefaultResources) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *TaskListItems0SettingsDefaultResources) UnmarshalBinary(b []byte) error {
+	var res TaskListItems0SettingsDefaultResources
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
 // TaskListItems0SettingsRunsAnon task list items0 settings runs anon
 // swagger:model TaskListItems0SettingsRunsAnon
 type TaskListItems0SettingsRunsAnon struct {
@@ -376,12 +441,42 @@ type TaskListItems0SettingsRunsAnon struct {
 	// queue
 	Queue string `json:"queue,omitempty"`
 
+	// resources
+	Resources *TaskListItems0SettingsRunsAnonResources `json:"resources,omitempty"`
+
 	// timeout
 	Timeout int64 `json:"timeout,omitempty"`
 }
 
 // Validate validates this task list items0 settings runs anon
 func (m *TaskListItems0SettingsRunsAnon) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateResources(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *TaskListItems0SettingsRunsAnon) validateResources(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Resources) { // not required
+		return nil
+	}
+
+	if m.Resources != nil {
+		if err := m.Resources.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("resources")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -396,6 +491,46 @@ func (m *TaskListItems0SettingsRunsAnon) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *TaskListItems0SettingsRunsAnon) UnmarshalBinary(b []byte) error {
 	var res TaskListItems0SettingsRunsAnon
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// TaskListItems0SettingsRunsAnonResources task list items0 settings runs anon resources
+// swagger:model TaskListItems0SettingsRunsAnonResources
+type TaskListItems0SettingsRunsAnonResources struct {
+
+	// cpu
+	CPU int64 `json:"cpu,omitempty"`
+
+	// disk
+	Disk int64 `json:"disk,omitempty"`
+
+	// iops
+	Iops int64 `json:"iops,omitempty"`
+
+	// memory
+	Memory int64 `json:"memory,omitempty"`
+}
+
+// Validate validates this task list items0 settings runs anon resources
+func (m *TaskListItems0SettingsRunsAnonResources) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *TaskListItems0SettingsRunsAnonResources) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *TaskListItems0SettingsRunsAnonResources) UnmarshalBinary(b []byte) error {
+	var res TaskListItems0SettingsRunsAnonResources
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

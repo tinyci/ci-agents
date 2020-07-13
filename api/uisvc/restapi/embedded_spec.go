@@ -3167,6 +3167,23 @@ func init() {
             "queue": {
               "type": "string"
             },
+            "resources": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "integer"
+                },
+                "disk": {
+                  "type": "integer"
+                },
+                "iops": {
+                  "type": "integer"
+                },
+                "memory": {
+                  "type": "integer"
+                }
+              }
+            },
             "timeout": {
               "type": "integer"
             }
@@ -3235,6 +3252,23 @@ func init() {
                   "type": "string",
                   "x-nullable": false
                 },
+                "default_resources": {
+                  "type": "object",
+                  "properties": {
+                    "cpu": {
+                      "type": "integer"
+                    },
+                    "disk": {
+                      "type": "integer"
+                    },
+                    "iops": {
+                      "type": "integer"
+                    },
+                    "memory": {
+                      "type": "integer"
+                    }
+                  }
+                },
                 "default_timeout": {
                   "description": "the default timeout; in nanoseconds",
                   "type": "integer"
@@ -3274,6 +3308,23 @@ func init() {
                       },
                       "queue": {
                         "type": "string"
+                      },
+                      "resources": {
+                        "type": "object",
+                        "properties": {
+                          "cpu": {
+                            "type": "integer"
+                          },
+                          "disk": {
+                            "type": "integer"
+                          },
+                          "iops": {
+                            "type": "integer"
+                          },
+                          "memory": {
+                            "type": "integer"
+                          }
+                        }
                       },
                       "timeout": {
                         "type": "integer"
@@ -3496,6 +3547,23 @@ func init() {
               "queue": {
                 "type": "string"
               },
+              "resources": {
+                "type": "object",
+                "properties": {
+                  "cpu": {
+                    "type": "integer"
+                  },
+                  "disk": {
+                    "type": "integer"
+                  },
+                  "iops": {
+                    "type": "integer"
+                  },
+                  "memory": {
+                    "type": "integer"
+                  }
+                }
+              },
               "timeout": {
                 "type": "integer"
               }
@@ -3564,6 +3632,23 @@ func init() {
                     "type": "string",
                     "x-nullable": false
                   },
+                  "default_resources": {
+                    "type": "object",
+                    "properties": {
+                      "cpu": {
+                        "type": "integer"
+                      },
+                      "disk": {
+                        "type": "integer"
+                      },
+                      "iops": {
+                        "type": "integer"
+                      },
+                      "memory": {
+                        "type": "integer"
+                      }
+                    }
+                  },
                   "default_timeout": {
                     "description": "the default timeout; in nanoseconds",
                     "type": "integer"
@@ -3603,6 +3688,23 @@ func init() {
                         },
                         "queue": {
                           "type": "string"
+                        },
+                        "resources": {
+                          "type": "object",
+                          "properties": {
+                            "cpu": {
+                              "type": "integer"
+                            },
+                            "disk": {
+                              "type": "integer"
+                            },
+                            "iops": {
+                              "type": "integer"
+                            },
+                            "memory": {
+                              "type": "integer"
+                            }
+                          }
                         },
                         "timeout": {
                           "type": "integer"
@@ -3835,6 +3937,23 @@ func init() {
                 "type": "string",
                 "x-nullable": false
               },
+              "default_resources": {
+                "type": "object",
+                "properties": {
+                  "cpu": {
+                    "type": "integer"
+                  },
+                  "disk": {
+                    "type": "integer"
+                  },
+                  "iops": {
+                    "type": "integer"
+                  },
+                  "memory": {
+                    "type": "integer"
+                  }
+                }
+              },
               "default_timeout": {
                 "description": "the default timeout; in nanoseconds",
                 "type": "integer"
@@ -3874,6 +3993,23 @@ func init() {
                     },
                     "queue": {
                       "type": "string"
+                    },
+                    "resources": {
+                      "type": "object",
+                      "properties": {
+                        "cpu": {
+                          "type": "integer"
+                        },
+                        "disk": {
+                          "type": "integer"
+                        },
+                        "iops": {
+                          "type": "integer"
+                        },
+                        "memory": {
+                          "type": "integer"
+                        }
+                      }
                     },
                     "timeout": {
                       "type": "integer"

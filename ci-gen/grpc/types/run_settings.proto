@@ -15,4 +15,16 @@ message RunSettings {
             google.protobuf.Struct  metadata  = 4; // Metadata is a free form grab-bag of properties for runners to use.
             string                  name      = 5; // Name is the name of the run
             int64                   timeout   = 6; // Timeout is the timeout, in seconds, to wait before automatically canceling a run.
+            Resources               resources = 7; // Resource constraint values
+}
+
+// Resources covers resource constraints that a runner might act on. It is
+// voluntary for a runner to take these values into consideration. It is also
+// up to the runner to interpret these values, and will differ between
+// different runners.
+message Resources {
+  uint32 cpu    = 1; // cpu utilization
+  uint32 memory = 2; // memory available
+  uint32 disk   = 3; // disk available
+  uint32 iops   = 4; // iops available
 }

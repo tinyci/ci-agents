@@ -114,7 +114,7 @@ func (r *Run) Validate() *errors.Error {
 		return errors.New("no settings provided")
 	}
 
-	return r.RunSettings.Validate()
+	return r.RunSettings.Validate(r.Task.TaskSettings)
 }
 
 // AfterFind validates the output from the database before releasing it to the

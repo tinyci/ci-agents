@@ -108,6 +108,12 @@
       //expect(instance).to.be();
     });
 
+    it('should have the property defaultResources (base name: "default_resources")', function() {
+      // uncomment below and update the code to test the property defaultResources
+      //var instane = new Uisvc.TaskSettings();
+      //expect(instance).to.be();
+    });
+
   });
 
 }));

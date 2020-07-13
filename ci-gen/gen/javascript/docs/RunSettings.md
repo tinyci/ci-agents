@@ -10,5 +10,6 @@ Name | Type | Description | Notes
 **metadata** | **Object** |  | [optional] 
 **name** | **String** |  | [optional] 
 **timeout** | **Number** |  | [optional] 
+**resources** | [**Resources**](Resources.md) |  | [optional] 
 
 
