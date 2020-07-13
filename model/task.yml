@@ -34,4 +34,4 @@ runs:
   cancellations-by-task:
     command: [ "go", "test", "-race", "-v", "-timeout", "30m", "./model", "-check.v", "-check.f", "CancellationByTask" ]
   others:
-    command: [ "bash", "-c", "set -e; for i in $((go test -mod=vendor -v ./model -check.v -check.testlist || exit 1) | grep -vE 'Cancellation|Queue|RunsForTask|TaskList' | tail -n +2 | head -n -1); do go test -mod=vendor -race -timeout 30m -v ./model -check.v -check.f ^$i\\$; done"]
+    command: [ "bash", "-c", "set -e; for i in $((go test -v ./model -check.v -check.testlist || exit 1) | grep -vE 'Cancellation|Queue|RunsForTask|TaskList' | tail -n +2 | head -n -1); do go test -race -timeout 30m -v ./model -check.v -check.f ^$i\\$; done"]
