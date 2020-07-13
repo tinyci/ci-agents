@@ -17,6 +17,12 @@ func TestErrors(t *testing.T) {
 	check.TestingT(t)
 }
 
+func (es *errorSuite) TestNil(c *check.C) {
+	err := New(nil)
+	c.Assert(err, check.IsNil)
+	c.Assert(error(err), check.IsNil)
+}
+
 func (es *errorSuite) TestWrap(c *check.C) {
 	err := New("hi")
 
