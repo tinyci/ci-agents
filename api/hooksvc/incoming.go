@@ -112,8 +112,7 @@ func (h *Handler) doSubmit(w http.ResponseWriter, logger *log.SubLogger, obj int
 	go func() {
 		now := time.Now()
 		if err := h.queueClient.Submit(context.Background(), sub); err != nil {
-			logger.Error(context.Background(), "Rejected hook event because the submission failed")
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			logger.Errorf(context.Background(), "Rejected hook event because the submission failed: %v", err)
 			return
 		}
 
