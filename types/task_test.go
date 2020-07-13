@@ -424,3 +424,129 @@ func (ts *typesSuite) TestTaskDependenciesNoRuns(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(t.Validate(false), check.IsNil)
 }
+
+func (ts *typesSuite) TestResourceCascade(c *check.C) {
+	type predicate struct {
+		ts       *TaskSettings
+		validate func(c *check.C, name string, t *TaskSettings)
+	}
+
+	checkCascade := func(c *check.C, name string, t *TaskSettings) {
+		c.Assert(t.Validate(false), check.IsNil)
+
+		c.Assert(t.Runs["test"].Resources, check.DeepEquals, t.DefaultResources, check.Commentf("%s", name))
+		c.Assert(t.Runs["test"].Resources.CPU, check.Equals, uint32(1), check.Commentf("%s", name))
+		c.Assert(t.Runs["test"].Resources.Memory, check.Equals, uint32(10), check.Commentf("%s", name))
+		c.Assert(t.Runs["test"].Resources.Disk, check.Equals, uint32(5), check.Commentf("%s", name))
+		c.Assert(t.Runs["test"].Resources.IOPS, check.Equals, uint32(9001), check.Commentf("%s", name))
+	}
+
+	table := map[string]predicate{
+		"repoconfig-cascade": {
+			ts: &TaskSettings{
+				Mountpoint: "/tmp",
+				WorkDir:    "/foobar",
+				Runs: map[string]*RunSettings{
+					"test": {
+						Image:   "foo",
+						Command: []string{"foo", "bar"},
+					},
+				},
+				Config: &RepoConfig{
+					DefaultResources: Resources{
+						CPU:    1,
+						Memory: 10,
+						Disk:   5,
+						IOPS:   9001,
+					},
+				},
+			},
+			validate: checkCascade,
+		},
+		"tasksetting-cascade": {
+			ts: &TaskSettings{
+				Mountpoint: "/tmp",
+				WorkDir:    "/foobar",
+				Runs: map[string]*RunSettings{
+					"test": {
+						Image:   "foo",
+						Command: []string{"foo", "bar"},
+					},
+				},
+				DefaultResources: Resources{
+					CPU:    1,
+					Memory: 10,
+					Disk:   5,
+					IOPS:   9001,
+				},
+			},
+			validate: checkCascade,
+		},
+		"tasksetting-cascade-some-runs-populated": {
+			ts: &TaskSettings{
+				Mountpoint: "/tmp",
+				WorkDir:    "/foobar",
+				Runs: map[string]*RunSettings{
+					"test": {
+						Image:   "foo",
+						Command: []string{"foo", "bar"},
+					},
+					"test2": {
+						Image:   "foo",
+						Command: []string{"foo", "bar"},
+						Resources: Resources{
+							CPU:    2,
+							Memory: 10,
+							Disk:   5,
+							IOPS:   9001,
+						},
+					},
+				},
+				DefaultResources: Resources{
+					CPU:    1,
+					Memory: 10,
+					Disk:   5,
+					IOPS:   9001,
+				},
+			},
+			validate: func(c *check.C, name string, t *TaskSettings) {
+				checkCascade(c, name, t)
+				c.Assert(t.Runs["test2"].Resources, check.Not(check.DeepEquals), t.DefaultResources, check.Commentf("%s", name))
+				c.Assert(t.Runs["test2"].Resources.CPU, check.Equals, uint32(2), check.Commentf("%s", name))
+			},
+		},
+		"tasksetting-run-populated": {
+			ts: &TaskSettings{
+				Mountpoint: "/tmp",
+				WorkDir:    "/foobar",
+				Runs: map[string]*RunSettings{
+					"test": {
+						Image:   "foo",
+						Command: []string{"foo", "bar"},
+						Resources: Resources{
+							CPU:    2,
+							Memory: 10,
+							Disk:   5,
+							IOPS:   9001,
+						},
+					},
+				},
+				DefaultResources: Resources{
+					CPU:    1,
+					Memory: 10,
+					Disk:   5,
+					IOPS:   9001,
+				},
+			},
+			validate: func(c *check.C, name string, t *TaskSettings) {
+				c.Assert(t.Validate(false), check.IsNil, check.Commentf("%s", name))
+				c.Assert(t.Runs["test"].Resources, check.Not(check.DeepEquals), t.DefaultResources, check.Commentf("%s", name))
+				c.Assert(t.Runs["test"].Resources.CPU, check.Equals, uint32(2), check.Commentf("%s", name))
+			},
+		},
+	}
+
+	for name, pred := range table {
+		pred.validate(c, name, pred.ts)
+	}
+}

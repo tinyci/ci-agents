@@ -191,7 +191,7 @@ func (t *TaskSettings) handleOverrides() {
 	}
 
 	if reflect.DeepEqual(t.DefaultResources, Resources{}) && !reflect.DeepEqual(t.Config.DefaultResources, Resources{}) {
-		t.DefaultResources = t.Config.DefaultResources
+		t.Config.DefaultResources.copy(&t.DefaultResources)
 	}
 }
 
@@ -259,6 +259,13 @@ func (r Resources) toProto() *types.Resources {
 	}
 }
 
+func (r Resources) copy(r2 *Resources) {
+	r2.CPU = r.CPU
+	r2.Memory = r.Memory
+	r2.Disk = r.Disk
+	r2.IOPS = r.IOPS
+}
+
 func newResources(rs *types.Resources) Resources {
 	return Resources{
 		CPU:    rs.Cpu,
@@ -309,7 +316,7 @@ func (rs *RunSettings) Validate(t *TaskSettings) *errors.Error {
 	}
 
 	if reflect.DeepEqual(rs.Resources, Resources{}) {
-		rs.Resources = t.DefaultResources
+		t.DefaultResources.copy(&rs.Resources)
 	}
 
 	return nil
