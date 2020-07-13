@@ -184,6 +184,7 @@ type TaskSettings struct {
 	DefaultImage   string                  `protobuf:"bytes,7,opt,name=defaultImage,proto3" json:"defaultImage,omitempty"`                                                                         // Default Image to use in runs.
 	Metadata       *_struct.Struct         `protobuf:"bytes,8,opt,name=metadata,proto3" json:"metadata,omitempty"`                                                                                 // Free-form metadata to be returned to runners.
 	Dependencies   []string                `protobuf:"bytes,9,rep,name=dependencies,proto3" json:"dependencies,omitempty"`                                                                         // Dependency list.
+	Resources      *Resources              `protobuf:"bytes,10,opt,name=resources,proto3" json:"resources,omitempty"`                                                                              // Resources to constrain all runs of this task.
 }
 
 func (x *TaskSettings) Reset() {
@@ -277,6 +278,13 @@ func (x *TaskSettings) GetMetadata() *_struct.Struct {
 func (x *TaskSettings) GetDependencies() []string {
 	if x != nil {
 		return x.Dependencies
+	}
+	return nil
+}
+
+func (x *TaskSettings) GetResources() *Resources {
+	if x != nil {
+		return x.Resources
 	}
 	return nil
 }
@@ -441,7 +449,7 @@ var file_github_com_tinyci_ci_agents_ci_gen_grpc_types_task_proto_rawDesc = []by
 	0x04, 0x72, 0x75, 0x6e, 0x73, 0x12, 0x31, 0x0a, 0x0a, 0x73, 0x75, 0x62, 0x6d, 0x69, 0x73, 0x73,
 	0x69, 0x6f, 0x6e, 0x18, 0x0f, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x74, 0x79, 0x70, 0x65,
 	0x73, 0x2e, 0x53, 0x75, 0x62, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x73, 0x75,
-	0x62, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0xa3, 0x03, 0x0a, 0x0c, 0x54, 0x61, 0x73,
+	0x62, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0xd3, 0x03, 0x0a, 0x0c, 0x54, 0x61, 0x73,
 	0x6b, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x1e, 0x0a, 0x0a, 0x6d, 0x6f, 0x75,
 	0x6e, 0x74, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x6d,
 	0x6f, 0x75, 0x6e, 0x74, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x65, 0x6e, 0x76,
@@ -463,6 +471,9 @@ var file_github_com_tinyci_ci_agents_ci_gen_grpc_types_task_proto_rawDesc = []by
 	0x75, 0x63, 0x74, 0x52, 0x08, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x12, 0x22, 0x0a,
 	0x0c, 0x64, 0x65, 0x70, 0x65, 0x6e, 0x64, 0x65, 0x6e, 0x63, 0x69, 0x65, 0x73, 0x18, 0x09, 0x20,
 	0x03, 0x28, 0x09, 0x52, 0x0c, 0x64, 0x65, 0x70, 0x65, 0x6e, 0x64, 0x65, 0x6e, 0x63, 0x69, 0x65,
+	0x73, 0x12, 0x2e, 0x0a, 0x09, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x73, 0x18, 0x0a,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x52, 0x65, 0x73,
+	0x6f, 0x75, 0x72, 0x63, 0x65, 0x73, 0x52, 0x09, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65,
 	0x73, 0x1a, 0x4b, 0x0a, 0x09, 0x52, 0x75, 0x6e, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10,
 	0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79,
 	0x12, 0x28, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
@@ -503,23 +514,25 @@ var file_github_com_tinyci_ci_agents_ci_gen_grpc_types_task_proto_goTypes = []in
 	(*timestamp.Timestamp)(nil), // 5: google.protobuf.Timestamp
 	(*Submission)(nil),          // 6: types.Submission
 	(*_struct.Struct)(nil),      // 7: google.protobuf.Struct
-	(*RunSettings)(nil),         // 8: types.RunSettings
+	(*Resources)(nil),           // 8: types.Resources
+	(*RunSettings)(nil),         // 9: types.RunSettings
 }
 var file_github_com_tinyci_ci_agents_ci_gen_grpc_types_task_proto_depIdxs = []int32{
-	5, // 0: types.Task.finishedAt:type_name -> google.protobuf.Timestamp
-	5, // 1: types.Task.createdAt:type_name -> google.protobuf.Timestamp
-	5, // 2: types.Task.startedAt:type_name -> google.protobuf.Timestamp
-	1, // 3: types.Task.settings:type_name -> types.TaskSettings
-	6, // 4: types.Task.submission:type_name -> types.Submission
-	4, // 5: types.TaskSettings.runs:type_name -> types.TaskSettings.RunsEntry
-	7, // 6: types.TaskSettings.metadata:type_name -> google.protobuf.Struct
-	0, // 7: types.TaskList.Tasks:type_name -> types.Task
-	8, // 8: types.TaskSettings.RunsEntry.value:type_name -> types.RunSettings
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	5,  // 0: types.Task.finishedAt:type_name -> google.protobuf.Timestamp
+	5,  // 1: types.Task.createdAt:type_name -> google.protobuf.Timestamp
+	5,  // 2: types.Task.startedAt:type_name -> google.protobuf.Timestamp
+	1,  // 3: types.Task.settings:type_name -> types.TaskSettings
+	6,  // 4: types.Task.submission:type_name -> types.Submission
+	4,  // 5: types.TaskSettings.runs:type_name -> types.TaskSettings.RunsEntry
+	7,  // 6: types.TaskSettings.metadata:type_name -> google.protobuf.Struct
+	8,  // 7: types.TaskSettings.resources:type_name -> types.Resources
+	0,  // 8: types.TaskList.Tasks:type_name -> types.Task
+	9,  // 9: types.TaskSettings.RunsEntry.value:type_name -> types.RunSettings
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_github_com_tinyci_ci_agents_ci_gen_grpc_types_task_proto_init() }

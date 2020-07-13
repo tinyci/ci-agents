@@ -187,6 +187,8 @@ definitions:
         type: array
         items:
           type: string
+      default_resources:
+        $ref: '#/definitions/Resources'
   Task:
     type: object
     properties:

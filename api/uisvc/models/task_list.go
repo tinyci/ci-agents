@@ -219,6 +219,9 @@ type TaskListItems0Settings struct {
 	// default queue
 	DefaultQueue string `json:"default_queue,omitempty"`
 
+	// default resources
+	DefaultResources *TaskListItems0SettingsDefaultResources `json:"default_resources,omitempty"`
+
 	// the default timeout; in nanoseconds
 	DefaultTimeout int64 `json:"default_timeout,omitempty"`
 
@@ -246,6 +249,10 @@ func (m *TaskListItems0Settings) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateDefaultResources(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateRuns(formats); err != nil {
 		res = append(res, err)
 	}
@@ -266,6 +273,24 @@ func (m *TaskListItems0Settings) validateConfig(formats strfmt.Registry) error {
 		if err := m.Config.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("settings" + "." + "config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *TaskListItems0Settings) validateDefaultResources(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.DefaultResources) { // not required
+		return nil
+	}
+
+	if m.DefaultResources != nil {
+		if err := m.DefaultResources.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("settings" + "." + "default_resources")
 			}
 			return err
 		}
@@ -350,6 +375,46 @@ func (m *TaskListItems0SettingsConfig) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *TaskListItems0SettingsConfig) UnmarshalBinary(b []byte) error {
 	var res TaskListItems0SettingsConfig
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// TaskListItems0SettingsDefaultResources task list items0 settings default resources
+// swagger:model TaskListItems0SettingsDefaultResources
+type TaskListItems0SettingsDefaultResources struct {
+
+	// cpu
+	CPU int64 `json:"cpu,omitempty"`
+
+	// disk
+	Disk int64 `json:"disk,omitempty"`
+
+	// iops
+	Iops int64 `json:"iops,omitempty"`
+
+	// memory
+	Memory int64 `json:"memory,omitempty"`
+}
+
+// Validate validates this task list items0 settings default resources
+func (m *TaskListItems0SettingsDefaultResources) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *TaskListItems0SettingsDefaultResources) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *TaskListItems0SettingsDefaultResources) UnmarshalBinary(b []byte) error {
+	var res TaskListItems0SettingsDefaultResources
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

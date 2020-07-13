@@ -36,15 +36,16 @@ message Task {
 
 // TaskSettings is the parsed representation to struct of task.yml files.
 message TaskSettings {
-            string                          mountpoint      = 1; // Mountpoint to use for the source code inside the container
-  repeated  string                          env             = 2; // Environment variables -- in environ syntax.
-            string                          workdir         = 3; // Working dir inside the container; defaults to mountpoint
-            map<string, types.RunSettings>  runs            = 4; // Map of run name -> run settings, used for defining runs to create
-            int64                           defaultTimeout  = 5; // Default Timeout if none is specified
-            string                          defaultQueue    = 6; // Default Queue is none is specified; otherwise this is 'default'
-            string                          defaultImage    = 7; // Default Image to use in runs.
-            google.protobuf.Struct          metadata        = 8; // Free-form metadata to be returned to runners.
-  repeated  string                          dependencies    = 9; // Dependency list.
+            string                          mountpoint      = 1;  // Mountpoint to use for the source code inside the container
+  repeated  string                          env             = 2;  // Environment variables -- in environ syntax.
+            string                          workdir         = 3;  // Working dir inside the container; defaults to mountpoint
+            map<string, types.RunSettings>  runs            = 4;  // Map of run name -> run settings, used for defining runs to create
+            int64                           defaultTimeout  = 5;  // Default Timeout if none is specified
+            string                          defaultQueue    = 6;  // Default Queue is none is specified; otherwise this is 'default'
+            string                          defaultImage    = 7;  // Default Image to use in runs.
+            google.protobuf.Struct          metadata        = 8;  // Free-form metadata to be returned to runners.
+  repeated  string                          dependencies    = 9;  // Dependency list.
+            Resources                       resources       = 10; // Resources to constrain all runs of this task.
 }
 
 // TaskList is simply a repeated list of tasks.

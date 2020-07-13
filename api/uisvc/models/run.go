@@ -463,6 +463,9 @@ type RunTaskSettings struct {
 	// default queue
 	DefaultQueue string `json:"default_queue,omitempty"`
 
+	// default resources
+	DefaultResources *RunTaskSettingsDefaultResources `json:"default_resources,omitempty"`
+
 	// the default timeout; in nanoseconds
 	DefaultTimeout int64 `json:"default_timeout,omitempty"`
 
@@ -490,6 +493,10 @@ func (m *RunTaskSettings) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateDefaultResources(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateRuns(formats); err != nil {
 		res = append(res, err)
 	}
@@ -510,6 +517,24 @@ func (m *RunTaskSettings) validateConfig(formats strfmt.Registry) error {
 		if err := m.Config.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("task" + "." + "settings" + "." + "config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *RunTaskSettings) validateDefaultResources(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.DefaultResources) { // not required
+		return nil
+	}
+
+	if m.DefaultResources != nil {
+		if err := m.DefaultResources.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("task" + "." + "settings" + "." + "default_resources")
 			}
 			return err
 		}
@@ -594,6 +619,46 @@ func (m *RunTaskSettingsConfig) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *RunTaskSettingsConfig) UnmarshalBinary(b []byte) error {
 	var res RunTaskSettingsConfig
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// RunTaskSettingsDefaultResources run task settings default resources
+// swagger:model RunTaskSettingsDefaultResources
+type RunTaskSettingsDefaultResources struct {
+
+	// cpu
+	CPU int64 `json:"cpu,omitempty"`
+
+	// disk
+	Disk int64 `json:"disk,omitempty"`
+
+	// iops
+	Iops int64 `json:"iops,omitempty"`
+
+	// memory
+	Memory int64 `json:"memory,omitempty"`
+}
+
+// Validate validates this run task settings default resources
+func (m *RunTaskSettingsDefaultResources) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *RunTaskSettingsDefaultResources) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *RunTaskSettingsDefaultResources) UnmarshalBinary(b []byte) error {
+	var res RunTaskSettingsDefaultResources
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

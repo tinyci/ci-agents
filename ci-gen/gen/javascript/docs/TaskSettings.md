@@ -13,5 +13,6 @@ Name | Type | Description | Notes
 **metadata** | **Object** |  | [optional] 
 **config** | [**RepoConfig**](RepoConfig.md) |  | [optional] 
 **env** | **[String]** |  | [optional] 
+**defaultResources** | [**Resources**](Resources.md) |  | [optional] 
 
 

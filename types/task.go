@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	_struct "github.com/golang/protobuf/ptypes/struct"
@@ -39,16 +40,17 @@ func mkStruct(m map[string]interface{}) *_struct.Struct {
 
 // TaskSettings encompasses things that are a part of a task that are configurable by a user.
 type TaskSettings struct {
-	Mountpoint     string                  `yaml:"mountpoint"`
-	Env            []string                `yaml:"env"`
-	Dependencies   []string                `yaml:"dependencies"`
-	WorkDir        string                  `yaml:"workdir"`
-	Runs           map[string]*RunSettings `yaml:"runs"`
-	DefaultTimeout time.Duration           `yaml:"default_timeout"`
-	DefaultQueue   string                  `yaml:"default_queue"`
-	DefaultImage   string                  `yaml:"default_image"`
-	Metadata       map[string]interface{}  `yaml:"metadata"`
-	Config         *RepoConfig             `yaml:"-"`
+	Mountpoint       string                  `yaml:"mountpoint"`
+	Env              []string                `yaml:"env"`
+	Dependencies     []string                `yaml:"dependencies"`
+	WorkDir          string                  `yaml:"workdir"`
+	Runs             map[string]*RunSettings `yaml:"runs"`
+	DefaultTimeout   time.Duration           `yaml:"default_timeout"`
+	DefaultQueue     string                  `yaml:"default_queue"`
+	DefaultImage     string                  `yaml:"default_image"`
+	Metadata         map[string]interface{}  `yaml:"metadata"`
+	Config           *RepoConfig             `yaml:"-"`
+	DefaultResources Resources               `yaml:"default_resources"`
 }
 
 // NewTaskSettingsFromProto creates a task settings object from a proto representation.
@@ -60,15 +62,16 @@ func NewTaskSettingsFromProto(ts *types.TaskSettings) *TaskSettings {
 	}
 
 	return &TaskSettings{
-		Mountpoint:     ts.Mountpoint,
-		Env:            ts.Env,
-		WorkDir:        ts.Workdir,
-		Runs:           runs,
-		Dependencies:   ts.Dependencies,
-		DefaultTimeout: time.Duration(ts.DefaultTimeout),
-		DefaultQueue:   ts.DefaultQueue,
-		DefaultImage:   ts.DefaultImage,
-		Metadata:       mkMap(ts.Metadata),
+		Mountpoint:       ts.Mountpoint,
+		Env:              ts.Env,
+		WorkDir:          ts.Workdir,
+		Runs:             runs,
+		Dependencies:     ts.Dependencies,
+		DefaultTimeout:   time.Duration(ts.DefaultTimeout),
+		DefaultQueue:     ts.DefaultQueue,
+		DefaultImage:     ts.DefaultImage,
+		Metadata:         mkMap(ts.Metadata),
+		DefaultResources: newResources(ts.Resources),
 	}
 }
 
@@ -90,6 +93,7 @@ func (t *TaskSettings) ToProto() *types.TaskSettings {
 		DefaultQueue:   t.DefaultQueue,
 		DefaultImage:   t.DefaultImage,
 		Metadata:       mkStruct(t.Metadata),
+		Resources:      t.DefaultResources.toProto(),
 	}
 }
 
@@ -185,6 +189,10 @@ func (t *TaskSettings) handleOverrides() {
 	if t.WorkDir == "" && t.Config.WorkDir != "" {
 		t.WorkDir = t.Config.WorkDir
 	}
+
+	if reflect.DeepEqual(t.DefaultResources, Resources{}) && !reflect.DeepEqual(t.Config.DefaultResources, Resources{}) {
+		t.DefaultResources = t.Config.DefaultResources
+	}
 }
 
 // Validate validates the task settings.
@@ -205,7 +213,7 @@ func (t *TaskSettings) Validate(requireRuns bool) *errors.Error {
 		}
 
 		for _, run := range t.Runs {
-			if err := run.Validate(); err != nil {
+			if err := run.Validate(t); err != nil {
 				return err
 			}
 		}
@@ -242,12 +250,21 @@ type Resources struct {
 	IOPS   uint32 `yaml:"iops"`
 }
 
-func newResources(rs *types.RunSettings) Resources {
+func (r Resources) toProto() *types.Resources {
+	return &types.Resources{
+		Cpu:    r.CPU,
+		Memory: r.Memory,
+		Disk:   r.Disk,
+		Iops:   r.IOPS,
+	}
+}
+
+func newResources(rs *types.Resources) Resources {
 	return Resources{
-		CPU:    rs.Resources.Cpu,
-		Memory: rs.Resources.Memory,
-		Disk:   rs.Resources.Disk,
-		IOPS:   rs.Resources.Iops,
+		CPU:    rs.Cpu,
+		Memory: rs.Memory,
+		Disk:   rs.Disk,
+		IOPS:   rs.Iops,
 	}
 }
 
@@ -260,30 +277,25 @@ func NewRunSettingsFromProto(rs *types.RunSettings) *RunSettings {
 		Metadata:  mkMap(rs.Metadata),
 		Name:      rs.Name,
 		Timeout:   time.Duration(rs.Timeout),
-		Resources: newResources(rs),
+		Resources: newResources(rs.Resources),
 	}
 }
 
 // ToProto converts the run settings to the protobuf representation.
 func (rs *RunSettings) ToProto() *types.RunSettings {
 	return &types.RunSettings{
-		Command:  rs.Command,
-		Image:    rs.Image,
-		Queue:    rs.Queue,
-		Metadata: mkStruct(rs.Metadata),
-		Name:     rs.Name,
-		Timeout:  rs.Timeout.Nanoseconds(),
-		Resources: &types.Resources{
-			Cpu:    rs.Resources.CPU,
-			Memory: rs.Resources.Memory,
-			Disk:   rs.Resources.Disk,
-			Iops:   rs.Resources.IOPS,
-		},
+		Command:   rs.Command,
+		Image:     rs.Image,
+		Queue:     rs.Queue,
+		Metadata:  mkStruct(rs.Metadata),
+		Name:      rs.Name,
+		Timeout:   rs.Timeout.Nanoseconds(),
+		Resources: rs.Resources.toProto(),
 	}
 }
 
 // Validate validates the run settings, returning errors on any found.
-func (rs *RunSettings) Validate() *errors.Error {
+func (rs *RunSettings) Validate(t *TaskSettings) *errors.Error {
 	if len(rs.Command) == 0 {
 		return errors.New("command was empty")
 	}
@@ -294,6 +306,10 @@ func (rs *RunSettings) Validate() *errors.Error {
 
 	if rs.Queue == "" {
 		return errors.New("queue name was empty")
+	}
+
+	if reflect.DeepEqual(rs.Resources, Resources{}) {
+		rs.Resources = t.DefaultResources
 	}
 
 	return nil
@@ -312,6 +328,7 @@ type RepoConfig struct {
 	Metadata         map[string]interface{} `yaml:"metadata"`
 	OverrideMetadata bool                   `yaml:"override_metadata"`
 	DefaultImage     string                 `yaml:"default_image"`
+	DefaultResources Resources              `yaml:"default_resources"`
 	//OptimizeDiff  bool   `yaml:"optimize_diff"` // diff dir selection -- FIXME defaulted to on for now, will add this logic later
 }
 

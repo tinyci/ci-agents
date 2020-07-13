@@ -13,6 +13,7 @@
 
 import ApiClient from '../ApiClient';
 import RepoConfig from './RepoConfig';
+import Resources from './Resources';
 import RunSettings from './RunSettings';
 
 /**
@@ -76,6 +77,9 @@ class TaskSettings {
             if (data.hasOwnProperty('env')) {
                 obj['env'] = ApiClient.convertToType(data['env'], ['String']);
             }
+            if (data.hasOwnProperty('default_resources')) {
+                obj['default_resources'] = Resources.constructFromObject(data['default_resources']);
+            }
         }
         return obj;
     }
@@ -128,6 +132,11 @@ TaskSettings.prototype['config'] = undefined;
  * @member {Array.<String>} env
  */
 TaskSettings.prototype['env'] = undefined;
+
+/**
+ * @member {module:model/Resources} default_resources
+ */
+TaskSettings.prototype['default_resources'] = undefined;
 
 
 
