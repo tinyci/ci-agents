@@ -244,10 +244,10 @@ type RunSettings struct {
 // The values here and their measurements are interpreted by the runner. We
 // do not normalize between runners.
 type Resources struct {
-	CPU    uint32 `yaml:"cpu"`
-	Memory uint32 `yaml:"memory"`
-	Disk   uint32 `yaml:"disk"`
-	IOPS   uint32 `yaml:"iops"`
+	CPU    string `yaml:"cpu"`
+	Memory string `yaml:"memory"`
+	Disk   string `yaml:"disk"`
+	IOPS   string `yaml:"iops"`
 }
 
 func (r Resources) toProto() *types.Resources {

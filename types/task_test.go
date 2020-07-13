@@ -435,10 +435,10 @@ func (ts *typesSuite) TestResourceCascade(c *check.C) {
 		c.Assert(t.Validate(false), check.IsNil)
 
 		c.Assert(t.Runs["test"].Resources, check.DeepEquals, t.DefaultResources, check.Commentf("%s", name))
-		c.Assert(t.Runs["test"].Resources.CPU, check.Equals, uint32(1), check.Commentf("%s", name))
-		c.Assert(t.Runs["test"].Resources.Memory, check.Equals, uint32(10), check.Commentf("%s", name))
-		c.Assert(t.Runs["test"].Resources.Disk, check.Equals, uint32(5), check.Commentf("%s", name))
-		c.Assert(t.Runs["test"].Resources.IOPS, check.Equals, uint32(9001), check.Commentf("%s", name))
+		c.Assert(t.Runs["test"].Resources.CPU, check.Equals, "1", check.Commentf("%s", name))
+		c.Assert(t.Runs["test"].Resources.Memory, check.Equals, "10", check.Commentf("%s", name))
+		c.Assert(t.Runs["test"].Resources.Disk, check.Equals, "5", check.Commentf("%s", name))
+		c.Assert(t.Runs["test"].Resources.IOPS, check.Equals, "9001", check.Commentf("%s", name))
 	}
 
 	table := map[string]predicate{
@@ -454,10 +454,10 @@ func (ts *typesSuite) TestResourceCascade(c *check.C) {
 				},
 				Config: &RepoConfig{
 					DefaultResources: Resources{
-						CPU:    1,
-						Memory: 10,
-						Disk:   5,
-						IOPS:   9001,
+						CPU:    "1",
+						Memory: "10",
+						Disk:   "5",
+						IOPS:   "9001",
 					},
 				},
 			},
@@ -474,10 +474,10 @@ func (ts *typesSuite) TestResourceCascade(c *check.C) {
 					},
 				},
 				DefaultResources: Resources{
-					CPU:    1,
-					Memory: 10,
-					Disk:   5,
-					IOPS:   9001,
+					CPU:    "1",
+					Memory: "10",
+					Disk:   "5",
+					IOPS:   "9001",
 				},
 			},
 			validate: checkCascade,
@@ -495,24 +495,24 @@ func (ts *typesSuite) TestResourceCascade(c *check.C) {
 						Image:   "foo",
 						Command: []string{"foo", "bar"},
 						Resources: Resources{
-							CPU:    2,
-							Memory: 10,
-							Disk:   5,
-							IOPS:   9001,
+							CPU:    "2",
+							Memory: "10",
+							Disk:   "5",
+							IOPS:   "9001",
 						},
 					},
 				},
 				DefaultResources: Resources{
-					CPU:    1,
-					Memory: 10,
-					Disk:   5,
-					IOPS:   9001,
+					CPU:    "1",
+					Memory: "10",
+					Disk:   "5",
+					IOPS:   "9001",
 				},
 			},
 			validate: func(c *check.C, name string, t *TaskSettings) {
 				checkCascade(c, name, t)
 				c.Assert(t.Runs["test2"].Resources, check.Not(check.DeepEquals), t.DefaultResources, check.Commentf("%s", name))
-				c.Assert(t.Runs["test2"].Resources.CPU, check.Equals, uint32(2), check.Commentf("%s", name))
+				c.Assert(t.Runs["test2"].Resources.CPU, check.Equals, "2", check.Commentf("%s", name))
 			},
 		},
 		"tasksetting-run-populated": {
@@ -524,24 +524,24 @@ func (ts *typesSuite) TestResourceCascade(c *check.C) {
 						Image:   "foo",
 						Command: []string{"foo", "bar"},
 						Resources: Resources{
-							CPU:    2,
-							Memory: 10,
-							Disk:   5,
-							IOPS:   9001,
+							CPU:    "2",
+							Memory: "10",
+							Disk:   "5",
+							IOPS:   "9001",
 						},
 					},
 				},
 				DefaultResources: Resources{
-					CPU:    1,
-					Memory: 10,
-					Disk:   5,
-					IOPS:   9001,
+					CPU:    "1",
+					Memory: "10",
+					Disk:   "5",
+					IOPS:   "9001",
 				},
 			},
 			validate: func(c *check.C, name string, t *TaskSettings) {
 				c.Assert(t.Validate(false), check.IsNil, check.Commentf("%s", name))
 				c.Assert(t.Runs["test"].Resources, check.Not(check.DeepEquals), t.DefaultResources, check.Commentf("%s", name))
-				c.Assert(t.Runs["test"].Resources.CPU, check.Equals, uint32(2), check.Commentf("%s", name))
+				c.Assert(t.Runs["test"].Resources.CPU, check.Equals, "2", check.Commentf("%s", name))
 			},
 		},
 	}
