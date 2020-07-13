@@ -90,7 +90,7 @@ demo-sql-shell:
 
 do-build:
 	GOPATH=$$(mktemp -d /tmp/gopath.XXXXX) go install -v github.com/erikh/migrator
-	GO111MODULE=on go install -mod=vendor -v -ldflags "-X main.TinyCIVersion=$(VERSION)" ./cmd/... ./api/...
+	GO111MODULE=on go install -v -ldflags "-X main.TinyCIVersion=$(VERSION)" ./cmd/... ./api/...
 	cp .config/services.yaml.example $${GOBIN:-${GOPATH}/bin}
 	cp -Rfp migrations $${GOBIN:-${GOPATH}/bin}
 
@@ -150,11 +150,6 @@ update-modules:
 	GO111MODULE=on go get -u -d ./...
 	GO111MODULE=on go mod tidy
 
-vendor:
-	GO111MODULE=on go mod vendor
-
-.PHONY: vendor
-
 check-service-config:
 	if [ ! -f .config/services.yaml ]; \
 	then \
@@ -175,7 +170,7 @@ start-services: check-service-config
 	pkill queuesvc || :
 	pkill github-authsvc || :
 	pkill datasvc || :
-	go install -mod=vendor -v ./cmd/... ./api/...
+	go install -v ./cmd/... ./api/...
 	@if [ "x${START_SERVICES}" != "x" ]; then make start-selective-services; exit 0; fi
 	logsvc &
 	assetsvc &
