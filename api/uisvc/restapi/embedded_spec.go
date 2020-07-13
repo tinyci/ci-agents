@@ -3167,6 +3167,23 @@ func init() {
             "queue": {
               "type": "string"
             },
+            "resources": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "integer"
+                },
+                "disk": {
+                  "type": "integer"
+                },
+                "iops": {
+                  "type": "integer"
+                },
+                "memory": {
+                  "type": "integer"
+                }
+              }
+            },
             "timeout": {
               "type": "integer"
             }
@@ -3274,6 +3291,23 @@ func init() {
                       },
                       "queue": {
                         "type": "string"
+                      },
+                      "resources": {
+                        "type": "object",
+                        "properties": {
+                          "cpu": {
+                            "type": "integer"
+                          },
+                          "disk": {
+                            "type": "integer"
+                          },
+                          "iops": {
+                            "type": "integer"
+                          },
+                          "memory": {
+                            "type": "integer"
+                          }
+                        }
                       },
                       "timeout": {
                         "type": "integer"
@@ -3496,6 +3530,23 @@ func init() {
               "queue": {
                 "type": "string"
               },
+              "resources": {
+                "type": "object",
+                "properties": {
+                  "cpu": {
+                    "type": "integer"
+                  },
+                  "disk": {
+                    "type": "integer"
+                  },
+                  "iops": {
+                    "type": "integer"
+                  },
+                  "memory": {
+                    "type": "integer"
+                  }
+                }
+              },
               "timeout": {
                 "type": "integer"
               }
@@ -3603,6 +3654,23 @@ func init() {
                         },
                         "queue": {
                           "type": "string"
+                        },
+                        "resources": {
+                          "type": "object",
+                          "properties": {
+                            "cpu": {
+                              "type": "integer"
+                            },
+                            "disk": {
+                              "type": "integer"
+                            },
+                            "iops": {
+                              "type": "integer"
+                            },
+                            "memory": {
+                              "type": "integer"
+                            }
+                          }
                         },
                         "timeout": {
                           "type": "integer"
@@ -3874,6 +3942,23 @@ func init() {
                     },
                     "queue": {
                       "type": "string"
+                    },
+                    "resources": {
+                      "type": "object",
+                      "properties": {
+                        "cpu": {
+                          "type": "integer"
+                        },
+                        "disk": {
+                          "type": "integer"
+                        },
+                        "iops": {
+                          "type": "integer"
+                        },
+                        "memory": {
+                          "type": "integer"
+                        }
+                      }
                     },
                     "timeout": {
                       "type": "integer"

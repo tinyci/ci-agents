@@ -192,12 +192,42 @@ type RunSettings struct {
 	// queue
 	Queue string `json:"queue,omitempty"`
 
+	// resources
+	Resources *RunSettingsResources `json:"resources,omitempty"`
+
 	// timeout
 	Timeout int64 `json:"timeout,omitempty"`
 }
 
 // Validate validates this run settings
 func (m *RunSettings) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateResources(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *RunSettings) validateResources(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Resources) { // not required
+		return nil
+	}
+
+	if m.Resources != nil {
+		if err := m.Resources.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("settings" + "." + "resources")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -212,6 +242,46 @@ func (m *RunSettings) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *RunSettings) UnmarshalBinary(b []byte) error {
 	var res RunSettings
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// RunSettingsResources run settings resources
+// swagger:model RunSettingsResources
+type RunSettingsResources struct {
+
+	// cpu
+	CPU int64 `json:"cpu,omitempty"`
+
+	// disk
+	Disk int64 `json:"disk,omitempty"`
+
+	// iops
+	Iops int64 `json:"iops,omitempty"`
+
+	// memory
+	Memory int64 `json:"memory,omitempty"`
+}
+
+// Validate validates this run settings resources
+func (m *RunSettingsResources) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *RunSettingsResources) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *RunSettingsResources) UnmarshalBinary(b []byte) error {
+	var res RunSettingsResources
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
@@ -550,12 +620,42 @@ type RunTaskSettingsRunsAnon struct {
 	// queue
 	Queue string `json:"queue,omitempty"`
 
+	// resources
+	Resources *RunTaskSettingsRunsAnonResources `json:"resources,omitempty"`
+
 	// timeout
 	Timeout int64 `json:"timeout,omitempty"`
 }
 
 // Validate validates this run task settings runs anon
 func (m *RunTaskSettingsRunsAnon) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateResources(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *RunTaskSettingsRunsAnon) validateResources(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Resources) { // not required
+		return nil
+	}
+
+	if m.Resources != nil {
+		if err := m.Resources.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("resources")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -570,6 +670,46 @@ func (m *RunTaskSettingsRunsAnon) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *RunTaskSettingsRunsAnon) UnmarshalBinary(b []byte) error {
 	var res RunTaskSettingsRunsAnon
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// RunTaskSettingsRunsAnonResources run task settings runs anon resources
+// swagger:model RunTaskSettingsRunsAnonResources
+type RunTaskSettingsRunsAnonResources struct {
+
+	// cpu
+	CPU int64 `json:"cpu,omitempty"`
+
+	// disk
+	Disk int64 `json:"disk,omitempty"`
+
+	// iops
+	Iops int64 `json:"iops,omitempty"`
+
+	// memory
+	Memory int64 `json:"memory,omitempty"`
+}
+
+// Validate validates this run task settings runs anon resources
+func (m *RunTaskSettingsRunsAnonResources) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *RunTaskSettingsRunsAnonResources) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *RunTaskSettingsRunsAnonResources) UnmarshalBinary(b []byte) error {
+	var res RunTaskSettingsRunsAnonResources
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

@@ -179,6 +179,7 @@ Class | Method | HTTP request | Description
  - [Uisvc.Ref](docs/Ref.md)
  - [Uisvc.RepoConfig](docs/RepoConfig.md)
  - [Uisvc.Repository](docs/Repository.md)
+ - [Uisvc.Resources](docs/Resources.md)
  - [Uisvc.Run](docs/Run.md)
  - [Uisvc.RunSettings](docs/RunSettings.md)
  - [Uisvc.Task](docs/Task.md)

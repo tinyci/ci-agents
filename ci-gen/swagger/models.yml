@@ -96,6 +96,17 @@ definitions:
       timeout:
         description: timeout in nanoseconds
         type: integer
+  Resources:
+    type: object
+    properties:
+      cpu:
+        type: integer
+      memory:
+        type: integer
+      disk:
+        type: integer
+      iops:
+        type: integer
   RunSettings:
     type: object
     properties:
@@ -114,6 +125,8 @@ definitions:
         type: string
       timeout:
         type: integer
+      resources:
+        $ref: '#/definitions/Resources'
   Run:
     type: object
     properties:

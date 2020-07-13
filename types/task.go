@@ -221,23 +221,46 @@ func (t *TaskSettings) Validate(requireRuns bool) *errors.Error {
 // RunSettings encompasses things that are a part of a run that are
 // configurable by a user.
 type RunSettings struct {
-	Command  []string               `yaml:"command"`
-	Image    string                 `yaml:"image"`
-	Queue    string                 `yaml:"queue"`
-	Metadata map[string]interface{} `yaml:"metadata"`
-	Name     string                 `yaml:"-"`
-	Timeout  time.Duration          `yaml:"timeout"`
+	Command   []string               `yaml:"command"`
+	Image     string                 `yaml:"image"`
+	Queue     string                 `yaml:"queue"`
+	Metadata  map[string]interface{} `yaml:"metadata"`
+	Name      string                 `yaml:"-"`
+	Timeout   time.Duration          `yaml:"timeout"`
+	Resources Resources              `yaml:"resources"`
+}
+
+// Resources communicates what resources should be available to the runner.
+// This can be overridden by the tinyci master configuration.
+//
+// The values here and their measurements are interpreted by the runner. We
+// do not normalize between runners.
+type Resources struct {
+	CPU    uint32 `yaml:"cpu"`
+	Memory uint32 `yaml:"memory"`
+	Disk   uint32 `yaml:"disk"`
+	IOPS   uint32 `yaml:"iops"`
+}
+
+func newResources(rs *types.RunSettings) Resources {
+	return Resources{
+		CPU:    rs.Resources.Cpu,
+		Memory: rs.Resources.Memory,
+		Disk:   rs.Resources.Disk,
+		IOPS:   rs.Resources.Iops,
+	}
 }
 
 // NewRunSettingsFromProto creates a runsettings from a proto representation.
 func NewRunSettingsFromProto(rs *types.RunSettings) *RunSettings {
 	return &RunSettings{
-		Command:  rs.Command,
-		Image:    rs.Image,
-		Queue:    rs.Queue,
-		Metadata: mkMap(rs.Metadata),
-		Name:     rs.Name,
-		Timeout:  time.Duration(rs.Timeout),
+		Command:   rs.Command,
+		Image:     rs.Image,
+		Queue:     rs.Queue,
+		Metadata:  mkMap(rs.Metadata),
+		Name:      rs.Name,
+		Timeout:   time.Duration(rs.Timeout),
+		Resources: newResources(rs),
 	}
 }
 
@@ -250,6 +273,12 @@ func (rs *RunSettings) ToProto() *types.RunSettings {
 		Metadata: mkStruct(rs.Metadata),
 		Name:     rs.Name,
 		Timeout:  rs.Timeout.Nanoseconds(),
+		Resources: &types.Resources{
+			Cpu:    rs.Resources.CPU,
+			Memory: rs.Resources.Memory,
+			Disk:   rs.Resources.Disk,
+			Iops:   rs.Resources.IOPS,
+		},
 	}
 }
 

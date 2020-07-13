@@ -18,6 +18,7 @@ import ModelSubmission from './model/ModelSubmission';
 import Ref from './model/Ref';
 import RepoConfig from './model/RepoConfig';
 import Repository from './model/Repository';
+import Resources from './model/Resources';
 import Run from './model/Run';
 import RunSettings from './model/RunSettings';
 import Task from './model/Task';
@@ -94,6 +95,12 @@ export {
      * @property {module:model/Repository}
      */
     Repository,
+
+    /**
+     * The Resources model constructor.
+     * @property {module:model/Resources}
+     */
+    Resources,
 
     /**
      * The Run model constructor.

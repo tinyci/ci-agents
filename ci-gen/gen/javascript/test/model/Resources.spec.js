@@ -28,7 +28,7 @@
   var instance;
 
   beforeEach(function() {
-    instance = new Uisvc.RunSettings();
+    instance = new Uisvc.Resources();
   });
 
   var getProperty = function(object, getter, property) {
@@ -47,52 +47,34 @@
       object[property] = value;
   }
 
-  describe('RunSettings', function() {
-    it('should create an instance of RunSettings', function() {
-      // uncomment below and update the code to test RunSettings
-      //var instane = new Uisvc.RunSettings();
-      //expect(instance).to.be.a(Uisvc.RunSettings);
+  describe('Resources', function() {
+    it('should create an instance of Resources', function() {
+      // uncomment below and update the code to test Resources
+      //var instane = new Uisvc.Resources();
+      //expect(instance).to.be.a(Uisvc.Resources);
     });
 
-    it('should have the property command (base name: "command")', function() {
-      // uncomment below and update the code to test the property command
-      //var instane = new Uisvc.RunSettings();
+    it('should have the property cpu (base name: "cpu")', function() {
+      // uncomment below and update the code to test the property cpu
+      //var instane = new Uisvc.Resources();
       //expect(instance).to.be();
     });
 
-    it('should have the property image (base name: "image")', function() {
-      // uncomment below and update the code to test the property image
-      //var instane = new Uisvc.RunSettings();
+    it('should have the property memory (base name: "memory")', function() {
+      // uncomment below and update the code to test the property memory
+      //var instane = new Uisvc.Resources();
       //expect(instance).to.be();
     });
 
-    it('should have the property queue (base name: "queue")', function() {
-      // uncomment below and update the code to test the property queue
-      //var instane = new Uisvc.RunSettings();
+    it('should have the property disk (base name: "disk")', function() {
+      // uncomment below and update the code to test the property disk
+      //var instane = new Uisvc.Resources();
       //expect(instance).to.be();
     });
 
-    it('should have the property metadata (base name: "metadata")', function() {
-      // uncomment below and update the code to test the property metadata
-      //var instane = new Uisvc.RunSettings();
-      //expect(instance).to.be();
-    });
-
-    it('should have the property name (base name: "name")', function() {
-      // uncomment below and update the code to test the property name
-      //var instane = new Uisvc.RunSettings();
-      //expect(instance).to.be();
-    });
-
-    it('should have the property timeout (base name: "timeout")', function() {
-      // uncomment below and update the code to test the property timeout
-      //var instane = new Uisvc.RunSettings();
-      //expect(instance).to.be();
-    });
-
-    it('should have the property resources (base name: "resources")', function() {
-      // uncomment below and update the code to test the property resources
-      //var instane = new Uisvc.RunSettings();
+    it('should have the property iops (base name: "iops")', function() {
+      // uncomment below and update the code to test the property iops
+      //var instane = new Uisvc.Resources();
       //expect(instance).to.be();
     });
 
