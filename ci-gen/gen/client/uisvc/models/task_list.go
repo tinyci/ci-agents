@@ -387,16 +387,16 @@ func (m *TaskListItems0SettingsConfig) UnmarshalBinary(b []byte) error {
 type TaskListItems0SettingsDefaultResources struct {
 
 	// cpu
-	CPU int64 `json:"cpu,omitempty"`
+	CPU string `json:"cpu,omitempty"`
 
 	// disk
-	Disk int64 `json:"disk,omitempty"`
+	Disk string `json:"disk,omitempty"`
 
 	// iops
-	Iops int64 `json:"iops,omitempty"`
+	Iops string `json:"iops,omitempty"`
 
 	// memory
-	Memory int64 `json:"memory,omitempty"`
+	Memory string `json:"memory,omitempty"`
 }
 
 // Validate validates this task list items0 settings default resources
@@ -503,16 +503,16 @@ func (m *TaskListItems0SettingsRunsAnon) UnmarshalBinary(b []byte) error {
 type TaskListItems0SettingsRunsAnonResources struct {
 
 	// cpu
-	CPU int64 `json:"cpu,omitempty"`
+	CPU string `json:"cpu,omitempty"`
 
 	// disk
-	Disk int64 `json:"disk,omitempty"`
+	Disk string `json:"disk,omitempty"`
 
 	// iops
-	Iops int64 `json:"iops,omitempty"`
+	Iops string `json:"iops,omitempty"`
 
 	// memory
-	Memory int64 `json:"memory,omitempty"`
+	Memory string `json:"memory,omitempty"`
 }
 
 // Validate validates this task list items0 settings runs anon resources

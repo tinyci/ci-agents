@@ -3171,16 +3171,16 @@ func init() {
               "type": "object",
               "properties": {
                 "cpu": {
-                  "type": "integer"
+                  "type": "string"
                 },
                 "disk": {
-                  "type": "integer"
+                  "type": "string"
                 },
                 "iops": {
-                  "type": "integer"
+                  "type": "string"
                 },
                 "memory": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3256,16 +3256,16 @@ func init() {
                   "type": "object",
                   "properties": {
                     "cpu": {
-                      "type": "integer"
+                      "type": "string"
                     },
                     "disk": {
-                      "type": "integer"
+                      "type": "string"
                     },
                     "iops": {
-                      "type": "integer"
+                      "type": "string"
                     },
                     "memory": {
-                      "type": "integer"
+                      "type": "string"
                     }
                   }
                 },
@@ -3313,16 +3313,16 @@ func init() {
                         "type": "object",
                         "properties": {
                           "cpu": {
-                            "type": "integer"
+                            "type": "string"
                           },
                           "disk": {
-                            "type": "integer"
+                            "type": "string"
                           },
                           "iops": {
-                            "type": "integer"
+                            "type": "string"
                           },
                           "memory": {
-                            "type": "integer"
+                            "type": "string"
                           }
                         }
                       },
@@ -3551,16 +3551,16 @@ func init() {
                 "type": "object",
                 "properties": {
                   "cpu": {
-                    "type": "integer"
+                    "type": "string"
                   },
                   "disk": {
-                    "type": "integer"
+                    "type": "string"
                   },
                   "iops": {
-                    "type": "integer"
+                    "type": "string"
                   },
                   "memory": {
-                    "type": "integer"
+                    "type": "string"
                   }
                 }
               },
@@ -3636,16 +3636,16 @@ func init() {
                     "type": "object",
                     "properties": {
                       "cpu": {
-                        "type": "integer"
+                        "type": "string"
                       },
                       "disk": {
-                        "type": "integer"
+                        "type": "string"
                       },
                       "iops": {
-                        "type": "integer"
+                        "type": "string"
                       },
                       "memory": {
-                        "type": "integer"
+                        "type": "string"
                       }
                     }
                   },
@@ -3693,16 +3693,16 @@ func init() {
                           "type": "object",
                           "properties": {
                             "cpu": {
-                              "type": "integer"
+                              "type": "string"
                             },
                             "disk": {
-                              "type": "integer"
+                              "type": "string"
                             },
                             "iops": {
-                              "type": "integer"
+                              "type": "string"
                             },
                             "memory": {
-                              "type": "integer"
+                              "type": "string"
                             }
                           }
                         },
@@ -3941,16 +3941,16 @@ func init() {
                 "type": "object",
                 "properties": {
                   "cpu": {
-                    "type": "integer"
+                    "type": "string"
                   },
                   "disk": {
-                    "type": "integer"
+                    "type": "string"
                   },
                   "iops": {
-                    "type": "integer"
+                    "type": "string"
                   },
                   "memory": {
-                    "type": "integer"
+                    "type": "string"
                   }
                 }
               },
@@ -3998,16 +3998,16 @@ func init() {
                       "type": "object",
                       "properties": {
                         "cpu": {
-                          "type": "integer"
+                          "type": "string"
                         },
                         "disk": {
-                          "type": "integer"
+                          "type": "string"
                         },
                         "iops": {
-                          "type": "integer"
+                          "type": "string"
                         },
                         "memory": {
-                          "type": "integer"
+                          "type": "string"
                         }
                       }
                     },

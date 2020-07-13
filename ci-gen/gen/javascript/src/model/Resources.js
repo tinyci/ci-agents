@@ -48,16 +48,16 @@ class Resources {
             obj = obj || new Resources();
 
             if (data.hasOwnProperty('cpu')) {
-                obj['cpu'] = ApiClient.convertToType(data['cpu'], 'Number');
+                obj['cpu'] = ApiClient.convertToType(data['cpu'], 'String');
             }
             if (data.hasOwnProperty('memory')) {
-                obj['memory'] = ApiClient.convertToType(data['memory'], 'Number');
+                obj['memory'] = ApiClient.convertToType(data['memory'], 'String');
             }
             if (data.hasOwnProperty('disk')) {
-                obj['disk'] = ApiClient.convertToType(data['disk'], 'Number');
+                obj['disk'] = ApiClient.convertToType(data['disk'], 'String');
             }
             if (data.hasOwnProperty('iops')) {
-                obj['iops'] = ApiClient.convertToType(data['iops'], 'Number');
+                obj['iops'] = ApiClient.convertToType(data['iops'], 'String');
             }
         }
         return obj;
@@ -67,22 +67,22 @@ class Resources {
 }
 
 /**
- * @member {Number} cpu
+ * @member {String} cpu
  */
 Resources.prototype['cpu'] = undefined;
 
 /**
- * @member {Number} memory
+ * @member {String} memory
  */
 Resources.prototype['memory'] = undefined;
 
 /**
- * @member {Number} disk
+ * @member {String} disk
  */
 Resources.prototype['disk'] = undefined;
 
 /**
- * @member {Number} iops
+ * @member {String} iops
  */
 Resources.prototype['iops'] = undefined;
 

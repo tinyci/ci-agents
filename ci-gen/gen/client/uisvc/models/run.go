@@ -254,16 +254,16 @@ func (m *RunSettings) UnmarshalBinary(b []byte) error {
 type RunSettingsResources struct {
 
 	// cpu
-	CPU int64 `json:"cpu,omitempty"`
+	CPU string `json:"cpu,omitempty"`
 
 	// disk
-	Disk int64 `json:"disk,omitempty"`
+	Disk string `json:"disk,omitempty"`
 
 	// iops
-	Iops int64 `json:"iops,omitempty"`
+	Iops string `json:"iops,omitempty"`
 
 	// memory
-	Memory int64 `json:"memory,omitempty"`
+	Memory string `json:"memory,omitempty"`
 }
 
 // Validate validates this run settings resources
@@ -631,16 +631,16 @@ func (m *RunTaskSettingsConfig) UnmarshalBinary(b []byte) error {
 type RunTaskSettingsDefaultResources struct {
 
 	// cpu
-	CPU int64 `json:"cpu,omitempty"`
+	CPU string `json:"cpu,omitempty"`
 
 	// disk
-	Disk int64 `json:"disk,omitempty"`
+	Disk string `json:"disk,omitempty"`
 
 	// iops
-	Iops int64 `json:"iops,omitempty"`
+	Iops string `json:"iops,omitempty"`
 
 	// memory
-	Memory int64 `json:"memory,omitempty"`
+	Memory string `json:"memory,omitempty"`
 }
 
 // Validate validates this run task settings default resources
@@ -747,16 +747,16 @@ func (m *RunTaskSettingsRunsAnon) UnmarshalBinary(b []byte) error {
 type RunTaskSettingsRunsAnonResources struct {
 
 	// cpu
-	CPU int64 `json:"cpu,omitempty"`
+	CPU string `json:"cpu,omitempty"`
 
 	// disk
-	Disk int64 `json:"disk,omitempty"`
+	Disk string `json:"disk,omitempty"`
 
 	// iops
-	Iops int64 `json:"iops,omitempty"`
+	Iops string `json:"iops,omitempty"`
 
 	// memory
-	Memory int64 `json:"memory,omitempty"`
+	Memory string `json:"memory,omitempty"`
 }
 
 // Validate validates this run task settings runs anon resources

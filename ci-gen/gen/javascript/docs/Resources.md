@@ -4,9 +4,9 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**cpu** | **Number** |  | [optional] 
-**memory** | **Number** |  | [optional] 
-**disk** | **Number** |  | [optional] 
-**iops** | **Number** |  | [optional] 
+**cpu** | **String** |  | [optional] 
+**memory** | **String** |  | [optional] 
+**disk** | **String** |  | [optional] 
+**iops** | **String** |  | [optional] 
 
 

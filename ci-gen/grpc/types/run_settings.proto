@@ -23,8 +23,8 @@ message RunSettings {
 // up to the runner to interpret these values, and will differ between
 // different runners.
 message Resources {
-  uint32 cpu    = 1; // cpu utilization
-  uint32 memory = 2; // memory available
-  uint32 disk   = 3; // disk available
-  uint32 iops   = 4; // iops available
+  string cpu    = 1; // cpu utilization
+  string memory = 2; // memory available
+  string disk   = 3; // disk available
+  string iops   = 4; // iops available
 }
