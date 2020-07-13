@@ -10,5 +10,3 @@ runs:
     command: [ "make", "do-build" ]
   golangci-lint:
     command: [ "make", "golangci-lint" ]
-  vendor-clean:
-    command: [ "bash", "-c", "make vendor && git diff --stat --exit-code" ]
