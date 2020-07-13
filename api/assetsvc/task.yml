@@ -7,4 +7,4 @@ default_image: tinyci/ci-agents:07.05.2020
 mountpoint: "/go/src/github.com/tinyci/ci-agents"
 runs:
   main:
-    command: [ "go", "test", "-mod=vendor", "-race", "-v", "./api/assetsvc", "-check.v" ]
+    command: [ "go", "test", "-race", "-v", "./api/assetsvc", "-check.v" ]

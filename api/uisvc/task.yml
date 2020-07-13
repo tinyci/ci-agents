@@ -11,4 +11,4 @@ dependencies:
   - utils
 runs:
   main:
-    command: [ "go", "test", "-mod=vendor", "-race", "-v", "./api/uisvc/restapi", "-check.v" ]
+    command: [ "go", "test", "-race", "-v", "./api/uisvc/restapi", "-check.v" ]
