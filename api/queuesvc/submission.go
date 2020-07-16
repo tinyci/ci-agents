@@ -146,7 +146,6 @@ func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *t
 	}
 
 	if sub.BaseSHA == "0000000000000000000000000000000000000000" {
-		fmt.Println("here")
 		if sub.Fork == sub.Parent {
 			// new branch; set to head ref
 			sub.BaseSHA = sub.HeadSHA
