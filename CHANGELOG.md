@@ -1,3 +1,16 @@
+## 0.2.6 -- Thu 16 Jul 2020 05:06:39 AM UTC
+
+This release contains many small bug fixes to the underlying components:
+
+- hooksvc
+- errors framework
+
+It also supports the notion of resource constraints which are a part of the
+RunSettings protocol now. New runners will need to address these values if they
+want to use them.
+
+The vendor tree was pruned. Use go 1.14 and modules now.
+
 ## 0.2.5 -- Mon 06 Jul 2020 05:20:25 PM UTC
 
 0.2.5 allows changes to come from non-master branches
