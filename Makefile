@@ -158,18 +158,18 @@ check-service-config:
 	fi
 
 start-selective-services:
-	for srv in ${START_SERVICES}; do pkill -f $$srv; (tinyci -c .config/services.yaml service $$srv &); done
+	for srv in ${START_SERVICES}; do pkill -f $$srv; (tinyci service $$srv &); done
 
 start-services: check-service-config
 	pkill tinyci || :
 	go install -v ./cmd/...
 	@if [ "x${START_SERVICES}" != "x" ]; then make start-selective-services; exit 0; fi
-	tinyci -c .config/services.yaml service logsvc &
-	tinyci -c .config/services.yaml service assetsvc &
-	tinyci -c .config/services.yaml service datasvc &
-	tinyci -c .config/services.yaml service github-authsvc &
-	tinyci -c .config/services.yaml service queuesvc &
-	tinyci -c .config/services.yaml service uisvc &
+	tinyci service logsvc &
+	tinyci service assetsvc &
+	tinyci service datasvc &
+	tinyci service github-authsvc &
+	tinyci service queuesvc &
+	tinyci service uisvc &
 	tinyci -c .config/hooksvc.yaml service hooksvc &
 	make wait
 
