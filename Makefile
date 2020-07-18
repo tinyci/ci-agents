@@ -45,7 +45,7 @@ DEBUG_DOCKER_RUN=\
 								$(DOCKER_RUN) -it \
 								-e CREATE_DB=1 \
 								-e DEBUG=1 \
-								-e JAEGER_AGENT_HOST=jaegertracing \
+								$(if ${USE_JAEGER}, -e JAEGER_AGENT_HOST=jaegertracing,) \
 								$(DEBUG_PORTS) \
 								--link react:react \
 								$(if ${USE_JAEGER}, --link jaegertracing:jaegertracing,) \
@@ -59,7 +59,7 @@ DEMO_DOCKER_RUN=\
 								-v ${PWD}/.db:/var/lib/postgresql \
 								-v ${PWD}/.logs:/var/tinyci/logs \
 								-e START_SERVICES="${START_SERVICES}" \
-								-e JAEGER_AGENT_HOST=jaegertracing \
+								$(if ${USE_JAEGER}, -e JAEGER_AGENT_HOST=jaegertracing,) \
 								-e DEBUG=1 \
 								$(DEBUG_PORTS) \
 								--link react:react \
@@ -67,8 +67,6 @@ DEMO_DOCKER_RUN=\
 								$(DOCKER_CONTAINER_DIR) \
 								--name $(DEMO_DOCKER_IMAGE) \
 								$(DEMO_DOCKER_IMAGE)
-
-SWAGGER_SERVICES := uisvc
 
 test: build-image
 	$(TEST_DOCKER_RUN) make do-test
@@ -160,25 +158,19 @@ check-service-config:
 	fi
 
 start-selective-services:
-	for srv in ${START_SERVICES}; do pkill $$srv || :; ($$srv &); done
+	for srv in ${START_SERVICES}; do pkill -f $$srv; (tinyci -c .config/services.yaml service $$srv &); done
 
 start-services: check-service-config
-	pkill uisvc-server || :
-	pkill logsvc || :
-	pkill hooksvc || :
-	pkill assetsvc || :
-	pkill queuesvc || :
-	pkill github-authsvc || :
-	pkill datasvc || :
-	go install -v ./cmd/... ./api/...
+	pkill tinyci || :
+	go install -v ./cmd/...
 	@if [ "x${START_SERVICES}" != "x" ]; then make start-selective-services; exit 0; fi
-	logsvc &
-	assetsvc &
-	datasvc &
-	github-authsvc &
-	queuesvc &
-	uisvc-server &
-	hooksvc &
+	tinyci -c .config/services.yaml service logsvc &
+	tinyci -c .config/services.yaml service assetsvc &
+	tinyci -c .config/services.yaml service datasvc &
+	tinyci -c .config/services.yaml service github-authsvc &
+	tinyci -c .config/services.yaml service queuesvc &
+	tinyci -c .config/services.yaml service uisvc &
+	tinyci -c .config/hooksvc.yaml service hooksvc &
 	make wait
 
 wait:
