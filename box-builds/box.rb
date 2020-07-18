@@ -49,7 +49,6 @@ env GOPATH: "/go",
       /sbin
       /bin
     ].join(":"),
-    TINYCI_CONFIG: "./.config",
     TESTING: getenv("TESTING"),
     CAROOT: "/var/ca"
 
