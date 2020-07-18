@@ -2,6 +2,7 @@ package cmdlib
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
@@ -9,9 +10,23 @@ import (
 	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/config"
+	"github.com/tinyci/ci-agents/errors"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
 )
+
+// ServerStatus represents multiple states within the server
+type ServerStatus struct {
+	// Alive is for closing when you want the server to stop.
+	Alive chan struct{}
+	// Finished is closed when the server has gracefully stopped.
+	Finished chan struct{}
+	// TracingCloser is the io.Closer that controls tracing.
+	TracingCloser io.Closer
+}
+
+// HandlerFunc is a function that launches a service
+type HandlerFunc func() (*ServerStatus, *errors.Error)
 
 // GRPCServer is the server to run
 type GRPCServer struct {
@@ -34,10 +49,13 @@ func (s *GRPCServer) Make(commands []cli.Command) []cli.Command {
 	})
 }
 
-func (s *GRPCServer) serve(ctx *cli.Context) error {
+// MakeHandlerFunc returns a function with a channel to close to stop it, or any
+// error it received while trying to create the server. It accepts a
+// string to get the configuration filename.
+func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, *errors.Error) {
 	h := &handler.H{}
-	if err := config.Parse(ctx.GlobalString("config"), &h); err != nil {
-		return err
+	if err := config.Parse(configFile, &h); err != nil {
+		return nil, errors.New(err)
 	}
 
 	h.Name = s.Name
@@ -46,36 +64,56 @@ func (s *GRPCServer) serve(ctx *cli.Context) error {
 
 	cert, certErr := h.TLS.Load()
 	if certErr != nil {
-		return certErr
+		return nil, certErr
 	}
 
 	t, transportErr := transport.Listen(cert, "tcp", fmt.Sprintf(":%v", s.DefaultService.Port)) // FIXME parameterize
 	if transportErr != nil {
-		return transportErr
+		return nil, errors.New(transportErr)
 	}
 
 	grpc, closer, err := h.CreateServer()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := s.RegisterService(grpc, h); err != nil {
-		return err
+		return nil, errors.New(err)
 	}
 
-	finished := make(chan struct{})
-	doneChan, err := h.Boot(t, grpc, finished)
+	return func() (*ServerStatus, *errors.Error) {
+		finished := make(chan struct{})
+		doneChan, err := h.Boot(t, grpc, finished)
+		if err != nil {
+			return nil, err
+		}
+
+		return &ServerStatus{
+			Finished:      finished,
+			Alive:         doneChan,
+			TracingCloser: closer,
+		}, nil
+	}, nil
+}
+
+func (s *GRPCServer) serve(ctx *cli.Context) error {
+	fun, err := s.MakeHandlerFunc(ctx.GlobalString("config"))
 	if err != nil {
-		return err
+		return err.Wrap("while constructing GRPC handler")
+	}
+
+	status, err := fun()
+	if err != nil {
+		return err.Wrap("while booting service")
 	}
 
 	sigChan := make(chan os.Signal, 2)
 	go func() {
 		<-sigChan
-		close(doneChan)
-		<-finished
-		if closer != nil {
-			closer.Close()
+		close(status.Alive)
+		<-status.Finished
+		if status.TracingCloser != nil {
+			status.TracingCloser.Close()
 		}
 		os.Exit(0)
 	}()

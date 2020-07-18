@@ -8,10 +8,12 @@ import (
 
 	"github.com/tinyci/ci-agents/api/hooksvc"
 	"github.com/tinyci/ci-agents/api/uisvc/restapi"
+	"github.com/tinyci/ci-agents/cmdlib"
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 	"github.com/urfave/cli"
+	"golang.org/x/sys/unix"
 )
 
 // TinyCIVersion is the version of tinyci supporting this service.
@@ -53,6 +55,13 @@ func main() {
 			Description: "Launch services that power tinyCI",
 			Subcommands: mapServers(otherServices),
 		},
+		{
+			Name:        "launch",
+			ShortName:   "l",
+			Usage:       "Launch all services to power tinyCI",
+			Description: "Launch all services to power tinyCI",
+			Action:      launch,
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -66,6 +75,51 @@ func mapServers(commands []cli.Command) []cli.Command {
 	}
 
 	return commands
+}
+
+func launch(ctx *cli.Context) error {
+	configFile := ctx.GlobalString("config")
+	handlers := []cmdlib.HandlerFunc{}
+
+	for _, s := range servers {
+		handler, err := s.MakeHandlerFunc(configFile)
+		if err != nil {
+			return err.Wrapf("while constructing handler for %s", s.Name)
+		}
+
+		handlers = append(handlers, handler)
+	}
+
+	uisvc, err := makeUISvcHandler(configFile)
+	if err != nil {
+		return err
+	}
+	handlers = append(handlers, uisvc)
+
+	statuses := []*cmdlib.ServerStatus{}
+
+	for _, h := range handlers {
+		status, err := h()
+		if err != nil {
+			return err
+		}
+
+		statuses = append(statuses, status)
+	}
+
+	sigChan := make(chan os.Signal, 2)
+	signal.Notify(sigChan, unix.SIGINT, unix.SIGTERM)
+
+	<-sigChan
+	for _, status := range statuses {
+		close(status.Alive)
+		<-status.Finished
+		if status.TracingCloser != nil {
+			status.TracingCloser.Close()
+		}
+	}
+
+	return nil
 }
 
 func startHooksvc(ctx *cli.Context) error {
@@ -87,16 +141,36 @@ func startHooksvc(ctx *cli.Context) error {
 	return nil
 }
 
-func startUISvc(ctx *cli.Context) error {
+func makeUISvcHandler(configFile string) (cmdlib.HandlerFunc, error) {
 	h := &handlers.H{}
-	if err := config.Parse(ctx.GlobalString("config"), &h); err != nil {
-		return err
+	if err := config.Parse(configFile, &h); err != nil {
+		return nil, err
 	}
 
 	h.Config = restapi.MakeHandlerConfig(h.ServiceConfig)
 
-	finished := make(chan struct{})
-	doneChan, err := handlers.Boot(nil, h, finished)
+	return func() (*cmdlib.ServerStatus, *errors.Error) {
+		finished := make(chan struct{})
+		doneChan, err := handlers.Boot(nil, h, finished)
+		if err != nil {
+			return nil, err
+		}
+
+		return &cmdlib.ServerStatus{
+			Alive:    doneChan,
+			Finished: finished,
+		}, nil
+	}, nil
+
+}
+
+func startUISvc(ctx *cli.Context) error {
+	fun, err := makeUISvcHandler(ctx.GlobalString("config"))
+	if err != nil {
+		return err
+	}
+
+	status, err := fun()
 	if err != nil {
 		return err
 	}
@@ -104,8 +178,8 @@ func startUISvc(ctx *cli.Context) error {
 	sigChan := make(chan os.Signal, 2)
 	go func() {
 		<-sigChan
-		close(doneChan)
-		<-finished
+		close(status.Alive)
+		<-status.Finished
 		os.Exit(0)
 	}()
 	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
