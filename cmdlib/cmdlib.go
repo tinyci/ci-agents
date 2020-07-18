@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"path"
 	"syscall"
 
 	transport "github.com/erikh/go-transport"
@@ -18,8 +17,6 @@ import (
 type GRPCServer struct {
 	Name            string
 	Description     string
-	AppVersion      string
-	TinyCIVersion   string
 	DefaultService  config.ServiceAddress
 	RegisterService func(*grpc.Server, *handler.H) error
 	UseDB           bool
@@ -27,29 +24,19 @@ type GRPCServer struct {
 }
 
 // Make makes a command-line server out of the provided parameters
-func (s *GRPCServer) Make() *cli.App {
-	app := cli.NewApp()
-	app.Name = s.Name
-	app.Usage = s.Description
-	app.Description = s.Description
-	app.UsageText = path.Base(os.Args[0]) + " [flags]"
-	app.Action = s.serve
-	app.Version = fmt.Sprintf("%s (tinyCI version %s)", s.AppVersion, s.TinyCIVersion)
-
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "config, c",
-			Usage: "Path to configuration file",
-			Value: ".config/services.yaml",
-		},
-	}
-
-	return app
+func (s *GRPCServer) Make(commands []cli.Command) []cli.Command {
+	return append(commands, cli.Command{
+		Name:        s.Name,
+		Usage:       s.Description,
+		Description: s.Description,
+		UsageText:   s.Name + " [flags]",
+		Action:      s.serve,
+	})
 }
 
 func (s *GRPCServer) serve(ctx *cli.Context) error {
 	h := &handler.H{}
-	if err := config.Parse(ctx.String("config"), &h); err != nil {
+	if err := config.Parse(ctx.GlobalString("config"), &h); err != nil {
 		return err
 	}
 

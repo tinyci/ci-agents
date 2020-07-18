@@ -7,6 +7,7 @@ import (
 
 // AddressMap is a mapping of service -> service address
 type AddressMap struct {
+	Hook       ServiceAddress
 	Data       ServiceAddress
 	Queue      ServiceAddress
 	UI         ServiceAddress
@@ -18,6 +19,7 @@ type AddressMap struct {
 
 // DefaultServices is the standard array of service mappings when unconfigured.
 var DefaultServices = AddressMap{
+	Hook:       ServiceAddress{Port: 2020},
 	Data:       ServiceAddress{Port: 6000},
 	Queue:      ServiceAddress{Port: 6001},
 	Asset:      ServiceAddress{Port: 6002},
