@@ -164,14 +164,8 @@ start-services: check-service-config
 	pkill tinyci || :
 	go install -v ./cmd/...
 	@if [ "x${START_SERVICES}" != "x" ]; then make start-selective-services; exit 0; fi
-	tinyci service logsvc &
-	tinyci service assetsvc &
-	tinyci service datasvc &
-	tinyci service github-authsvc &
-	tinyci service queuesvc &
-	tinyci service uisvc &
 	tinyci -c .config/hooksvc.yaml service hooksvc &
-	make wait
+	tinyci launch
 
 wait:
 	sleep infinity
