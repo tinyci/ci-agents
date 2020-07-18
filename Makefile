@@ -172,7 +172,7 @@ wait:
 
 golangci-lint:
 	go get github.com/golangci/golangci-lint/...
-	golangci-lint run
+	golangci-lint run -v
 
 gen: mockgen
 	cd ci-gen && make gen	
