@@ -56,25 +56,25 @@
 
     it('should have the property cpu (base name: "cpu")', function() {
       // uncomment below and update the code to test the property cpu
-      //var instane = new Uisvc.Resources();
+      //var instance = new Uisvc.Resources();
       //expect(instance).to.be();
     });
 
     it('should have the property memory (base name: "memory")', function() {
       // uncomment below and update the code to test the property memory
-      //var instane = new Uisvc.Resources();
+      //var instance = new Uisvc.Resources();
       //expect(instance).to.be();
     });
 
     it('should have the property disk (base name: "disk")', function() {
       // uncomment below and update the code to test the property disk
-      //var instane = new Uisvc.Resources();
+      //var instance = new Uisvc.Resources();
       //expect(instance).to.be();
     });
 
     it('should have the property iops (base name: "iops")', function() {
       // uncomment below and update the code to test the property iops
-      //var instane = new Uisvc.Resources();
+      //var instance = new Uisvc.Resources();
       //expect(instance).to.be();
     });
 

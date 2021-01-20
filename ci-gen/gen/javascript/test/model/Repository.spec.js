@@ -56,37 +56,37 @@
 
     it('should have the property id (base name: "id")', function() {
       // uncomment below and update the code to test the property id
-      //var instane = new Uisvc.Repository();
+      //var instance = new Uisvc.Repository();
       //expect(instance).to.be();
     });
 
     it('should have the property name (base name: "name")', function() {
       // uncomment below and update the code to test the property name
-      //var instane = new Uisvc.Repository();
+      //var instance = new Uisvc.Repository();
       //expect(instance).to.be();
     });
 
     it('should have the property _private (base name: "private")', function() {
       // uncomment below and update the code to test the property _private
-      //var instane = new Uisvc.Repository();
+      //var instance = new Uisvc.Repository();
       //expect(instance).to.be();
     });
 
     it('should have the property disabled (base name: "disabled")', function() {
       // uncomment below and update the code to test the property disabled
-      //var instane = new Uisvc.Repository();
+      //var instance = new Uisvc.Repository();
       //expect(instance).to.be();
     });
 
     it('should have the property autoCreated (base name: "auto_created")', function() {
       // uncomment below and update the code to test the property autoCreated
-      //var instane = new Uisvc.Repository();
+      //var instance = new Uisvc.Repository();
       //expect(instance).to.be();
     });
 
     it('should have the property github (base name: "github")', function() {
       // uncomment below and update the code to test the property github
-      //var instane = new Uisvc.Repository();
+      //var instance = new Uisvc.Repository();
       //expect(instance).to.be();
     });
 

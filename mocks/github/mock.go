@@ -6,10 +6,11 @@ package github
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	github "github.com/google/go-github/github"
 	errors "github.com/tinyci/ci-agents/errors"
-	reflect "reflect"
 )
 
 // MockClient is a mock of Client interface.

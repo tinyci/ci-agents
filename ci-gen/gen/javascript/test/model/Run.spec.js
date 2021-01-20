@@ -56,55 +56,55 @@
 
     it('should have the property settings (base name: "settings")', function() {
       // uncomment below and update the code to test the property settings
-      //var instane = new Uisvc.Run();
+      //var instance = new Uisvc.Run();
       //expect(instance).to.be();
     });
 
     it('should have the property name (base name: "name")', function() {
       // uncomment below and update the code to test the property name
-      //var instane = new Uisvc.Run();
+      //var instance = new Uisvc.Run();
       //expect(instance).to.be();
     });
 
     it('should have the property ranOn (base name: "ran_on")', function() {
       // uncomment below and update the code to test the property ranOn
-      //var instane = new Uisvc.Run();
+      //var instance = new Uisvc.Run();
       //expect(instance).to.be();
     });
 
     it('should have the property createdAt (base name: "created_at")', function() {
       // uncomment below and update the code to test the property createdAt
-      //var instane = new Uisvc.Run();
+      //var instance = new Uisvc.Run();
       //expect(instance).to.be();
     });
 
     it('should have the property startedAt (base name: "started_at")', function() {
       // uncomment below and update the code to test the property startedAt
-      //var instane = new Uisvc.Run();
+      //var instance = new Uisvc.Run();
       //expect(instance).to.be();
     });
 
     it('should have the property finishedAt (base name: "finished_at")', function() {
       // uncomment below and update the code to test the property finishedAt
-      //var instane = new Uisvc.Run();
+      //var instance = new Uisvc.Run();
       //expect(instance).to.be();
     });
 
     it('should have the property status (base name: "status")', function() {
       // uncomment below and update the code to test the property status
-      //var instane = new Uisvc.Run();
+      //var instance = new Uisvc.Run();
       //expect(instance).to.be();
     });
 
     it('should have the property task (base name: "task")', function() {
       // uncomment below and update the code to test the property task
-      //var instane = new Uisvc.Run();
+      //var instance = new Uisvc.Run();
       //expect(instance).to.be();
     });
 
     it('should have the property id (base name: "id")', function() {
       // uncomment below and update the code to test the property id
-      //var instane = new Uisvc.Run();
+      //var instance = new Uisvc.Run();
       //expect(instance).to.be();
     });
 

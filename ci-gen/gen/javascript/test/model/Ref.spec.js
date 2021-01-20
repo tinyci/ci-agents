@@ -56,25 +56,25 @@
 
     it('should have the property id (base name: "id")', function() {
       // uncomment below and update the code to test the property id
-      //var instane = new Uisvc.Ref();
+      //var instance = new Uisvc.Ref();
       //expect(instance).to.be();
     });
 
     it('should have the property repository (base name: "repository")', function() {
       // uncomment below and update the code to test the property repository
-      //var instane = new Uisvc.Ref();
+      //var instance = new Uisvc.Ref();
       //expect(instance).to.be();
     });
 
     it('should have the property refName (base name: "ref_name")', function() {
       // uncomment below and update the code to test the property refName
-      //var instane = new Uisvc.Ref();
+      //var instance = new Uisvc.Ref();
       //expect(instance).to.be();
     });
 
     it('should have the property sha (base name: "sha")', function() {
       // uncomment below and update the code to test the property sha
-      //var instane = new Uisvc.Ref();
+      //var instance = new Uisvc.Ref();
       //expect(instance).to.be();
     });
 
