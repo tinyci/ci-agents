@@ -287,26 +287,28 @@ func newResources(rs *types.Resources) Resources {
 // NewRunSettingsFromProto creates a runsettings from a proto representation.
 func NewRunSettingsFromProto(rs *types.RunSettings) *RunSettings {
 	return &RunSettings{
-		Command:   rs.Command,
-		Image:     rs.Image,
-		Queue:     rs.Queue,
-		Metadata:  mkMap(rs.Metadata),
-		Name:      rs.Name,
-		Timeout:   time.Duration(rs.Timeout),
-		Resources: newResources(rs.Resources),
+		Privileged: rs.Privileged,
+		Command:    rs.Command,
+		Image:      rs.Image,
+		Queue:      rs.Queue,
+		Metadata:   mkMap(rs.Metadata),
+		Name:       rs.Name,
+		Timeout:    time.Duration(rs.Timeout),
+		Resources:  newResources(rs.Resources),
 	}
 }
 
 // ToProto converts the run settings to the protobuf representation.
 func (rs *RunSettings) ToProto() *types.RunSettings {
 	return &types.RunSettings{
-		Command:   rs.Command,
-		Image:     rs.Image,
-		Queue:     rs.Queue,
-		Metadata:  mkStruct(rs.Metadata),
-		Name:      rs.Name,
-		Timeout:   rs.Timeout.Nanoseconds(),
-		Resources: rs.Resources.toProto(),
+		Privileged: rs.Privileged,
+		Command:    rs.Command,
+		Image:      rs.Image,
+		Queue:      rs.Queue,
+		Metadata:   mkStruct(rs.Metadata),
+		Name:       rs.Name,
+		Timeout:    rs.Timeout.Nanoseconds(),
+		Resources:  rs.Resources.toProto(),
 	}
 }
 
