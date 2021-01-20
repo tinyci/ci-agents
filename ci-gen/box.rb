@@ -57,5 +57,5 @@ run "go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc"
 protoc_fn = "protoc-#{PROTOC_VERSION}-linux-x86_64.zip"
 
 run "wget https://github.com/protocolbuffers/protobuf/releases/download/v#{PROTOC_VERSION}/#{protoc_fn}"
-run "unzip '#{protoc_fn}' -d /usr && rm -f '#{protoc_fn}'"
+run "umask 022; unzip '#{protoc_fn}' -d /usr && rm -f '#{protoc_fn}' && chmod +x /usr/bin/protoc && chmod -R 755 /usr/include/google"
 run "curl -sSL 'https://github.com/go-swagger/go-swagger/releases/download/#{SWAGGER_VERSION}/swagger_linux_amd64' >/go/bin/swagger && chmod +x /go/bin/swagger"
