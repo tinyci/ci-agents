@@ -56,13 +56,13 @@
 
     it('should have the property id (base name: "id")', function() {
       // uncomment below and update the code to test the property id
-      //var instane = new Uisvc.UserError();
+      //var instance = new Uisvc.UserError();
       //expect(instance).to.be();
     });
 
     it('should have the property error (base name: "error")', function() {
       // uncomment below and update the code to test the property error
-      //var instane = new Uisvc.UserError();
+      //var instance = new Uisvc.UserError();
       //expect(instance).to.be();
     });
 

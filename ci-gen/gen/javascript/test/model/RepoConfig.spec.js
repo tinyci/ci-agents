@@ -56,31 +56,31 @@
 
     it('should have the property workdir (base name: "workdir")', function() {
       // uncomment below and update the code to test the property workdir
-      //var instane = new Uisvc.RepoConfig();
+      //var instance = new Uisvc.RepoConfig();
       //expect(instance).to.be();
     });
 
     it('should have the property queue (base name: "queue")', function() {
       // uncomment below and update the code to test the property queue
-      //var instane = new Uisvc.RepoConfig();
+      //var instance = new Uisvc.RepoConfig();
       //expect(instance).to.be();
     });
 
     it('should have the property overrideQueue (base name: "override_queue")', function() {
       // uncomment below and update the code to test the property overrideQueue
-      //var instane = new Uisvc.RepoConfig();
+      //var instance = new Uisvc.RepoConfig();
       //expect(instance).to.be();
     });
 
     it('should have the property globalTimeout (base name: "global_timeout")', function() {
       // uncomment below and update the code to test the property globalTimeout
-      //var instane = new Uisvc.RepoConfig();
+      //var instance = new Uisvc.RepoConfig();
       //expect(instance).to.be();
     });
 
     it('should have the property overrideTimeout (base name: "override_timeout")', function() {
       // uncomment below and update the code to test the property overrideTimeout
-      //var instane = new Uisvc.RepoConfig();
+      //var instance = new Uisvc.RepoConfig();
       //expect(instance).to.be();
     });
 

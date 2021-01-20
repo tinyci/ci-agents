@@ -56,31 +56,31 @@
 
     it('should have the property id (base name: "id")', function() {
       // uncomment below and update the code to test the property id
-      //var instane = new Uisvc.User();
+      //var instance = new Uisvc.User();
       //expect(instance).to.be();
     });
 
     it('should have the property username (base name: "username")', function() {
       // uncomment below and update the code to test the property username
-      //var instane = new Uisvc.User();
+      //var instance = new Uisvc.User();
       //expect(instance).to.be();
     });
 
     it('should have the property token (base name: "token")', function() {
       // uncomment below and update the code to test the property token
-      //var instane = new Uisvc.User();
+      //var instance = new Uisvc.User();
       //expect(instance).to.be();
     });
 
     it('should have the property lastScannedRepos (base name: "last_scanned_repos")', function() {
       // uncomment below and update the code to test the property lastScannedRepos
-      //var instane = new Uisvc.User();
+      //var instance = new Uisvc.User();
       //expect(instance).to.be();
     });
 
     it('should have the property errors (base name: "errors")', function() {
       // uncomment below and update the code to test the property errors
-      //var instane = new Uisvc.User();
+      //var instance = new Uisvc.User();
       //expect(instance).to.be();
     });
 

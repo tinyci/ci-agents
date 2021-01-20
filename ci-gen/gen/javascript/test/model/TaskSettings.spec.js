@@ -56,61 +56,61 @@
 
     it('should have the property mountpoint (base name: "mountpoint")', function() {
       // uncomment below and update the code to test the property mountpoint
-      //var instane = new Uisvc.TaskSettings();
+      //var instance = new Uisvc.TaskSettings();
       //expect(instance).to.be();
     });
 
     it('should have the property workdir (base name: "workdir")', function() {
       // uncomment below and update the code to test the property workdir
-      //var instane = new Uisvc.TaskSettings();
+      //var instance = new Uisvc.TaskSettings();
       //expect(instance).to.be();
     });
 
     it('should have the property runs (base name: "runs")', function() {
       // uncomment below and update the code to test the property runs
-      //var instane = new Uisvc.TaskSettings();
+      //var instance = new Uisvc.TaskSettings();
       //expect(instance).to.be();
     });
 
     it('should have the property defaultTimeout (base name: "default_timeout")', function() {
       // uncomment below and update the code to test the property defaultTimeout
-      //var instane = new Uisvc.TaskSettings();
+      //var instance = new Uisvc.TaskSettings();
       //expect(instance).to.be();
     });
 
     it('should have the property defaultQueue (base name: "default_queue")', function() {
       // uncomment below and update the code to test the property defaultQueue
-      //var instane = new Uisvc.TaskSettings();
+      //var instance = new Uisvc.TaskSettings();
       //expect(instance).to.be();
     });
 
     it('should have the property defaultImage (base name: "default_image")', function() {
       // uncomment below and update the code to test the property defaultImage
-      //var instane = new Uisvc.TaskSettings();
+      //var instance = new Uisvc.TaskSettings();
       //expect(instance).to.be();
     });
 
     it('should have the property metadata (base name: "metadata")', function() {
       // uncomment below and update the code to test the property metadata
-      //var instane = new Uisvc.TaskSettings();
+      //var instance = new Uisvc.TaskSettings();
       //expect(instance).to.be();
     });
 
     it('should have the property config (base name: "config")', function() {
       // uncomment below and update the code to test the property config
-      //var instane = new Uisvc.TaskSettings();
+      //var instance = new Uisvc.TaskSettings();
       //expect(instance).to.be();
     });
 
     it('should have the property env (base name: "env")', function() {
       // uncomment below and update the code to test the property env
-      //var instane = new Uisvc.TaskSettings();
+      //var instance = new Uisvc.TaskSettings();
       //expect(instance).to.be();
     });
 
     it('should have the property defaultResources (base name: "default_resources")', function() {
       // uncomment below and update the code to test the property defaultResources
-      //var instane = new Uisvc.TaskSettings();
+      //var instance = new Uisvc.TaskSettings();
       //expect(instance).to.be();
     });
 

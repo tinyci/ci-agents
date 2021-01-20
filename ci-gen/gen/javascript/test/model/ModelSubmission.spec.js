@@ -56,73 +56,73 @@
 
     it('should have the property id (base name: "id")', function() {
       // uncomment below and update the code to test the property id
-      //var instane = new Uisvc.ModelSubmission();
+      //var instance = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });
 
     it('should have the property user (base name: "user")', function() {
       // uncomment below and update the code to test the property user
-      //var instane = new Uisvc.ModelSubmission();
+      //var instance = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });
 
     it('should have the property headRef (base name: "head_ref")', function() {
       // uncomment below and update the code to test the property headRef
-      //var instane = new Uisvc.ModelSubmission();
+      //var instance = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });
 
     it('should have the property baseRef (base name: "base_ref")', function() {
       // uncomment below and update the code to test the property baseRef
-      //var instane = new Uisvc.ModelSubmission();
+      //var instance = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });
 
     it('should have the property createdAt (base name: "created_at")', function() {
       // uncomment below and update the code to test the property createdAt
-      //var instane = new Uisvc.ModelSubmission();
+      //var instance = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });
 
     it('should have the property startedAt (base name: "started_at")', function() {
       // uncomment below and update the code to test the property startedAt
-      //var instane = new Uisvc.ModelSubmission();
+      //var instance = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });
 
     it('should have the property finishedAt (base name: "finished_at")', function() {
       // uncomment below and update the code to test the property finishedAt
-      //var instane = new Uisvc.ModelSubmission();
+      //var instance = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });
 
     it('should have the property tasksCount (base name: "tasks_count")', function() {
       // uncomment below and update the code to test the property tasksCount
-      //var instane = new Uisvc.ModelSubmission();
+      //var instance = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });
 
     it('should have the property runsCount (base name: "runs_count")', function() {
       // uncomment below and update the code to test the property runsCount
-      //var instane = new Uisvc.ModelSubmission();
+      //var instance = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });
 
     it('should have the property status (base name: "status")', function() {
       // uncomment below and update the code to test the property status
-      //var instane = new Uisvc.ModelSubmission();
+      //var instance = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });
 
     it('should have the property canceled (base name: "canceled")', function() {
       // uncomment below and update the code to test the property canceled
-      //var instane = new Uisvc.ModelSubmission();
+      //var instance = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });
 
     it('should have the property ticketId (base name: "ticket_id")', function() {
       // uncomment below and update the code to test the property ticketId
-      //var instane = new Uisvc.ModelSubmission();
+      //var instance = new Uisvc.ModelSubmission();
       //expect(instance).to.be();
     });
 
