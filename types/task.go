@@ -203,6 +203,14 @@ func (t *TaskSettings) Validate(requireRuns bool) *errors.Error {
 
 	t.handleOverrides()
 
+	if !t.Config.AllowPrivileged {
+		for _, run := range t.Runs {
+			if run.Privileged {
+				return errors.Errorf("Run %q cannot launch because it wants a privileged container and they are denied", run.Name)
+			}
+		}
+	}
+
 	if len(t.Runs) != 0 {
 		if t.Mountpoint == "" {
 			return errors.New("no mountpoint")
@@ -229,13 +237,14 @@ func (t *TaskSettings) Validate(requireRuns bool) *errors.Error {
 // RunSettings encompasses things that are a part of a run that are
 // configurable by a user.
 type RunSettings struct {
-	Command   []string               `yaml:"command"`
-	Image     string                 `yaml:"image"`
-	Queue     string                 `yaml:"queue"`
-	Metadata  map[string]interface{} `yaml:"metadata"`
-	Name      string                 `yaml:"-"`
-	Timeout   time.Duration          `yaml:"timeout"`
-	Resources Resources              `yaml:"resources"`
+	Privileged bool                   `yaml:"privileged"`
+	Command    []string               `yaml:"command"`
+	Image      string                 `yaml:"image"`
+	Queue      string                 `yaml:"queue"`
+	Metadata   map[string]interface{} `yaml:"metadata"`
+	Name       string                 `yaml:"-"`
+	Timeout    time.Duration          `yaml:"timeout"`
+	Resources  Resources              `yaml:"resources"`
 }
 
 // Resources communicates what resources should be available to the runner.
@@ -326,6 +335,7 @@ func (rs *RunSettings) Validate(t *TaskSettings) *errors.Error {
 // of global attributes as well as overrides and defaults for certain
 // task-related items. It is typically named `tinyci.yml`.
 type RepoConfig struct {
+	AllowPrivileged  bool                   `yaml:"allow_privileged"`
 	WorkDir          string                 `yaml:"workdir"`
 	Queue            string                 `yaml:"queue"`
 	OverrideQueue    bool                   `yaml:"override_queue"`
