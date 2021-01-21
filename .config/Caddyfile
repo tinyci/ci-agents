@@ -1,0 +1,13 @@
+:3000 {
+  route /hook/* {
+    uri strip_prefix /hook
+    reverse_proxy localhost:2020
+  }
+
+  route /uisvc/* {
+    uri strip_prefix /uisvc
+    reverse_proxy localhost:6010
+  }
+
+  reverse_proxy /* react:3000
+}

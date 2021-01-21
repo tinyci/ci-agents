@@ -45,7 +45,7 @@ done
 
 if [ -z "${TESTING}" ]
 then
-  nginx
+  caddy start -config /Caddyfile -watch
 fi
 
 "$@"
