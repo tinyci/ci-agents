@@ -31,7 +31,6 @@ func (ts *typesSuite) TestTaskSettingsNew(c *check.C) {
 					Name:    "foobar",
 				},
 			},
-			Config: &RepoConfig{},
 		},
 
 		"independent_queues": {
@@ -58,7 +57,6 @@ func (ts *typesSuite) TestTaskSettingsNew(c *check.C) {
 					Name:    "foobar3",
 				},
 			},
-			Config: &RepoConfig{},
 		},
 
 		"standard_defaults": {
@@ -72,7 +70,6 @@ func (ts *typesSuite) TestTaskSettingsNew(c *check.C) {
 					Name:    "foobar",
 				},
 			},
-			Config: &RepoConfig{},
 		},
 	}
 
@@ -80,20 +77,15 @@ func (ts *typesSuite) TestTaskSettingsNew(c *check.C) {
 		buf, err := ioutil.ReadFile(fmt.Sprintf("testdata/tasks/%s.yml", file))
 		c.Assert(err, check.IsNil)
 
-		t, err := NewTaskSettings(buf, true, nil)
+		t, err := NewTaskSettings(buf, true, RepoConfig{})
 		c.Assert(err, check.IsNil)
-
-		// hack around repoconfig prop
-		if t.Config == nil {
-			t.Config = &RepoConfig{}
-		}
 
 		c.Assert(t, check.DeepEquals, task, check.Commentf("%s", file))
 	}
 }
 
 func (ts *typesSuite) TestRepoConfig(c *check.C) {
-	iters := map[string]*RepoConfig{
+	iters := map[string]RepoConfig{
 		"basic": {
 			Queue: "default",
 		},
@@ -130,7 +122,7 @@ func (ts *typesSuite) TestNewTaskWithRepoConfig(c *check.C) {
 					Name:    "foobar",
 				},
 			},
-			Config: &RepoConfig{
+			Config: RepoConfig{
 				Queue: "default",
 			},
 		},
@@ -146,7 +138,7 @@ func (ts *typesSuite) TestNewTaskWithRepoConfig(c *check.C) {
 					Name:    "foobar",
 				},
 			},
-			Config: &RepoConfig{
+			Config: RepoConfig{
 				Queue: "quux",
 			},
 		},
@@ -162,7 +154,7 @@ func (ts *typesSuite) TestNewTaskWithRepoConfig(c *check.C) {
 					Name:    "foobar",
 				},
 			},
-			Config: &RepoConfig{
+			Config: RepoConfig{
 				Queue:         "quux",
 				OverrideQueue: true,
 			},
@@ -181,7 +173,7 @@ func (ts *typesSuite) TestNewTaskWithRepoConfig(c *check.C) {
 					Timeout: 120 * time.Millisecond,
 				},
 			},
-			Config: &RepoConfig{
+			Config: RepoConfig{
 				Queue:         "default",
 				GlobalTimeout: 12 * time.Millisecond,
 			},
@@ -199,7 +191,7 @@ func (ts *typesSuite) TestNewTaskWithRepoConfig(c *check.C) {
 					Timeout: 50 * time.Millisecond,
 				},
 			},
-			Config: &RepoConfig{
+			Config: RepoConfig{
 				Queue:         "default",
 				GlobalTimeout: 12 * time.Millisecond,
 			},
@@ -216,7 +208,7 @@ func (ts *typesSuite) TestNewTaskWithRepoConfig(c *check.C) {
 					Timeout: 12 * time.Millisecond,
 				},
 			},
-			Config: &RepoConfig{
+			Config: RepoConfig{
 				Queue:         "default",
 				GlobalTimeout: 12 * time.Millisecond,
 			},
@@ -234,7 +226,7 @@ func (ts *typesSuite) TestNewTaskWithRepoConfig(c *check.C) {
 					Timeout: 12 * time.Millisecond,
 				},
 			},
-			Config: &RepoConfig{
+			Config: RepoConfig{
 				Queue:           "default",
 				GlobalTimeout:   12 * time.Millisecond,
 				OverrideTimeout: true,
@@ -267,7 +259,7 @@ func (ts *typesSuite) TestDefaultImage(c *check.C) {
 				Command: []string{"cmd"},
 			},
 		},
-		Config: &RepoConfig{
+		Config: RepoConfig{
 			DefaultImage: "repo_config_image",
 		},
 	}
@@ -284,7 +276,7 @@ func (ts *typesSuite) TestDefaultImage(c *check.C) {
 				Command: []string{"cmd"},
 			},
 		},
-		Config: &RepoConfig{
+		Config: RepoConfig{
 			DefaultImage: "repo_config_image",
 		},
 	}
@@ -302,7 +294,7 @@ func (ts *typesSuite) TestDefaultImage(c *check.C) {
 				Image:   "local_image",
 			},
 		},
-		Config: &RepoConfig{
+		Config: RepoConfig{
 			DefaultImage: "repo_config_image",
 		},
 	}
@@ -334,7 +326,7 @@ func (ts *typesSuite) TestRepoConfigMetadata(c *check.C) {
 				Name:    "foobar",
 			},
 		},
-		Config: &RepoConfig{
+		Config: RepoConfig{
 			Queue: "default",
 			Metadata: map[string]interface{}{
 				"foo":      "bar",
@@ -371,7 +363,7 @@ func (ts *typesSuite) TestRepoConfigMetadata(c *check.C) {
 				Name:    "foobar",
 			},
 		},
-		Config: &RepoConfig{
+		Config: RepoConfig{
 			Queue: "default",
 			Metadata: map[string]interface{}{
 				"foo":      "bar",
@@ -420,7 +412,7 @@ func (ts *typesSuite) TestTaskDependenciesNoRuns(c *check.C) {
 	content, err := ioutil.ReadFile("testdata/tasks/deps_only.yml")
 	c.Assert(err, check.IsNil)
 
-	t, err = NewTaskSettings(content, false, &RepoConfig{})
+	t, err = NewTaskSettings(content, false, RepoConfig{})
 	c.Assert(err, check.IsNil)
 	c.Assert(t.Validate(false), check.IsNil)
 }
@@ -452,7 +444,7 @@ func (ts *typesSuite) TestResourceCascade(c *check.C) {
 						Command: []string{"foo", "bar"},
 					},
 				},
-				Config: &RepoConfig{
+				Config: RepoConfig{
 					DefaultResources: Resources{
 						CPU:    "1",
 						Memory: "10",
