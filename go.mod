@@ -7,6 +7,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/erikh/check v0.0.1
 	github.com/erikh/go-transport v0.1.0
+	github.com/erikh/migrator v0.0.0-20191117045638-9485ee10af48 // indirect
 	github.com/fatih/color v1.10.0
 	github.com/gin-contrib/sessions v0.0.3
 	github.com/gin-gonic/gin v1.6.3
