@@ -26,7 +26,7 @@ type ServerStatus struct {
 }
 
 // HandlerFunc is a function that launches a service
-type HandlerFunc func() (*ServerStatus, *errors.Error)
+type HandlerFunc func() (*ServerStatus, error)
 
 // GRPCServer is the server to run
 type GRPCServer struct {
@@ -52,7 +52,7 @@ func (s *GRPCServer) Make(commands []cli.Command) []cli.Command {
 // MakeHandlerFunc returns a function with a channel to close to stop it, or any
 // error it received while trying to create the server. It accepts a
 // string to get the configuration filename.
-func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, *errors.Error) {
+func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, error) {
 	h := &handler.H{}
 	if err := config.Parse(configFile, &h); err != nil {
 		return nil, errors.New(err)
@@ -81,7 +81,7 @@ func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, *errors.Er
 		return nil, errors.New(err)
 	}
 
-	return func() (*ServerStatus, *errors.Error) {
+	return func() (*ServerStatus, error) {
 		finished := make(chan struct{})
 		doneChan, err := h.Boot(t, grpc, finished)
 		if err != nil {
@@ -99,12 +99,12 @@ func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, *errors.Er
 func (s *GRPCServer) serve(ctx *cli.Context) error {
 	fun, err := s.MakeHandlerFunc(ctx.GlobalString("config"))
 	if err != nil {
-		return err.Wrap("while constructing GRPC handler")
+		return errors.New(err).Wrap("while constructing GRPC handler")
 	}
 
 	status, err := fun()
 	if err != nil {
-		return err.Wrap("while booting service")
+		return errors.New(err).Wrap("while booting service")
 	}
 
 	sigChan := make(chan os.Signal, 2)
