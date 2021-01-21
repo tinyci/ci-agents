@@ -84,7 +84,7 @@ func launch(ctx *cli.Context) error {
 	for _, s := range servers {
 		handler, err := s.MakeHandlerFunc(configFile)
 		if err != nil {
-			return err.Wrapf("while constructing handler for %s", s.Name)
+			return errors.New(err).Wrapf("while constructing handler for %s", s.Name)
 		}
 
 		handlers = append(handlers, handler)
@@ -149,11 +149,11 @@ func makeUISvcHandler(configFile string) (cmdlib.HandlerFunc, error) {
 
 	h.Config = restapi.MakeHandlerConfig(h.ServiceConfig)
 
-	return func() (*cmdlib.ServerStatus, *errors.Error) {
+	return func() (*cmdlib.ServerStatus, error) {
 		finished := make(chan struct{})
 		doneChan, err := handlers.Boot(nil, h, finished)
 		if err != nil {
-			return nil, err
+			return nil, errors.New(err)
 		}
 
 		return &cmdlib.ServerStatus{
