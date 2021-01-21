@@ -192,7 +192,7 @@ func (tp *taskPicker) makeTask(ctx context.Context, subRecord *model.Submission,
 		return nil, err.Wrapf("obtaining task instructions for repo %q sha %q dir %q", repoInfo.fork.Name, repoInfo.forkRef.SHA, dir)
 	}
 
-	ts, err := types.NewTaskSettings(content, false, repoInfo.repoConfig)
+	ts, err := types.NewTaskSettings(content, false, *repoInfo.repoConfig)
 	if err != nil {
 		if repoInfo.ticketID != 0 {
 			if cerr := client.CommentError(ctx, repoInfo.parent.Name, repoInfo.ticketID, err.Wrap("tinyCI had an error processing your pull request")); cerr != nil {

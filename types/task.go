@@ -49,7 +49,7 @@ type TaskSettings struct {
 	DefaultQueue     string                  `yaml:"default_queue"`
 	DefaultImage     string                  `yaml:"default_image"`
 	Metadata         map[string]interface{}  `yaml:"metadata"`
-	Config           *RepoConfig             `yaml:"-"`
+	Config           RepoConfig              `yaml:"-"`
 	DefaultResources Resources               `yaml:"default_resources"`
 }
 
@@ -72,6 +72,7 @@ func NewTaskSettingsFromProto(ts *types.TaskSettings) *TaskSettings {
 		DefaultImage:     ts.DefaultImage,
 		Metadata:         mkMap(ts.Metadata),
 		DefaultResources: newResources(ts.Resources),
+		Config:           NewRepoConfigFromProto(ts.Config),
 	}
 }
 
@@ -94,15 +95,12 @@ func (t *TaskSettings) ToProto() *types.TaskSettings {
 		DefaultImage:   t.DefaultImage,
 		Metadata:       mkStruct(t.Metadata),
 		Resources:      t.DefaultResources.toProto(),
+		Config:         t.Config.ToProto(),
 	}
 }
 
 // NewTaskSettings creates a new task configuration from a byte buffer.
-func NewTaskSettings(buf []byte, requireRuns bool, rc *RepoConfig) (*TaskSettings, *errors.Error) {
-	if rc == nil {
-		rc = &RepoConfig{}
-	}
-
+func NewTaskSettings(buf []byte, requireRuns bool, rc RepoConfig) (*TaskSettings, *errors.Error) {
 	t := &TaskSettings{}
 
 	if err := yaml.UnmarshalStrict(buf, t); err != nil {
@@ -119,7 +117,7 @@ func NewTaskSettings(buf []byte, requireRuns bool, rc *RepoConfig) (*TaskSetting
 }
 
 func (t *TaskSettings) overrideTimeout() {
-	if t.Config != nil && t.Config.OverrideTimeout && t.Config.GlobalTimeout != 0 {
+	if t.Config.OverrideTimeout && t.Config.GlobalTimeout != 0 {
 		for _, run := range t.Runs {
 			run.Timeout = t.Config.GlobalTimeout
 		}
@@ -128,7 +126,7 @@ func (t *TaskSettings) overrideTimeout() {
 			if run.Timeout == 0 {
 				if t.DefaultTimeout != 0 {
 					run.Timeout = t.DefaultTimeout
-				} else if t.Config != nil && t.Config.GlobalTimeout != 0 {
+				} else if t.Config.GlobalTimeout != 0 {
 					run.Timeout = t.Config.GlobalTimeout
 				}
 			}
@@ -197,10 +195,6 @@ func (t *TaskSettings) handleOverrides() {
 
 // Validate validates the task settings.
 func (t *TaskSettings) Validate(requireRuns bool) *errors.Error {
-	if t.Config == nil {
-		t.Config = &RepoConfig{}
-	}
-
 	t.handleOverrides()
 
 	if !t.Config.AllowPrivileged {
@@ -352,16 +346,65 @@ type RepoConfig struct {
 }
 
 // NewRepoConfig creates a new repo config from a byte buffer.
-func NewRepoConfig(buf []byte) (*RepoConfig, *errors.Error) {
-	r := &RepoConfig{}
+func NewRepoConfig(buf []byte) (RepoConfig, *errors.Error) {
+	r := RepoConfig{}
 
-	if err := yaml.UnmarshalStrict(buf, r); err != nil {
-		return nil, errors.New(err)
+	if err := yaml.UnmarshalStrict(buf, &r); err != nil {
+		return r, errors.New(err)
 	}
 
 	r.handleOverrides()
 
 	return r, r.Validate()
+}
+
+// NewRepoConfigFromProto creates a runsettings from a proto representation.
+func NewRepoConfigFromProto(rs *types.RepoConfig) RepoConfig {
+	metadata := map[string]interface{}{}
+
+	for key, value := range rs.Metadata {
+		metadata[key] = value
+	}
+
+	return RepoConfig{
+		AllowPrivileged:  rs.AllowPrivileged,
+		WorkDir:          rs.Workdir,
+		Queue:            rs.Queue,
+		OverrideQueue:    rs.OverrideQueue,
+		GlobalTimeout:    time.Duration(rs.GlobalTimeout),
+		OverrideTimeout:  rs.OverrideTimeout,
+		IgnoreDirs:       rs.IgnoreDirectories,
+		Metadata:         metadata,
+		OverrideMetadata: rs.OverrideMetadata,
+		DefaultImage:     rs.DefaultImage,
+		DefaultResources: newResources(rs.DefaultResources),
+	}
+}
+
+// ToProto converts the run settings to the protobuf representation.
+func (r *RepoConfig) ToProto() *types.RepoConfig {
+	metadata := map[string]string{}
+
+	for key, value := range r.Metadata {
+		s, ok := value.(string)
+		if ok {
+			metadata[key] = s
+		}
+	}
+
+	return &types.RepoConfig{
+		AllowPrivileged:   r.AllowPrivileged,
+		Workdir:           r.WorkDir,
+		Queue:             r.Queue,
+		OverrideQueue:     r.OverrideQueue,
+		GlobalTimeout:     int64(r.GlobalTimeout),
+		OverrideTimeout:   r.OverrideTimeout,
+		IgnoreDirectories: r.IgnoreDirs,
+		Metadata:          metadata,
+		OverrideMetadata:  r.OverrideMetadata,
+		DefaultImage:      r.DefaultImage,
+		DefaultResources:  r.DefaultResources.toProto(),
+	}
 }
 
 func (r *RepoConfig) handleOverrides() {
