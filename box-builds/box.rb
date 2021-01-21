@@ -2,6 +2,7 @@ GO_VERSION = "1.15.7"
 POSTGRES_VERSION = "11"
 SWAGGER_VERSION = "v0.18.0"
 PROTOC_VERSION = "3.14.0"
+CADDY_VERSION = "2.3.0"
 TIMEZONE = "Etc/UTC"
 
 EXTRA_PACKAGES = %w[
@@ -12,7 +13,6 @@ EXTRA_PACKAGES = %w[
   mercurial 
   build-essential
   sudo
-  nginx
   libnss3-tools
   unzip
 ]
@@ -62,6 +62,9 @@ run "go get github.com/FiloSottile/mkcert"
 run "go get -u github.com/golang/protobuf/protoc-gen-go"
 run "go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc"
 
+run "wget https://github.com/caddyserver/caddy/releases/download/v2.3.0/caddy_#{CADDY_VERSION}_linux_amd64.deb"
+run "dpkg -i caddy_#{CADDY_VERSION}_linux_amd64.deb"
+
 protoc_fn = "protoc-#{PROTOC_VERSION}-linux-x86_64.zip"
 
 run "wget https://github.com/protocolbuffers/protobuf/releases/download/v#{PROTOC_VERSION}/#{protoc_fn}"
@@ -69,7 +72,7 @@ run "unzip '#{protoc_fn}' -d /usr && rm -f #{protoc_fn}"
 run "curl -sSL 'https://github.com/go-swagger/go-swagger/releases/download/#{SWAGGER_VERSION}/swagger_linux_amd64' >/go/bin/swagger && chmod +x /go/bin/swagger"
 
 if !$imported
-  copy '.config/nginx.conf', '/etc/nginx/nginx.conf'
+  copy '.config/Caddyfile', '/Caddyfile'
   copy 'entrypoint.sh', '/'
   run "chmod 755 /entrypoint.sh"
 end
