@@ -317,5 +317,10 @@ func (sp *submissionProcessor) getRepoConfig(ctx context.Context, client github.
 		return nil, err
 	}
 
-	return types.NewRepoConfig(content)
+	rc, err := types.NewRepoConfig(content)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rc, nil
 }

@@ -12,6 +12,24 @@ import "github.com/tinyci/ci-agents/ci-gen/grpc/types/ref.proto";
 import "github.com/tinyci/ci-agents/ci-gen/grpc/types/run_settings.proto";
 import "github.com/tinyci/ci-agents/ci-gen/grpc/types/submission.proto";
 
+// RepoConfig corresponds to the tinyci.yml file at the root of the repository.
+// It is only read from the default branch during submissions, but its
+// inclusion into the structs is necessary to evaluate them by runners at
+// times, or in more advanced validation scenarios against task.yml.
+message RepoConfig {
+  bool                allow_privileged    = 1;  // allow privileged runs in this repository?
+  string              workdir             = 2;  // global workdir
+  string              queue               = 3;  // queue name
+  bool                override_queue      = 4;  // override queue settings?
+  int64               global_timeout      = 5;  // timeout for all unspecified runs
+  bool                override_timeout    = 6;  // override timeout with the global timeout?
+  repeated string     ignore_directories  = 7;  // directories to ignore
+  map<string, string> metadata            = 8;  // metadata to populate in each run
+  bool                override_metadata   = 9;  // override metadata?
+  string              default_image       = 10; // use this image as the default
+  Resources           default_resources   = 11; // default resources to consume
+}
+
 // Task corresponds to directories within the tree that have a `task.yml`
 // placed in them. Each task is decomposed into runs, and this record is
 // created indicating the group of them, as well as properties they share.
@@ -46,6 +64,7 @@ message TaskSettings {
             google.protobuf.Struct          metadata        = 8;  // Free-form metadata to be returned to runners.
   repeated  string                          dependencies    = 9;  // Dependency list.
             Resources                       resources       = 10; // Resources to constrain all runs of this task.
+            RepoConfig                      config          = 11; // Repository configuration parsed from `tinyci.yml`.
 }
 
 // TaskList is simply a repeated list of tasks.
