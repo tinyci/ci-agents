@@ -1,6 +1,5 @@
 :3000 {
-  route /hook/* {
-    uri strip_prefix /hook
+  route /hook {
     reverse_proxy localhost:2020
   }
 
