@@ -239,6 +239,7 @@ type RunSettings struct {
 	Name       string                 `yaml:"-"`
 	Timeout    time.Duration          `yaml:"timeout"`
 	Resources  Resources              `yaml:"resources"`
+	Env        []string               `yaml:"env"`
 }
 
 // Resources communicates what resources should be available to the runner.
@@ -289,6 +290,7 @@ func NewRunSettingsFromProto(rs *types.RunSettings) *RunSettings {
 		Name:       rs.Name,
 		Timeout:    time.Duration(rs.Timeout),
 		Resources:  newResources(rs.Resources),
+		Env:        rs.Env,
 	}
 }
 
@@ -303,6 +305,7 @@ func (rs *RunSettings) ToProto() *types.RunSettings {
 		Name:       rs.Name,
 		Timeout:    rs.Timeout.Nanoseconds(),
 		Resources:  rs.Resources.toProto(),
+		Env:        rs.Env,
 	}
 }
 
