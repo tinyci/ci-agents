@@ -4,6 +4,8 @@
 /.ca
 /.db
 /.logs
+/.runner
+/.overlay
 *.gz
 /build
 \#*

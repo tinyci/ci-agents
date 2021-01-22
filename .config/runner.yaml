@@ -1,0 +1,10 @@
+---
+clients:
+  assetsvc: tinyci:6002
+  logsvc: tinyci:6005
+  queuesvc: tinyci:6001
+queue: default
+hostname: tinyci-runner-1
+git:
+  base_repo_path: /var/db/git
+overlay_tempdir: /var/db/overlay
