@@ -17,6 +17,7 @@ message RunSettings {
             int64                   timeout     = 6; // Timeout is the timeout, in seconds, to wait before automatically canceling a run.
             Resources               resources   = 7; // Resource constraint values
             bool                    privileged  = 8; // use a privileged container to run this test?
+  repeated  string                  env         = 9; // environment variables
 }
 
 // Resources covers resource constraints that a runner might act on. It is
