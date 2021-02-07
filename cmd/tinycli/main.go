@@ -19,6 +19,7 @@ import (
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/utils"
 	"github.com/urfave/cli"
+	"golang.org/x/term"
 )
 
 var tinyCIConfig = path.Join(os.Getenv("HOME"), ".tinycli")
@@ -291,7 +292,12 @@ You can also specify the TINYCLI_CONFIG environment variable.
 }
 
 func stdTabWriter(ctx *cli.Context) *colorwriter.Writer {
-	color.NoColor = ctx.GlobalBool("no-color")
+	if ctx.GlobalIsSet("no-color") {
+		color.NoColor = ctx.GlobalBool("no-color")
+	} else if !term.IsTerminal(int(os.Stdin.Fd())) || !term.IsTerminal(int(os.Stdout.Fd())) {
+		color.NoColor = true
+	}
+
 	return colorwriter.NewWriter(os.Stdout, 2, 2, 4, ' ', 0)
 }
 
