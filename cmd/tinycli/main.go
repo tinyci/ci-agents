@@ -9,9 +9,9 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"text/tabwriter"
 	"time"
 
+	"github.com/erikh/colorwriter"
 	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/clients/tinyci"
 	"github.com/tinyci/ci-agents/errors"
@@ -284,8 +284,8 @@ You can also specify the TINYCLI_CONFIG environment variable.
 	}
 }
 
-func stdTabWriter() *tabwriter.Writer {
-	return tabwriter.NewWriter(os.Stdout, 2, 2, 4, ' ', 0)
+func stdTabWriter() *colorwriter.Writer {
+	return colorwriter.NewWriter(os.Stdout, 2, 2, 4, ' ', 0)
 }
 
 func doInit(ctx *cli.Context) error {
