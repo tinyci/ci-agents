@@ -11,7 +11,7 @@ import (
 	"github.com/tinyci/ci-agents/clients/data"
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Version is the version of this service.
@@ -30,34 +30,34 @@ func main() {
 	app.Version = fmt.Sprintf("%s (tinyCI version %s)", Version, TinyCIVersion)
 
 	app.Flags = []cli.Flag{
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:  "dry-run, n",
 			Usage: "Just print what runs would be canceled, but don't do anything",
 		},
-		cli.DurationFlag{
+		&cli.DurationFlag{
 			Name:  "timeout, t",
 			Usage: "After this time, cancel the run",
 			Value: 3 * time.Hour,
 		},
-		cli.IntFlag{
+		&cli.IntFlag{
 			Name:  "limit, l",
 			Usage: "Limit to last N runs: set to 0 to not limit",
 			Value: 1000,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:  "datasvc, d",
 			Usage: "Location of datasvc",
 			Value: config.DefaultServices.Data.String(),
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:  "cacert, ca",
 			Usage: "Location of CA certificate for encrypted connections",
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:  "cert, c",
 			Usage: "Client cert used to connect to datasvc",
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:  "key, k",
 			Usage: "Client key used to connect to datasvc",
 		},
@@ -71,16 +71,16 @@ func main() {
 func run(ctx *cli.Context) error {
 	var cert *transport.Cert
 
-	if !(ctx.GlobalString("cacert") == "" && ctx.GlobalString("cert") == "" && ctx.GlobalString("key") == "") {
+	if !(ctx.String("cacert") == "" && ctx.String("cert") == "" && ctx.String("key") == "") {
 		var err error
 		// last arg is CRL
-		cert, err = transport.LoadCert(ctx.GlobalString("cacert"), ctx.GlobalString("cert"), ctx.GlobalString("key"), "")
+		cert, err = transport.LoadCert(ctx.String("cacert"), ctx.String("cert"), ctx.String("key"), "")
 		if err != nil {
 			return errors.New(err).Wrap("while loading cert")
 		}
 	}
 
-	client, err := data.New(ctx.GlobalString("datasvc"), cert, false)
+	client, err := data.New(ctx.String("datasvc"), cert, false)
 	if err != nil {
 		return err
 	}
@@ -88,15 +88,15 @@ func run(ctx *cli.Context) error {
 
 	ct := context.Background()
 
-	for count := ctx.GlobalInt("limit"); count >= 0; count -= walkIncrement {
+	for count := ctx.Int("limit"); count >= 0; count -= walkIncrement {
 		runs, err := client.ListRuns(ct, "", "", int64(count/walkIncrement), walkIncrement)
 		if err != nil {
 			return err
 		}
 
 		for _, run := range runs {
-			if run.Status == nil && time.Since(run.CreatedAt) > ctx.GlobalDuration("timeout") {
-				if ctx.GlobalBool("dry-run") {
+			if run.Status == nil && time.Since(run.CreatedAt) > ctx.Duration("timeout") {
+				if ctx.Bool("dry-run") {
 					logrus.Infof("Would cancel run %d, repository %v, ref %v, name %v -- %v old", run.ID, run.Task.Submission.BaseRef.Repository.Name, run.Task.Submission.HeadRef.RefName, run.Name, time.Since(run.CreatedAt))
 				} else {
 					if err := client.SetCancel(ct, run.ID); err != nil {
