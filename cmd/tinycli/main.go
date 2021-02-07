@@ -9,15 +9,17 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"text/tabwriter"
 	"time"
 
+	"github.com/erikh/colorwriter"
 	transport "github.com/erikh/go-transport"
+	"github.com/fatih/color"
 	"github.com/tinyci/ci-agents/clients/tinyci"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/utils"
 	"github.com/urfave/cli"
+	"golang.org/x/term"
 )
 
 var tinyCIConfig = path.Join(os.Getenv("HOME"), ".tinycli")
@@ -135,6 +137,11 @@ You can also specify the TINYCLI_CONFIG environment variable.
 			Name:   "key, k",
 			Usage:  "TLS private key to use to contact remote service (ecdsa only)",
 			EnvVar: "TINYCLI_KEY",
+		},
+		cli.BoolFlag{
+			Name:   "no-color, nc",
+			Usage:  "Turn off coloring for output",
+			EnvVar: "TINYCLI_NOCOLOR",
 		},
 	}
 
@@ -284,8 +291,27 @@ You can also specify the TINYCLI_CONFIG environment variable.
 	}
 }
 
-func stdTabWriter() *tabwriter.Writer {
-	return tabwriter.NewWriter(os.Stdout, 2, 2, 4, ' ', 0)
+func stdTabWriter(ctx *cli.Context) *colorwriter.Writer {
+	if ctx.GlobalIsSet("no-color") {
+		color.NoColor = ctx.GlobalBool("no-color")
+	} else if !term.IsTerminal(int(os.Stdin.Fd())) || !term.IsTerminal(int(os.Stdout.Fd())) {
+		color.NoColor = true
+	}
+
+	return colorwriter.NewWriter(os.Stdout, 2, 2, 4, ' ', 0)
+}
+
+func getHeaderColorFunc() func(string, ...interface{}) string {
+	return color.CyanString
+}
+
+func getRowColorFunc(i int) func(string, ...interface{}) string {
+	colorFunc := color.HiBlackString
+	if i%2 == 0 {
+		colorFunc = color.WhiteString
+	}
+
+	return colorFunc
 }
 
 func doInit(ctx *cli.Context) error {
@@ -451,12 +477,12 @@ func submissions(ctx *cli.Context) error {
 		return err
 	}
 
-	w := stdTabWriter()
-	if _, err := w.Write([]byte("SUB ID\tREPOSITORY\tREF\tSHA\tRUN/FIN/TOT\tSTATE\tDURATION\n")); err != nil {
+	w := stdTabWriter(ctx)
+	if _, err := w.Write([]byte(getHeaderColorFunc()("SUB ID\tREPOSITORY\tREF\tSHA\tRUN/FIN/TOT\tSTATE\tDURATION\n"))); err != nil {
 		return err
 	}
 
-	for _, sub := range subs {
+	for i, sub := range subs {
 		running, finished, total, err := mkSubRunCounts(ct, client, sub)
 		if err != nil {
 			return err
@@ -479,7 +505,7 @@ func submissions(ctx *cli.Context) error {
 		}
 
 		_, eErr := fmt.Fprintf(w,
-			"%d\t%s\t%s\t%s\t%d/%d/%d\t%v\t%v\n",
+			getRowColorFunc(i)("%d\t%s\t%s\t%s\t%d/%d/%d\t%v\t%v\n"),
 			sub.ID,
 			sub.HeadRef.Repository.Name,
 			strings.TrimPrefix(sub.HeadRef.RefName, "heads/"),
@@ -509,12 +535,12 @@ func tasks(ctx *cli.Context) error {
 		return err
 	}
 
-	w := stdTabWriter()
-	if _, err := w.Write([]byte("TASK ID\tREPOSITORY\tREF\tSHA\tPATH\tRUN/FIN/TOT\tSTATE\tDURATION\n")); err != nil {
+	w := stdTabWriter(ctx)
+	if _, err := w.Write([]byte(getHeaderColorFunc()("TASK ID\tREPOSITORY\tREF\tSHA\tPATH\tRUN/FIN/TOT\tSTATE\tDURATION\n"))); err != nil {
 		return err
 	}
 
-	for _, task := range tasks {
+	for i, task := range tasks {
 		statusStr := mkTaskStatus(task)
 
 		duration := ""
@@ -539,7 +565,7 @@ func tasks(ctx *cli.Context) error {
 			path = "*root*"
 		}
 
-		if _, err := w.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d/%d/%d\t%s\t%s\n", task.ID, task.Submission.HeadRef.Repository.Name, refName, sha, path, runningCount, finishedCount, totalCount, statusStr, duration))); err != nil {
+		if _, err := w.Write([]byte(getRowColorFunc(i)(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d/%d/%d\t%s\t%s\n", task.ID, task.Submission.HeadRef.Repository.Name, refName, sha, path, runningCount, finishedCount, totalCount, statusStr, duration)))); err != nil {
 			return err
 		}
 	}
@@ -559,11 +585,11 @@ func runs(ctx *cli.Context) error {
 		return err
 	}
 
-	w := stdTabWriter()
-	if _, err := w.Write([]byte("RUN ID\tREPOSITORY\tREF\tSHA\tRUN\tTASK ID\tSTATE\tDURATION\n")); err != nil {
+	w := stdTabWriter(ctx)
+	if _, err := w.Write([]byte(getHeaderColorFunc()("RUN ID\tREPOSITORY\tREF\tSHA\tRUN\tTASK ID\tSTATE\tDURATION\n"))); err != nil {
 		return err
 	}
-	for _, run := range runs {
+	for i, run := range runs {
 		statusStr := "queued"
 		if run.Task.Canceled {
 			statusStr = "canceled"
@@ -587,7 +613,7 @@ func runs(ctx *cli.Context) error {
 		refName := run.Task.Submission.HeadRef.RefName
 		sha := run.Task.Submission.HeadRef.SHA[:12]
 
-		if _, err := w.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d\t%s\t%s\n", run.ID, run.Task.Submission.HeadRef.Repository.Name, refName, sha, run.Name, run.Task.ID, statusStr, duration))); err != nil {
+		if _, err := w.Write([]byte(getRowColorFunc(i)(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d\t%s\t%s\n", run.ID, run.Task.Submission.HeadRef.Repository.Name, refName, sha, run.Name, run.Task.ID, statusStr, duration)))); err != nil {
 			return err
 		}
 	}
