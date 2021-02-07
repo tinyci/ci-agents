@@ -18,7 +18,7 @@ import (
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/utils"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"golang.org/x/term"
 )
 
@@ -39,7 +39,7 @@ func getConfigPath(ctx *cli.Context) (string, *errors.Error) {
 		return "", errors.Errorf("tinycli configuration path %q exists and is not a directory", tinyCIConfig)
 	}
 
-	config := ctx.GlobalString("config")
+	config := ctx.String("config")
 	if config == "" {
 		return "", errors.New("invalid config name")
 	}
@@ -48,9 +48,9 @@ func getConfigPath(ctx *cli.Context) (string, *errors.Error) {
 }
 
 func getCert(ctx *cli.Context) (*transport.Cert, *errors.Error) {
-	ca, certStr, keyStr := ctx.GlobalString("ca"),
-		ctx.GlobalString("cert"),
-		ctx.GlobalString("key")
+	ca, certStr, keyStr := ctx.String("ca"),
+		ctx.String("cert"),
+		ctx.String("key")
 
 	if ca == "" && certStr == "" && keyStr == "" {
 		return nil, nil
@@ -117,47 +117,47 @@ You can also specify the TINYCLI_CONFIG environment variable.
 	app.Version = fmt.Sprintf("%s (tinyCI version %s)", Version, TinyCIVersion)
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:   "config, c",
-			Usage:  fmt.Sprintf("Name of configuration to use; comes from %q", tinyCIConfig),
-			Value:  "default",
-			EnvVar: "TINYCLI_CONFIG",
+		&cli.StringFlag{
+			Name:    "config, c",
+			Usage:   fmt.Sprintf("Name of configuration to use; comes from %q", tinyCIConfig),
+			Value:   "default",
+			EnvVars: []string{"TINYCLI_CONFIG"},
 		},
-		cli.StringFlag{
-			Name:   "ca, a",
-			Usage:  "CA certificate used to contact remote service",
-			EnvVar: "TINYCLI_CA_CERT",
+		&cli.StringFlag{
+			Name:    "ca, a",
+			Usage:   "CA certificate used to contact remote service",
+			EnvVars: []string{"TINYCLI_CA_CERT"},
 		},
-		cli.StringFlag{
-			Name:   "cert, t",
-			Usage:  "TLS certificate to use to contact remote service (ecdsa only)",
-			EnvVar: "TINYCLI_CERT",
+		&cli.StringFlag{
+			Name:    "cert, t",
+			Usage:   "TLS certificate to use to contact remote service (ecdsa only)",
+			EnvVars: []string{"TINYCLI_CERT"},
 		},
-		cli.StringFlag{
-			Name:   "key, k",
-			Usage:  "TLS private key to use to contact remote service (ecdsa only)",
-			EnvVar: "TINYCLI_KEY",
+		&cli.StringFlag{
+			Name:    "key, k",
+			Usage:   "TLS private key to use to contact remote service (ecdsa only)",
+			EnvVars: []string{"TINYCLI_KEY"},
 		},
-		cli.BoolFlag{
-			Name:   "no-color, nc",
-			Usage:  "Turn off coloring for output",
-			EnvVar: "TINYCLI_NOCOLOR",
+		&cli.BoolFlag{
+			Name:    "no-color, nc",
+			Usage:   "Turn off coloring for output",
+			EnvVars: []string{"TINYCLI_NOCOLOR"},
 		},
 	}
 
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:        "init",
-			ShortName:   "i",
+			Aliases:     []string{"i"},
 			Description: "Initialize the client with a token and endpoint URL",
 			Usage:       "Initialize the client with a token and endpoint URL",
 			Action:      doInit,
 			Flags: []cli.Flag{
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "token, t",
 					Usage: "Provide the token on the command-line instead of being prompted for it",
 				},
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "url, u",
 					Usage: "Provide the URL to access the service",
 				},
@@ -165,13 +165,13 @@ You can also specify the TINYCLI_CONFIG environment variable.
 		},
 		{
 			Name:        "submit",
-			ShortName:   "sub",
+			Aliases:     []string{"sub"},
 			Description: "Submit a job to tinyCI",
 			Usage:       "Submit a job to tinyCI",
 			ArgsUsage:   "[parent or fork repository] [sha]",
 			Action:      submit,
 			Flags: []cli.Flag{
-				cli.BoolFlag{
+				&cli.BoolFlag{
 					Name:  "all, a",
 					Usage: "For a test of all task dirs, not just diff-affected ones",
 				},
@@ -179,24 +179,24 @@ You can also specify the TINYCLI_CONFIG environment variable.
 		},
 		{
 			Name:        "submissions",
-			ShortName:   "s",
+			Aliases:     []string{"s"},
 			Description: "List Submissions",
 			Usage:       "List Submissions",
 			Action:      submissions,
 			Flags: []cli.Flag{
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "repository, r",
 					Usage: "Repository name for filtering runs",
 				},
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "ref, n",
 					Usage: "Ref/SHA name for filtering runs. Repository is required if SHA provided, otherwise it is ignored",
 				},
-				cli.Int64Flag{
+				&cli.Int64Flag{
 					Name:  "page, p",
 					Usage: "The page of runs to access",
 				},
-				cli.Int64Flag{
+				&cli.Int64Flag{
 					Name:  "count, c",
 					Usage: "The amount of runs to show",
 				},
@@ -204,24 +204,24 @@ You can also specify the TINYCLI_CONFIG environment variable.
 		},
 		{
 			Name:        "tasks",
-			ShortName:   "t",
+			Aliases:     []string{"t"},
 			Description: "List Tasks",
 			Usage:       "List Tasks",
 			Action:      tasks,
 			Flags: []cli.Flag{
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "repository, r",
 					Usage: "Repository name for filtering runs",
 				},
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "ref, n",
 					Usage: "Ref/SHA name for filtering runs. Repository is required if SHA provided, otherwise it is ignored",
 				},
-				cli.Int64Flag{
+				&cli.Int64Flag{
 					Name:  "page, p",
 					Usage: "The page of runs to access",
 				},
-				cli.Int64Flag{
+				&cli.Int64Flag{
 					Name:  "count, c",
 					Usage: "The amount of runs to show",
 				},
@@ -229,24 +229,24 @@ You can also specify the TINYCLI_CONFIG environment variable.
 		},
 		{
 			Name:        "runs",
-			ShortName:   "r",
+			Aliases:     []string{"r"},
 			Description: "List runs",
 			Usage:       "List runs",
 			Action:      runs,
 			Flags: []cli.Flag{
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "repository, r",
 					Usage: "Repository name for filtering runs",
 				},
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "ref, n",
 					Usage: "Ref/SHA name for filtering runs. Repository is required if SHA provided, otherwise it is ignored",
 				},
-				cli.Int64Flag{
+				&cli.Int64Flag{
 					Name:  "page, p",
 					Usage: "The page of runs to access",
 				},
-				cli.Int64Flag{
+				&cli.Int64Flag{
 					Name:  "count, c",
 					Usage: "The amount of runs to show",
 				},
@@ -254,7 +254,7 @@ You can also specify the TINYCLI_CONFIG environment variable.
 		},
 		{
 			Name:        "log",
-			ShortName:   "l",
+			Aliases:     []string{"l"},
 			Description: "Show a log by Run ID",
 			Usage:       "Show a log by Run ID",
 			ArgsUsage:   "[run id]",
@@ -262,13 +262,13 @@ You can also specify the TINYCLI_CONFIG environment variable.
 		},
 		{
 			Name:        "capabilities",
-			ShortName:   "c",
+			Aliases:     []string{"c"},
 			Description: "Manipulate User Capabilities",
 			Usage:       "Manipulate User Capabilities",
-			Subcommands: []cli.Command{
+			Subcommands: []*cli.Command{
 				{
 					Name:        "add",
-					ShortName:   "a",
+					Aliases:     []string{"a"},
 					Description: "Grant a capability to a user",
 					Usage:       "Grant a capability to a user",
 					ArgsUsage:   "[username] [capability]",
@@ -276,7 +276,7 @@ You can also specify the TINYCLI_CONFIG environment variable.
 				},
 				{
 					Name:        "remove",
-					ShortName:   "r",
+					Aliases:     []string{"r"},
 					Description: "Remove a capability from a user",
 					Usage:       "Remove a capability from a user",
 					ArgsUsage:   "[username] [capability]",
@@ -292,8 +292,8 @@ You can also specify the TINYCLI_CONFIG environment variable.
 }
 
 func stdTabWriter(ctx *cli.Context) *colorwriter.Writer {
-	if ctx.GlobalIsSet("no-color") {
-		color.NoColor = ctx.GlobalBool("no-color")
+	if ctx.IsSet("no-color") {
+		color.NoColor = ctx.Bool("no-color")
 	} else if !term.IsTerminal(int(os.Stdin.Fd())) || !term.IsTerminal(int(os.Stdout.Fd())) {
 		color.NoColor = true
 	}
@@ -379,7 +379,7 @@ func doInit(ctx *cli.Context) error {
 }
 
 func submit(ctx *cli.Context) error {
-	if len(ctx.Args()) != 2 {
+	if ctx.Args().Len() != 2 {
 		return errors.New("Invalid arguments: [repository] [sha] required")
 	}
 
@@ -388,9 +388,14 @@ func submit(ctx *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf("Submitting %s / %s (all tasks: %v) -- this may take a few seconds to complete.\n", ctx.Args()[0], ctx.Args()[1], ctx.Bool("all"))
+	owner, repo, all :=
+		ctx.Args().Get(0),
+		ctx.Args().Get(1),
+		ctx.Bool("all")
 
-	if err := client.Submit(context.Background(), ctx.Args()[0], ctx.Args()[1], ctx.Bool("all")); err != nil {
+	fmt.Printf("Submitting %s / %s (all tasks: %v) -- this may take a few seconds to complete.\n", owner, repo, all)
+
+	if err := client.Submit(context.Background(), owner, repo, all); err != nil {
 		return err
 	}
 
@@ -623,7 +628,7 @@ func runs(ctx *cli.Context) error {
 }
 
 func log(ctx *cli.Context) error {
-	if len(ctx.Args()) != 1 {
+	if ctx.Args().Len() != 1 {
 		return errors.New("Invalid arguments: [run id] required")
 	}
 
@@ -632,7 +637,7 @@ func log(ctx *cli.Context) error {
 		return err
 	}
 
-	id, convErr := strconv.ParseInt(ctx.Args()[0], 10, 64)
+	id, convErr := strconv.ParseInt(ctx.Args().First(), 10, 64)
 	if convErr != nil {
 		return errors.New(convErr).Wrap("Invalid ID")
 	}
@@ -641,7 +646,7 @@ func log(ctx *cli.Context) error {
 }
 
 func addCapability(ctx *cli.Context) error {
-	if len(ctx.Args()) != 2 {
+	if ctx.Args().Len() != 2 {
 		return errors.New("Invalid arguments: [username] [capability] required")
 	}
 
@@ -650,7 +655,7 @@ func addCapability(ctx *cli.Context) error {
 		return err
 	}
 
-	err = client.AddCapability(context.Background(), ctx.Args()[0], model.Capability(ctx.Args()[1]))
+	err = client.AddCapability(context.Background(), ctx.Args().Get(0), model.Capability(ctx.Args().Get(1)))
 	if err != nil {
 		return err
 	}
@@ -659,7 +664,7 @@ func addCapability(ctx *cli.Context) error {
 }
 
 func removeCapability(ctx *cli.Context) error {
-	if len(ctx.Args()) != 2 {
+	if ctx.Args().Len() != 2 {
 		return errors.New("Invalid arguments: [username] [capability] required")
 	}
 
@@ -668,7 +673,7 @@ func removeCapability(ctx *cli.Context) error {
 		return err
 	}
 
-	err = client.RemoveCapability(context.Background(), ctx.Args()[0], model.Capability(ctx.Args()[1]))
+	err = client.RemoveCapability(context.Background(), ctx.Args().Get(0), model.Capability(ctx.Args().Get(1)))
 	if err != nil {
 		return err
 	}

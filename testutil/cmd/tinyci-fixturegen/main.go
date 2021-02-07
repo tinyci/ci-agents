@@ -15,7 +15,7 @@ import (
 	"github.com/tinyci/ci-agents/testutil/testclients"
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 var dummyRun = &types.RunSettings{
@@ -40,56 +40,56 @@ func main() {
 	app.Description = "You can just re-run this to generate more data."
 
 	app.Flags = []cli.Flag{
-		cli.UintFlag{
+		&cli.UintFlag{
 			Name:  "maxlen, m",
 			Usage: "Max length of strings (repo, user names, etc)",
 			Value: 10,
 		},
-		cli.UintFlag{
+		&cli.UintFlag{
 			Name:  "minlen, n",
 			Usage: "Minimum length of strings (repo, user names, etc)",
 			Value: 5,
 		},
-		cli.UintFlag{
+		&cli.UintFlag{
 			Name:  "tasks, t",
 			Usage: "Upper bound of tasks to generate per SHA",
 			Value: 10,
 		},
-		cli.UintFlag{
+		&cli.UintFlag{
 			Name:  "runs, r",
 			Usage: "Upper bound of runs to generate per task",
 			Value: 10,
 		},
-		cli.UintFlag{
+		&cli.UintFlag{
 			Name:  "shas, s",
 			Usage: "Upper bound of shas to generate per ref",
 			Value: 10,
 		},
-		cli.UintFlag{
+		&cli.UintFlag{
 			Name:  "refs, f",
 			Usage: "Upper bound of refs to generate per repository",
 			Value: 10,
 		},
-		cli.UintFlag{
+		&cli.UintFlag{
 			Name:  "forks, k",
 			Usage: "Upper bound of fork repositories to generate for each parent",
 			Value: 10,
 		},
-		cli.UintFlag{
+		&cli.UintFlag{
 			Name:  "repositories, p",
 			Usage: "Upper bound of repositories to generate",
 			Value: 10,
 		},
-		cli.UintFlag{
+		&cli.UintFlag{
 			Name:  "owners, o",
 			Usage: "Upper bound of owners (users) to generate to manage repositories",
 			Value: 10,
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:  "private",
 			Usage: "Make repostories private to the owner",
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:  "disable",
 			Usage: "Leave newly created repos disabled",
 		},
@@ -109,7 +109,7 @@ func (c *cmd) getString() string {
 func (c *cmd) mkUsers() ([]*model.User, *errors.Error) {
 	users := []*model.User{}
 
-	for i := rand.Intn(int(c.ctx.GlobalUint("owners"))) + 1; i >= 0; i-- {
+	for i := rand.Intn(int(c.ctx.Uint("owners"))) + 1; i >= 0; i-- {
 		u, err := c.dc.MakeUser(c.getString())
 		if err != nil {
 			return nil, err
@@ -124,14 +124,14 @@ func (c *cmd) mkUsers() ([]*model.User, *errors.Error) {
 func (c *cmd) mkParents(ctx context.Context, users []*model.User) (model.RepositoryList, *errors.Error) {
 	parents := model.RepositoryList{}
 
-	for i := rand.Intn(int(c.ctx.GlobalUint("repositories"))) + 1; i >= 0; i-- {
+	for i := rand.Intn(int(c.ctx.Uint("repositories"))) + 1; i >= 0; i-- {
 		ou := users[rand.Intn(len(users))]
 		name := strings.Join([]string{c.getString(), c.getString()}, "/")
-		if err := c.dc.MakeRepo(name, ou.Username, c.ctx.GlobalBool("private"), ""); err != nil {
+		if err := c.dc.MakeRepo(name, ou.Username, c.ctx.Bool("private"), ""); err != nil {
 			return nil, err
 		}
 
-		if !c.ctx.GlobalBool("disable") {
+		if !c.ctx.Bool("disable") {
 			if err := c.dc.Client().EnableRepository(ctx, ou.Username, name); err != nil {
 				return nil, err
 			}
@@ -151,18 +151,18 @@ func (c *cmd) mkParents(ctx context.Context, users []*model.User) (model.Reposit
 func (c *cmd) mkForks(ctx context.Context, users []*model.User, parents model.RepositoryList) (map[string]*model.Repository, *errors.Error) {
 	forkParents := map[string]*model.Repository{}
 
-	for i := rand.Intn(int(c.ctx.GlobalUint("forks"))) + 1; i >= 0; i-- {
+	for i := rand.Intn(int(c.ctx.Uint("forks"))) + 1; i >= 0; i-- {
 		ou := users[rand.Intn(len(users))]
 		pr := parents[rand.Intn(len(parents))]
 		name := strings.Join([]string{c.getString(), c.getString()}, "/")
 
 		repos := []interface{}{map[string]interface{}{
 			"full_name": name,
-			"private":   c.ctx.GlobalBool("private"),
+			"private":   c.ctx.Bool("private"),
 			"fork":      true,
 			"parent": map[string]interface{}{
 				"full_name": pr.Name,
-				"private":   c.ctx.GlobalBool("private"),
+				"private":   c.ctx.Bool("private"),
 			},
 		}}
 
@@ -192,10 +192,10 @@ func (c *cmd) mkRefs(ctx context.Context, forkParents map[string]*model.Reposito
 	baserefs := []*model.Ref{}
 
 	for fork, parent := range forkParents {
-		for refC := rand.Intn(int(c.ctx.GlobalUint("refs"))) + 1; refC >= 0; refC-- {
+		for refC := rand.Intn(int(c.ctx.Uint("refs"))) + 1; refC >= 0; refC-- {
 			refName := "heads/" + c.getString()
 
-			for shaC := rand.Intn(int(c.ctx.GlobalUint("shas"))) + 1; shaC >= 0; shaC-- {
+			for shaC := rand.Intn(int(c.ctx.Uint("shas"))) + 1; shaC >= 0; shaC-- {
 				sha := ""
 				for i := 0; i < 40; i++ {
 					sha += fmt.Sprintf("%x", rune(rand.Intn(16)))
@@ -285,14 +285,14 @@ func (c *cmd) mkTask(ctx context.Context, sub *model.Submission) (*model.Task, *
 
 func (c *cmd) mkTasks(ctx context.Context, subs []*model.Submission) *errors.Error {
 	for _, sub := range subs {
-		for taskC := rand.Intn(int(c.ctx.GlobalUint("tasks"))) + 1; taskC >= 0; taskC-- {
+		for taskC := rand.Intn(int(c.ctx.Uint("tasks"))) + 1; taskC >= 0; taskC-- {
 			task, err := c.mkTask(ctx, sub)
 			if err != nil {
 				return err
 			}
 
 			qis := []*model.QueueItem{}
-			for runC := rand.Intn(int(c.ctx.GlobalUint("runs"))) + 1; runC >= 0; runC-- {
+			for runC := rand.Intn(int(c.ctx.Uint("runs"))) + 1; runC >= 0; runC-- {
 				run := &model.Run{
 					RunSettings: dummyRun,
 					CreatedAt:   task.CreatedAt,
@@ -346,8 +346,8 @@ func generate(ctx *cli.Context) error {
 		return err
 	}
 
-	max := int(ctx.GlobalUint("maxlen"))
-	min := int(ctx.GlobalUint("minlen"))
+	max := int(ctx.Uint("maxlen"))
+	min := int(ctx.Uint("minlen"))
 
 	if max < min {
 		return errors.New("maxlen is smaller than minlen")

@@ -10,7 +10,7 @@ import (
 	"github.com/tinyci/ci-agents/errors"
   "github.com/tinyci/ci-agents/handlers"
 	transport "github.com/erikh/go-transport"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 
   {{ range .DefaultImports}}{{ printf "%q" .}}
   {{ end }}
@@ -32,7 +32,7 @@ func main() {
   app.Version = fmt.Sprintf("%s (tinyCI version %s)", Version, TinyCIVersion)
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:  "config, c",
 			Usage: "Path to configuration file",
 			Value: ".config/services.yaml",

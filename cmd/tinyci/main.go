@@ -12,7 +12,7 @@ import (
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"golang.org/x/sys/unix"
 )
 
@@ -24,15 +24,15 @@ func main() {
 	app.Version = TinyCIVersion
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:   "config, c",
-			Usage:  "Path to configuration file",
-			Value:  ".config/services.yaml",
-			EnvVar: "TINYCI_CONFIG",
+		&cli.StringFlag{
+			Name:    "config, c",
+			Usage:   "Path to configuration file",
+			Value:   ".config/services.yaml",
+			EnvVars: []string{"TINYCI_CONFIG"},
 		},
 	}
 
-	otherServices := []cli.Command{
+	otherServices := []*cli.Command{
 		{
 			Name:        "hooksvc",
 			Usage:       "manage incoming github submissions",
@@ -47,17 +47,17 @@ func main() {
 		},
 	}
 
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:        "service",
-			ShortName:   "s",
+			Aliases:     []string{"s"},
 			Usage:       "Launch services that power tinyCI",
 			Description: "Launch services that power tinyCI",
 			Subcommands: mapServers(otherServices),
 		},
 		{
 			Name:        "launch",
-			ShortName:   "l",
+			Aliases:     []string{"l"},
 			Usage:       "Launch all services to power tinyCI",
 			Description: "Launch all services to power tinyCI",
 			Action:      launch,
@@ -69,7 +69,7 @@ func main() {
 	}
 }
 
-func mapServers(commands []cli.Command) []cli.Command {
+func mapServers(commands []*cli.Command) []*cli.Command {
 	for _, s := range servers {
 		commands = s.Make(commands)
 	}
@@ -78,7 +78,7 @@ func mapServers(commands []cli.Command) []cli.Command {
 }
 
 func launch(ctx *cli.Context) error {
-	configFile := ctx.GlobalString("config")
+	configFile := ctx.String("config")
 	handlers := []cmdlib.HandlerFunc{}
 
 	for _, s := range servers {
@@ -125,7 +125,7 @@ func launch(ctx *cli.Context) error {
 func startHooksvc(ctx *cli.Context) error {
 	h := &hooksvc.Handler{}
 
-	if err := config.Parse(ctx.GlobalString("config"), &h.Config); err != nil {
+	if err := config.Parse(ctx.String("config"), &h.Config); err != nil {
 		return errors.New(err)
 	}
 
@@ -165,7 +165,7 @@ func makeUISvcHandler(configFile string) (cmdlib.HandlerFunc, error) {
 }
 
 func startUISvc(ctx *cli.Context) error {
-	fun, err := makeUISvcHandler(ctx.GlobalString("config"))
+	fun, err := makeUISvcHandler(ctx.String("config"))
 	if err != nil {
 		return err
 	}

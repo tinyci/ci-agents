@@ -12,7 +12,7 @@ import (
 	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Version is the version of this service.
@@ -30,20 +30,20 @@ func main() {
 	app.Version = fmt.Sprintf("%s (tinyCI version %s)", Version, TinyCIVersion)
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:  "datasvc, d",
 			Usage: "Location of datasvc",
 			Value: config.DefaultServices.Data.String(),
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:  "cacert, ca",
 			Usage: "Location of CA certificate for encrypted connections",
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:  "cert, c",
 			Usage: "Client cert used to connect to datasvc",
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:  "key, k",
 			Usage: "Client key used to connect to datasvc",
 		},
@@ -55,28 +55,28 @@ func main() {
 }
 
 func run(ctx *cli.Context) error {
-	if len(ctx.Args()) != 1 {
+	if ctx.Args().Len() != 1 {
 		return errors.New("See --help for more information on how to use this tool")
 	}
 
 	var cert *transport.Cert
 
-	if !(ctx.GlobalString("cacert") == "" && ctx.GlobalString("cert") == "" && ctx.GlobalString("key") == "") {
+	if !(ctx.String("cacert") == "" && ctx.String("cert") == "" && ctx.String("key") == "") {
 		var err error
 		// last arg is CRL
-		cert, err = transport.LoadCert(ctx.GlobalString("cacert"), ctx.GlobalString("cert"), ctx.GlobalString("key"), "")
+		cert, err = transport.LoadCert(ctx.String("cacert"), ctx.String("cert"), ctx.String("key"), "")
 		if err != nil {
 			return errors.New(err).Wrap("while loading cert")
 		}
 	}
 
-	client, err := data.New(ctx.GlobalString("datasvc"), cert, false)
+	client, err := data.New(ctx.String("datasvc"), cert, false)
 	if err != nil {
 		return err
 	}
 	defer client.Close()
 
-	token := ctx.Args()[0]
+	token := ctx.Args().Get(0)
 	tokenStruct, err := inspect(token)
 	if err != nil {
 		return err

@@ -42,7 +42,7 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/ugorji/go v1.2.4 // indirect
-	github.com/urfave/cli v1.22.5
+	github.com/urfave/cli/v2 v2.3.0
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/oauth2 v0.0.0-20210201163806-010130855d6c

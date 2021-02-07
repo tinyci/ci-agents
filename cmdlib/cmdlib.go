@@ -11,7 +11,7 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/errors"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 )
 
@@ -39,8 +39,8 @@ type GRPCServer struct {
 }
 
 // Make makes a command-line server out of the provided parameters
-func (s *GRPCServer) Make(commands []cli.Command) []cli.Command {
-	return append(commands, cli.Command{
+func (s *GRPCServer) Make(commands []*cli.Command) []*cli.Command {
+	return append(commands, &cli.Command{
 		Name:        s.Name,
 		Usage:       s.Description,
 		Description: s.Description,
@@ -97,7 +97,7 @@ func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, error) {
 }
 
 func (s *GRPCServer) serve(ctx *cli.Context) error {
-	fun, err := s.MakeHandlerFunc(ctx.GlobalString("config"))
+	fun, err := s.MakeHandlerFunc(ctx.String("config"))
 	if err != nil {
 		return errors.New(err).Wrap("while constructing GRPC handler")
 	}
