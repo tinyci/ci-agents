@@ -137,6 +137,11 @@ You can also specify the TINYCLI_CONFIG environment variable.
 			Usage:  "TLS private key to use to contact remote service (ecdsa only)",
 			EnvVar: "TINYCLI_KEY",
 		},
+		cli.BoolFlag{
+			Name:   "no-color, nc",
+			Usage:  "Turn off coloring for output",
+			EnvVar: "TINYCLI_NOCOLOR",
+		},
 	}
 
 	app.Commands = []cli.Command{
@@ -285,7 +290,8 @@ You can also specify the TINYCLI_CONFIG environment variable.
 	}
 }
 
-func stdTabWriter() *colorwriter.Writer {
+func stdTabWriter(ctx *cli.Context) *colorwriter.Writer {
+	color.NoColor = ctx.GlobalBool("no-color")
 	return colorwriter.NewWriter(os.Stdout, 2, 2, 4, ' ', 0)
 }
 
@@ -465,7 +471,7 @@ func submissions(ctx *cli.Context) error {
 		return err
 	}
 
-	w := stdTabWriter()
+	w := stdTabWriter(ctx)
 	if _, err := w.Write([]byte(getHeaderColorFunc()("SUB ID\tREPOSITORY\tREF\tSHA\tRUN/FIN/TOT\tSTATE\tDURATION\n"))); err != nil {
 		return err
 	}
@@ -523,7 +529,7 @@ func tasks(ctx *cli.Context) error {
 		return err
 	}
 
-	w := stdTabWriter()
+	w := stdTabWriter(ctx)
 	if _, err := w.Write([]byte(getHeaderColorFunc()("TASK ID\tREPOSITORY\tREF\tSHA\tPATH\tRUN/FIN/TOT\tSTATE\tDURATION\n"))); err != nil {
 		return err
 	}
@@ -573,7 +579,7 @@ func runs(ctx *cli.Context) error {
 		return err
 	}
 
-	w := stdTabWriter()
+	w := stdTabWriter(ctx)
 	if _, err := w.Write([]byte(getHeaderColorFunc()("RUN ID\tREPOSITORY\tREF\tSHA\tRUN\tTASK ID\tSTATE\tDURATION\n"))); err != nil {
 		return err
 	}
