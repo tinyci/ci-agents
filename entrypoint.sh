@@ -49,5 +49,3 @@ then
 fi
 
 "$@"
-
-service postgresql stop

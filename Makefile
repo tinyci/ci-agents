@@ -1,8 +1,7 @@
 VERSION=$(shell cat VERSION)
 CONTAINER_DIR=/go/src/github.com/tinyci/ci-agents
 
-STD_BOXFILE=box-builds/box.rb
-
+STD_DOCKERFILE=dockerfiles/Dockerfile
 RELEASE_DOCKERFILE=dockerfiles/Dockerfile.release
 RELEASE_CONTEXT=release
 
@@ -118,33 +117,20 @@ stop-demo:
 clean-demo: build-demo-image stop-demo
 	$(DOCKER_RUN) --entrypoint /bin/bash -v ${PWD}/.ca:/var/ca -v ${PWD}/.logs:/var/tinyci/logs -v ${PWD}/.db:/var/lib/postgresql $(DEMO_DOCKER_IMAGE) -c "rm -rf /var/lib/postgresql/11; rm -rf /var/tinyci/logs/*; rm -rf /var/ca/*"
 
-build-demo-image: get-box
-	box -t $(DEMO_DOCKER_IMAGE) $(STD_BOXFILE)
+build-demo-image:
+	docker build -t $(DEMO_DOCKER_IMAGE) -f $(STD_DOCKERFILE) .
 
-build-debug-image: get-box
-	DEBUG=1 box -t $(DEBUG_DOCKER_IMAGE) $(STD_BOXFILE)
+update-demo-image:
+	docker build --no-cache -t $(DEBUG_DOCKER_IMAGE) -f $(STD_DOCKERFILE) .
 
-update-demo-image: get-box
-	DEBUG=1 box -n -t $(DEBUG_DOCKER_IMAGE) $(STD_BOXFILE)
+build-image:
+	docker build --build-arg TESTING=1 -t $(TEST_DOCKER_IMAGE) -f $(STD_DOCKERFILE) .
 
-update-image: get-box
-	TESTING=1 box -t $(TEST_DOCKER_IMAGE) -n $(STD_BOXFILE)
-
-build-image: get-box
-	TESTING=1 box -t $(TEST_DOCKER_IMAGE) $(STD_BOXFILE)
-
-tag-test-image: get-box
-	PACKAGE_FOR_CI=1 TESTING=1 box -n -t tinyci/ci-agents:$(shell date '+%m.%d.%Y') $(STD_BOXFILE)
+tag-test-image:
+	docker build --build-arg TESTING=1 --no-cache -t tinyci/ci-agents:$(shell date '+%m.%d.%Y') -f $(STD_DOCKERFILE) .
 
 update-task-ymls:
 	sed -i -e 's!^default_image: tinyci/ci-agents:.*$$!default_image: tinyci/ci-agents:$(shell date '+%m.%d.%Y')!g' $$(find . -name task.yml)
-
-get-box:
-	@if [ ! -f "$(shell which box)" ]; \
-	then \
-		echo "Need to install box to build the docker images we use. Requires root access."; \
-		curl -sSL box-builder.sh | sudo bash; \
-	fi
 
 update-modules:
 	rm -rf go.mod go.sum
