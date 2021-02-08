@@ -50,7 +50,7 @@ ENV protoc_fn=protoc-${PROTOC_VERSION}-linux-x86_64.zip
 
 RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${protoc_fn}
 RUN unzip "${protoc_fn}" -d /usr && rm -f "${protoc_fn}"
-RUN curl -sSL 'https://github.com/go-swagger/go-swagger/releases/download/${SWAGGER_VERSION}/swagger_linux_amd64' >/go/bin/swagger && chmod +x /go/bin/swagger
+RUN curl -sSL "https://github.com/go-swagger/go-swagger/releases/download/${SWAGGER_VERSION}/swagger_linux_amd64" >/go/bin/swagger && chmod +x /go/bin/swagger
 
 COPY .config/Caddyfile /Caddyfile
 COPY entrypoint.sh /entrypoint.sh

@@ -8,18 +8,11 @@ DOCKER_IMAGE=tinyci-gen
 SWAGGER_SERVICES := uisvc
 TARGET_DIR=${PWD}
 
-get-box:
-	@if [ ! -f "$(shell which box)" ]; \
-	then \
-		echo "Need to install box to build the docker images we use. Requires root access."; \
-		curl -sSL box-builder.sh | sudo bash; \
-	fi
-
-build-gen-image: get-box
-	box -t $(DOCKER_IMAGE) box.rb
+build-gen-image:
+	docker build -t $(DOCKER_IMAGE) .
 
 tag-gen-image: get-box
-	PACKAGE_FOR_CI=1 TESTING=1 box -n -t tinyci/ci-gen:$(shell date '+%m.%d.%Y') box.rb
+	docker build --no-cache -t tinyci/ci-gen:$(shell date '+%m.%d.%Y') .
 
 gen: gen-javascript build-gen-image
 	$(DOCKER_RUN) -u $$(id -u):$$(id -g) $(DOCKER_CONTAINER_DIR) $(DOCKER_IMAGE) bash ci-gen/gen.sh
