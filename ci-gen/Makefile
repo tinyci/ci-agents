@@ -11,7 +11,7 @@ TARGET_DIR=${PWD}
 build-gen-image:
 	docker build -t $(DOCKER_IMAGE) .
 
-tag-gen-image: get-box
+tag-gen-image:
 	docker build --no-cache -t tinyci/ci-gen:$(shell date '+%m.%d.%Y') .
 
 gen: gen-javascript build-gen-image
