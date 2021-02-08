@@ -2,7 +2,9 @@ VERSION=$(shell cat VERSION)
 CONTAINER_DIR=/go/src/github.com/tinyci/ci-agents
 
 STD_BOXFILE=box-builds/box.rb
-RELEASE_BOXFILE=box-builds/box-release.rb
+
+RELEASE_DOCKERFILE=dockerfiles/Dockerfile.release
+RELEASE_CONTEXT=release
 
 DOCKER_RUN=docker run \
 					 --rm
@@ -98,13 +100,14 @@ build: distclean
 	$(BUILD_DOCKER_RUN) make do-build
 
 distclean:
-	rm -rf build tinyci-$(VERSION).tar.gz
+	rm -rf build ${RELEASE_CONTEXT}
 
 dist: build
-	tar -C build -cvzf tinyci-$(VERSION).tar.gz tinyci-$(VERSION)
+	mkdir -p ${RELEASE_CONTEXT}
+	tar -C build -cvzf ${RELEASE_CONTEXT}/tinyci-$(VERSION).tar.gz tinyci-$(VERSION)
 
 release: distclean dist
-	VERSION="$(VERSION)" box -t "tinyci/release:$(VERSION)" $(RELEASE_BOXFILE)
+	docker build --build-arg VERSION="${VERSION}" -t "tinyci/release:${VERSION}" -f ${RELEASE_DOCKERFILE} ${RELEASE_CONTEXT}
 
 demo: stop-demo build-demo-image
 	docker-compose up

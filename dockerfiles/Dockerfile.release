@@ -1,0 +1,11 @@
+# vim: ft=dockerfile
+FROM ubuntu:latest
+
+ARG VERSION
+
+RUN apt-get update && apt-get install ca-certificates -y
+
+COPY tinyci-${VERSION}.tar.gz /tinyci-release.tar.gz
+RUN touch /tinyci-${VERSION}
+RUN tar --no-same-owner --strip-components 1 -xvz -C /usr/local/bin -f /tinyci-release.tar.gz
+RUN rm /tinyci-release.tar.gz
