@@ -2,13 +2,11 @@ linters:
   disable-all: true                                                                                                                                                                                                                            
   enable:                                                                                                                                                                                                                                      
     - goimports                                                                                                                                                                                                                                
-    - scopelint                                                                                                                                                                                                                                
     - gocyclo                                                                                                                                                                                                                                  
     - deadcode                                                                                                                                                                                                                                 
     - gosimple                                                                                                                                                                                                                                 
     - govet                                                                                                                                                                                                                                    
     - ineffassign                                                                                                                                                                                                                              
-    - staticcheck                                                                                                                                                                                                                              
     - structcheck                                                                                                                                                                                                                              
     - typecheck                                                                                                                                                                                                                                
     - unused                                                                                                                                                                                                                                   
@@ -16,6 +14,7 @@ linters:
     - bodyclose                                                                                                                                                                                                                                
     - golint
     - misspell                                                                                                                                                                                                                                 
+    # - staticcheck
 issues:
   exclude-use-default: false
 run:
