@@ -1,6 +1,8 @@
 VERSION=$(shell cat VERSION)
 CONTAINER_DIR=/go/src/github.com/tinyci/ci-agents
 
+GOLANGCI_LINT_VERSION=1.39.0
+
 STD_DOCKERFILE=dockerfiles/Dockerfile
 RELEASE_DOCKERFILE=dockerfiles/Dockerfile.release
 RELEASE_CONTEXT=release
@@ -159,9 +161,12 @@ start-services: check-service-config
 wait:
 	sleep infinity
 
-golangci-lint:
-	go get github.com/golangci/golangci-lint/...
-	golangci-lint run -v
+bin/golangci-lint:
+	mkdir -p bin
+	wget -O- https://github.com/golangci/golangci-lint/releases/download/v$(GOLANGCI_LINT_VERSION)/golangci-lint-$(GOLANGCI_LINT_VERSION)-linux-amd64.tar.gz | tar vxz --strip-components=1 -C bin golangci-lint-$(GOLANGCI_LINT_VERSION)-linux-amd64/golangci-lint
+
+golangci-lint: bin/golangci-lint
+	bin/golangci-lint run -v
 
 gen: mockgen
 	cd ci-gen && make gen	
