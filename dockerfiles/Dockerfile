@@ -1,10 +1,10 @@
 # vim: ft=dockerfile
 FROM ubuntu:20.04
 
-ARG GO_VERSION=1.15.8
+ARG GO_VERSION=1.16.2
 ARG POSTGRES_VERSION=11
 ARG SWAGGER_VERSION=v0.18.0
-ARG PROTOC_VERSION=3.14.0
+ARG PROTOC_VERSION=3.15.6
 ARG CADDY_VERSION=2.3.0
 ARG TIMEZONE=Etc/UTC
 ARG APT_MIRROR=mirror.pnl.gov
@@ -39,7 +39,7 @@ RUN curl -sSL "https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz" | ta
 RUN mkdir /go
 
 RUN go get github.com/erikh/migrator
-RUN go get github.com/FiloSottile/mkcert
+RUN go get filippo.io/mkcert
 RUN go get -u github.com/golang/protobuf/protoc-gen-go
 RUN go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
 
