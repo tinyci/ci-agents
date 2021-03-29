@@ -1,3 +1,4 @@
+/.config/daemon.json
 /.config/uisvc.yaml
 /.config/queuesvc.yaml
 /.config/services.yaml
