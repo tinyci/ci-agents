@@ -16,7 +16,7 @@ DEMO_DOCKER_IMAGE=tinyci-agents
 DEBUG_DOCKER_IMAGE=tinyci-agents-debug
 TEST_DOCKER_IMAGE=tinyci-agents-test
 BUILD_DOCKER_IMAGE=tinyci-build
-GO_VERSION=1.15
+GO_VERSION=1.16
 
 DEBUG_PORTS= -p 3000:3000 \
 								-p 6000:6000 \
