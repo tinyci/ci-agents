@@ -330,6 +330,13 @@ func (rs *RunSettings) Validate(t *TaskSettings) *errors.Error {
 	return nil
 }
 
+// RepoConfigMergeOptions is the operations around merging branches before
+// launching the container.
+type RepoConfigMergeOptions struct {
+	DoNotMerge bool     `yaml:"do_not_merge"` // do not merge any branch with the default branch.
+	IgnoreRefs []string `yaml:"ignore_refs"`  // be sure to include the full ref name "refs/heads/tags/v0.1.1" etc FIXME make this globbable later.
+}
+
 // RepoConfig is the global configuration for the repository. It allows setting
 // of global attributes as well as overrides and defaults for certain
 // task-related items. It is typically named `tinyci.yml`.
@@ -345,6 +352,7 @@ type RepoConfig struct {
 	OverrideMetadata bool                   `yaml:"override_metadata"`
 	DefaultImage     string                 `yaml:"default_image"`
 	DefaultResources Resources              `yaml:"default_resources"`
+	Merge            RepoConfigMergeOptions `yaml:"merge_options"`
 	//OptimizeDiff  bool   `yaml:"optimize_diff"` // diff dir selection -- FIXME defaulted to on for now, will add this logic later
 }
 
