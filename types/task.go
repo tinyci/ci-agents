@@ -334,7 +334,23 @@ func (rs *RunSettings) Validate(t *TaskSettings) *errors.Error {
 // launching the container.
 type RepoConfigMergeOptions struct {
 	DoNotMerge bool     `yaml:"do_not_merge"` // do not merge any branch with the default branch.
-	IgnoreRefs []string `yaml:"ignore_refs"`  // be sure to include the full ref name "refs/heads/tags/v0.1.1" etc FIXME make this globbable later.
+	IgnoreRefs []string `yaml:"ignore_refs"`  // be sure to include the full ref name "heads/my_branch" etc FIXME make this globbable later.
+}
+
+// NewRepoConfigMergeOptionsFromProto returns a local type for the protobuf type
+func NewRepoConfigMergeOptionsFromProto(rs *types.Merge) RepoConfigMergeOptions {
+	return RepoConfigMergeOptions{
+		DoNotMerge: rs.DoNotMerge,
+		IgnoreRefs: rs.IgnoreRefs,
+	}
+}
+
+// ToProto converts the obj to protobuf
+func (rcm RepoConfigMergeOptions) ToProto() *types.Merge {
+	return &types.Merge{
+		DoNotMerge: rcm.DoNotMerge,
+		IgnoreRefs: rcm.IgnoreRefs,
+	}
 }
 
 // RepoConfig is the global configuration for the repository. It allows setting
@@ -389,6 +405,7 @@ func NewRepoConfigFromProto(rs *types.RepoConfig) RepoConfig {
 		OverrideMetadata: rs.OverrideMetadata,
 		DefaultImage:     rs.DefaultImage,
 		DefaultResources: newResources(rs.DefaultResources),
+		Merge:            NewRepoConfigMergeOptionsFromProto(rs.MergeOptions),
 	}
 }
 
@@ -415,6 +432,7 @@ func (r *RepoConfig) ToProto() *types.RepoConfig {
 		OverrideMetadata:  r.OverrideMetadata,
 		DefaultImage:      r.DefaultImage,
 		DefaultResources:  r.DefaultResources.toProto(),
+		MergeOptions:      r.Merge.ToProto(),
 	}
 }
 
