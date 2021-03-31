@@ -330,6 +330,29 @@ func (rs *RunSettings) Validate(t *TaskSettings) *errors.Error {
 	return nil
 }
 
+// RepoConfigMergeOptions is the operations around merging branches before
+// launching the container.
+type RepoConfigMergeOptions struct {
+	DoNotMerge bool     `yaml:"do_not_merge"` // do not merge any branch with the default branch.
+	IgnoreRefs []string `yaml:"ignore_refs"`  // be sure to include the full ref name "heads/my_branch" etc FIXME make this globbable later.
+}
+
+// NewRepoConfigMergeOptionsFromProto returns a local type for the protobuf type
+func NewRepoConfigMergeOptionsFromProto(rs *types.Merge) RepoConfigMergeOptions {
+	return RepoConfigMergeOptions{
+		DoNotMerge: rs.DoNotMerge,
+		IgnoreRefs: rs.IgnoreRefs,
+	}
+}
+
+// ToProto converts the obj to protobuf
+func (rcm RepoConfigMergeOptions) ToProto() *types.Merge {
+	return &types.Merge{
+		DoNotMerge: rcm.DoNotMerge,
+		IgnoreRefs: rcm.IgnoreRefs,
+	}
+}
+
 // RepoConfig is the global configuration for the repository. It allows setting
 // of global attributes as well as overrides and defaults for certain
 // task-related items. It is typically named `tinyci.yml`.
@@ -345,6 +368,7 @@ type RepoConfig struct {
 	OverrideMetadata bool                   `yaml:"override_metadata"`
 	DefaultImage     string                 `yaml:"default_image"`
 	DefaultResources Resources              `yaml:"default_resources"`
+	Merge            RepoConfigMergeOptions `yaml:"merge_options"`
 	//OptimizeDiff  bool   `yaml:"optimize_diff"` // diff dir selection -- FIXME defaulted to on for now, will add this logic later
 }
 
@@ -381,6 +405,7 @@ func NewRepoConfigFromProto(rs *types.RepoConfig) RepoConfig {
 		OverrideMetadata: rs.OverrideMetadata,
 		DefaultImage:     rs.DefaultImage,
 		DefaultResources: newResources(rs.DefaultResources),
+		Merge:            NewRepoConfigMergeOptionsFromProto(rs.MergeOptions),
 	}
 }
 
@@ -407,6 +432,7 @@ func (r *RepoConfig) ToProto() *types.RepoConfig {
 		OverrideMetadata:  r.OverrideMetadata,
 		DefaultImage:      r.DefaultImage,
 		DefaultResources:  r.DefaultResources.toProto(),
+		MergeOptions:      r.Merge.ToProto(),
 	}
 }
 

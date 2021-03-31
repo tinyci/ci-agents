@@ -28,6 +28,7 @@ message RepoConfig {
   bool                override_metadata   = 9;  // override metadata?
   string              default_image       = 10; // use this image as the default
   Resources           default_resources   = 11; // default resources to consume
+  Merge               merge_options       = 12; // merge options
 }
 
 // Task corresponds to directories within the tree that have a `task.yml`
@@ -77,4 +78,9 @@ message TaskList {
 message CancelPRRequest {
   int64   id          = 1;
   string  repository  = 2;
+}
+
+message Merge {
+  bool            doNotMerge  = 1; // do not merge any branch
+  repeated string ignore_refs = 2; // do not merge these refs
 }

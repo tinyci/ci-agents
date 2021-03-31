@@ -16,12 +16,12 @@ require (
 	github.com/go-openapi/errors v0.20.0
 	github.com/go-openapi/loads v0.20.2 // indirect
 	github.com/go-openapi/runtime v0.19.27
-	github.com/go-openapi/strfmt v0.20.0
+	github.com/go-openapi/strfmt v0.20.1
 	github.com/go-openapi/swag v0.19.14
 	github.com/go-openapi/validate v0.20.2
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/golang/mock v1.5.0
-	github.com/golang/protobuf v1.5.1
+	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.2.0
@@ -42,17 +42,17 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
-	github.com/ugorji/go v1.2.4 // indirect
+	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
+	github.com/ugorji/go v1.2.5 // indirect
 	github.com/urfave/cli/v2 v2.3.0
-	go.mongodb.org/mongo-driver v1.5.0 // indirect
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2 // indirect
-	golang.org/x/net v0.0.0-20210326220855-61e056675ecf
+	golang.org/x/net v0.0.0-20210330210036-cd0ac97f97f6
 	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558
-	golang.org/x/sys v0.0.0-20210326220804-49726bf1d181
+	golang.org/x/sys v0.0.0-20210330210617-4fbd30eecc44
 	golang.org/x/term v0.0.0-20210317153231-de623e64d2a6
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20210325224202-eed09b1b5210 // indirect
+	google.golang.org/genproto v0.0.0-20210330181207-2295ebbda0c6 // indirect
 	google.golang.org/grpc v1.36.1
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v2 v2.4.0
