@@ -503,7 +503,11 @@ func submissions(ctx *cli.Context) error {
 				status = "failed"
 			}
 
-			duration = (*sub.FinishedAt).Sub(*sub.StartedAt)
+			if sub.FinishedAt == nil || sub.StartedAt == nil {
+				duration = 0
+			} else {
+				duration = (*sub.FinishedAt).Sub(*sub.StartedAt)
+			}
 		} else if sub.StartedAt != nil {
 			status = "started"
 			duration = time.Since(*sub.StartedAt)
