@@ -6,9 +6,10 @@ import (
 	"sort"
 	"strings"
 
+	"errors"
+
 	check "github.com/erikh/check"
 	"github.com/google/go-github/github"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/types"
 )

@@ -2,12 +2,12 @@ package asset
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/asset"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc"
 )
@@ -19,11 +19,11 @@ type Client struct {
 }
 
 // NewClient creates a new *Client for use.
-func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, *errors.Error) {
+func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, error) {
 	var (
 		closer  io.Closer
 		options []grpc.DialOption
-		eErr    *errors.Error
+		eErr    error
 	)
 
 	if trace {
@@ -35,25 +35,25 @@ func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, *errors.
 
 	t, err := transport.GRPCDial(cert, addr, options...)
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 	return &Client{closer: closer, ac: asset.NewAssetClient(t)}, nil
 }
 
 // Close closes the client's tracing functionality
-func (c *Client) Close() *errors.Error {
+func (c *Client) Close() error {
 	if c.closer != nil {
-		return errors.New(c.closer.Close())
+		return c.closer.Close()
 	}
 
 	return nil
 }
 
 // Write writes a log at id with the supplied reader providing the content.
-func (c *Client) Write(ctx context.Context, id int64, f io.Reader) *errors.Error {
+func (c *Client) Write(ctx context.Context, id int64, f io.Reader) error {
 	s, err := c.ac.PutLog(ctx, grpc.WaitForReady(true))
 	if err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	buf := make([]byte, 64)
@@ -62,7 +62,7 @@ func (c *Client) Write(ctx context.Context, id int64, f io.Reader) *errors.Error
 		var done bool
 		n, err := f.Read(buf)
 		if err != nil && err != io.EOF {
-			return errors.New(err)
+			return err
 		} else if err == io.EOF {
 			done = true
 		}
@@ -73,14 +73,14 @@ func (c *Client) Write(ctx context.Context, id int64, f io.Reader) *errors.Error
 		}
 
 		if err := s.Send(ls); err != nil && err != io.EOF {
-			return errors.New(err)
+			return err
 		} else if err == io.EOF {
 			done = true
 		}
 
 		if done {
 			if err := s.CloseSend(); err != nil {
-				return errors.New(err)
+				return err
 			}
 
 			return nil
@@ -88,15 +88,15 @@ func (c *Client) Write(ctx context.Context, id int64, f io.Reader) *errors.Error
 	}
 }
 
-func (c *Client) Read(ctx context.Context, id int64, w io.Writer) *errors.Error {
+func (c *Client) Read(ctx context.Context, id int64, w io.Writer) error {
 	as, err := c.ac.GetLog(ctx, &types.IntID{ID: id}, grpc.WaitForReady(false))
 	if err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	md, err := as.Header()
 	if err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	errs := md.Get("errors")
@@ -110,11 +110,11 @@ func (c *Client) Read(ctx context.Context, id int64, w io.Writer) *errors.Error 
 			if err == io.EOF {
 				return nil
 			}
-			return errors.New(err)
+			return err
 		}
 
 		if _, err := w.Write(chunk.Chunk); err != nil {
-			return errors.New(err)
+			return err
 		}
 	}
 }

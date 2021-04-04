@@ -4,9 +4,11 @@ import (
 	"net/url"
 	"strings"
 
+	"errors"
+
 	"github.com/tinyci/ci-agents/clients/github"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/types"
+	"github.com/tinyci/ci-agents/utils"
 	"golang.org/x/oauth2"
 	ghoauth "golang.org/x/oauth2/github"
 )
@@ -28,7 +30,7 @@ type OAuthConfig struct {
 }
 
 // Validate validates the oauth configuration
-func (oc OAuthConfig) Validate() *errors.Error {
+func (oc OAuthConfig) Validate() error {
 	if strings.TrimSpace(oc.ClientID) == "" {
 		return errors.New("oauth2 client_id was missing")
 	}
@@ -43,7 +45,7 @@ func (oc OAuthConfig) Validate() *errors.Error {
 
 	_, err := url.Parse(oc.RedirectURL)
 	if err != nil {
-		return errors.New(err).Wrap("parsing oauth2 redirect_url")
+		return utils.WrapError(err, "parsing oauth2 redirect_url")
 	}
 
 	return nil

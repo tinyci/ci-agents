@@ -10,7 +10,6 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	github "github.com/google/go-github/github"
-	errors "github.com/tinyci/ci-agents/errors"
 )
 
 // MockClient is a mock of Client interface.
@@ -37,10 +36,10 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // ClearStates mocks base method.
-func (m *MockClient) ClearStates(arg0 context.Context, arg1, arg2 string) *errors.Error {
+func (m *MockClient) ClearStates(arg0 context.Context, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ClearStates", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*errors.Error)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
@@ -51,10 +50,10 @@ func (mr *MockClientMockRecorder) ClearStates(arg0, arg1, arg2 interface{}) *gom
 }
 
 // CommentError mocks base method.
-func (m *MockClient) CommentError(arg0 context.Context, arg1 string, arg2 int64, arg3 error) *errors.Error {
+func (m *MockClient) CommentError(arg0 context.Context, arg1 string, arg2 int64, arg3 error) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CommentError", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(*errors.Error)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
@@ -65,10 +64,10 @@ func (mr *MockClientMockRecorder) CommentError(arg0, arg1, arg2, arg3 interface{
 }
 
 // ErrorStatus mocks base method.
-func (m *MockClient) ErrorStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string, arg6 error) *errors.Error {
+func (m *MockClient) ErrorStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string, arg6 error) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ErrorStatus", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
-	ret0, _ := ret[0].(*errors.Error)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
@@ -79,10 +78,10 @@ func (mr *MockClientMockRecorder) ErrorStatus(arg0, arg1, arg2, arg3, arg4, arg5
 }
 
 // FinishedStatus mocks base method.
-func (m *MockClient) FinishedStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string, arg6 bool, arg7 string) *errors.Error {
+func (m *MockClient) FinishedStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string, arg6 bool, arg7 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FinishedStatus", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
-	ret0, _ := ret[0].(*errors.Error)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
@@ -93,11 +92,11 @@ func (mr *MockClientMockRecorder) FinishedStatus(arg0, arg1, arg2, arg3, arg4, a
 }
 
 // GetDiffFiles mocks base method.
-func (m *MockClient) GetDiffFiles(arg0 context.Context, arg1, arg2, arg3 string) ([]string, *errors.Error) {
+func (m *MockClient) GetDiffFiles(arg0 context.Context, arg1, arg2, arg3 string) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDiffFiles", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -108,11 +107,11 @@ func (mr *MockClientMockRecorder) GetDiffFiles(arg0, arg1, arg2, arg3 interface{
 }
 
 // GetFile mocks base method.
-func (m *MockClient) GetFile(arg0 context.Context, arg1, arg2, arg3 string) ([]byte, *errors.Error) {
+func (m *MockClient) GetFile(arg0 context.Context, arg1, arg2, arg3 string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFile", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -123,11 +122,11 @@ func (mr *MockClientMockRecorder) GetFile(arg0, arg1, arg2, arg3 interface{}) *g
 }
 
 // GetFileList mocks base method.
-func (m *MockClient) GetFileList(arg0 context.Context, arg1, arg2 string) ([]string, *errors.Error) {
+func (m *MockClient) GetFileList(arg0 context.Context, arg1, arg2 string) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFileList", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -138,11 +137,11 @@ func (mr *MockClientMockRecorder) GetFileList(arg0, arg1, arg2 interface{}) *gom
 }
 
 // GetRefs mocks base method.
-func (m *MockClient) GetRefs(arg0 context.Context, arg1, arg2 string) ([]string, *errors.Error) {
+func (m *MockClient) GetRefs(arg0 context.Context, arg1, arg2 string) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRefs", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -153,11 +152,11 @@ func (mr *MockClientMockRecorder) GetRefs(arg0, arg1, arg2 interface{}) *gomock.
 }
 
 // GetRepository mocks base method.
-func (m *MockClient) GetRepository(arg0 context.Context, arg1 string) (*github.Repository, *errors.Error) {
+func (m *MockClient) GetRepository(arg0 context.Context, arg1 string) (*github.Repository, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRepository", arg0, arg1)
 	ret0, _ := ret[0].(*github.Repository)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -168,11 +167,11 @@ func (mr *MockClientMockRecorder) GetRepository(arg0, arg1 interface{}) *gomock.
 }
 
 // GetSHA mocks base method.
-func (m *MockClient) GetSHA(arg0 context.Context, arg1, arg2 string) (string, *errors.Error) {
+func (m *MockClient) GetSHA(arg0 context.Context, arg1, arg2 string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSHA", arg0, arg1, arg2)
 	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -183,11 +182,11 @@ func (mr *MockClientMockRecorder) GetSHA(arg0, arg1, arg2 interface{}) *gomock.C
 }
 
 // MyLogin mocks base method.
-func (m *MockClient) MyLogin(arg0 context.Context) (string, *errors.Error) {
+func (m *MockClient) MyLogin(arg0 context.Context) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MyLogin", arg0)
 	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -198,11 +197,11 @@ func (mr *MockClientMockRecorder) MyLogin(arg0 interface{}) *gomock.Call {
 }
 
 // MyRepositories mocks base method.
-func (m *MockClient) MyRepositories(arg0 context.Context) ([]*github.Repository, *errors.Error) {
+func (m *MockClient) MyRepositories(arg0 context.Context) ([]*github.Repository, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MyRepositories", arg0)
 	ret0, _ := ret[0].([]*github.Repository)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -213,10 +212,10 @@ func (mr *MockClientMockRecorder) MyRepositories(arg0 interface{}) *gomock.Call 
 }
 
 // PendingStatus mocks base method.
-func (m *MockClient) PendingStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string) *errors.Error {
+func (m *MockClient) PendingStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PendingStatus", arg0, arg1, arg2, arg3, arg4, arg5)
-	ret0, _ := ret[0].(*errors.Error)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
@@ -227,10 +226,10 @@ func (mr *MockClientMockRecorder) PendingStatus(arg0, arg1, arg2, arg3, arg4, ar
 }
 
 // SetupHook mocks base method.
-func (m *MockClient) SetupHook(arg0 context.Context, arg1, arg2, arg3, arg4 string) *errors.Error {
+func (m *MockClient) SetupHook(arg0 context.Context, arg1, arg2, arg3, arg4 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetupHook", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].(*errors.Error)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
@@ -241,10 +240,10 @@ func (mr *MockClientMockRecorder) SetupHook(arg0, arg1, arg2, arg3, arg4 interfa
 }
 
 // StartedStatus mocks base method.
-func (m *MockClient) StartedStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string) *errors.Error {
+func (m *MockClient) StartedStatus(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StartedStatus", arg0, arg1, arg2, arg3, arg4, arg5)
-	ret0, _ := ret[0].(*errors.Error)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
@@ -255,10 +254,10 @@ func (mr *MockClientMockRecorder) StartedStatus(arg0, arg1, arg2, arg3, arg4, ar
 }
 
 // TeardownHook mocks base method.
-func (m *MockClient) TeardownHook(arg0 context.Context, arg1, arg2, arg3 string) *errors.Error {
+func (m *MockClient) TeardownHook(arg0 context.Context, arg1, arg2, arg3 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TeardownHook", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(*errors.Error)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 

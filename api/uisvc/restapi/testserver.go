@@ -7,7 +7,6 @@ import (
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/clients/tinyci"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
@@ -42,14 +41,14 @@ func MakeUIServer(client github.Client) (*handlers.H, chan struct{}, *tinyci.Cli
 
 	d, err := data.New(config.DefaultServices.Data.String(), nil, false)
 	if err != nil {
-		return nil, nil, nil, nil, errors.New(err)
+		return nil, nil, nil, nil, err
 	}
 
 	config.SetDefaultGithubClient(client, "")
 	finished := make(chan struct{})
 	doneChan, err := handlers.Boot(nil, h, finished)
 	if err != nil {
-		return nil, nil, nil, nil, errors.New(err)
+		return nil, nil, nil, nil, err
 	}
 
 	u, err := d.PutUser(context.Background(), &model.User{Username: "erikh", Token: &types.OAuthToken{Username: "erikh", Token: "dummy", Scopes: []string{"repo"}}})

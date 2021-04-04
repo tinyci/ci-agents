@@ -8,22 +8,23 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/model"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // RemoveSubscription removes a subscription from the user's subscriptions.
 func (ds *DataServer) RemoveSubscription(ctx context.Context, rus *data.RepoUserSelection) (*empty.Empty, error) {
 	u, err := ds.H.Model.FindUserByName(rus.Username)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	r, err := ds.H.Model.GetRepositoryByNameForUser(rus.RepoName, u)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	if err := ds.H.Model.RemoveSubscriptionForUser(u, r); err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	return &empty.Empty{}, nil
@@ -33,16 +34,16 @@ func (ds *DataServer) RemoveSubscription(ctx context.Context, rus *data.RepoUser
 func (ds *DataServer) AddSubscription(ctx context.Context, rus *data.RepoUserSelection) (*empty.Empty, error) {
 	u, err := ds.H.Model.FindUserByName(rus.Username)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	r, err := ds.H.Model.GetRepositoryByNameForUser(rus.RepoName, u)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	if err := ds.H.Model.AddSubscriptionsForUser(u, []*model.Repository{r}); err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	return &empty.Empty{}, nil
@@ -52,7 +53,7 @@ func (ds *DataServer) AddSubscription(ctx context.Context, rus *data.RepoUserSel
 func (ds *DataServer) ListSubscriptions(ctx context.Context, nameSearch *data.NameSearch) (*types.RepositoryList, error) {
 	u, err := ds.H.Model.FindUserByNameWithSubscriptions(nameSearch.Name, nameSearch.Search)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	return model.RepositoryList(u.Subscribed).ToProto(), nil

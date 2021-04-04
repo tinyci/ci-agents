@@ -18,7 +18,6 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/sirupsen/logrus"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/log"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc"
@@ -41,13 +40,13 @@ const (
 )
 
 // Close closes the client's tracing functionality
-func (c *Client) Close() *errors.Error {
+func (c *Client) Close() error {
 	remoteMutex.Lock()
 	defer remoteMutex.Unlock()
 
 	if !c.closed && c.closer != nil {
 		c.closed = true
-		return errors.New(c.closer.Close())
+		return c.closer.Close()
 	}
 
 	return nil
@@ -103,14 +102,14 @@ func (f *Fields) ToLogrus() map[string]interface{} {
 }
 
 // ConfigureRemote configures the remote endpoint with a provided URL.
-func ConfigureRemote(addr string, cert *transport.Cert, trace bool) *errors.Error {
+func ConfigureRemote(addr string, cert *transport.Cert, trace bool) error {
 	remoteMutex.Lock()
 	defer remoteMutex.Unlock()
 
 	var (
 		closer  io.Closer
 		options []grpc.DialOption
-		eErr    *errors.Error
+		eErr    error
 	)
 
 	if trace {
@@ -122,7 +121,7 @@ func ConfigureRemote(addr string, cert *transport.Cert, trace bool) *errors.Erro
 
 	client, err := transport.GRPCDial(cert, addr, options...)
 	if err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	logClient := log.NewLogClient(client)
@@ -261,14 +260,7 @@ func (sub *SubLogger) Log(ctx context.Context, level string, msg interface{}, lo
 		}
 	}
 
-	switch msg := msg.(type) {
-	case errors.Error:
-		if msg.Log {
-			localLog(msg)
-		}
-	default:
-		localLog(msg)
-	}
+	localLog(msg)
 }
 
 // Info prints an info message

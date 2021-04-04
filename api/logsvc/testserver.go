@@ -6,7 +6,6 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/log"
 	client "github.com/tinyci/ci-agents/clients/log"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"google.golang.org/grpc"
 )
 
@@ -41,12 +40,12 @@ func MakeLogServer() (*handler.H, chan struct{}, *LogJournal, error) {
 
 	t, err := transport.Listen(nil, "tcp", config.DefaultServices.Log.String())
 	if err != nil {
-		return nil, nil, nil, errors.New(err)
+		return nil, nil, nil, err
 	}
 
 	srv := grpc.NewServer()
 	log.RegisterLogServer(srv, New(logDispatch))
 
 	doneChan, err := h.Boot(t, srv, make(chan struct{}))
-	return h, doneChan, journal, errors.New(err)
+	return h, doneChan, journal, err
 }

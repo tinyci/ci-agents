@@ -8,10 +8,11 @@ package operations
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/tinyci/ci-agents/clients/log"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 
 	"github.com/gin-gonic/gin"
@@ -21,14 +22,14 @@ import (
 // GetRepositoriesMy swagger:route GET /repositories/my getRepositoriesMy
 // Fetch all the writable repositories for the user.
 // Returns a types.RepositoryList for all the repos a user has write access to.
-func GetRepositoriesMy(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
+func GetRepositoriesMy(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) error {
 	if h.RequestLogging {
 		start := time.Now()
 		u := uuid.New()
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), fmt.Errorf("encoding params for log message: %w", jsonErr))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{
@@ -51,7 +52,7 @@ func GetRepositoriesMy(h *handlers.H, ctx *gin.Context, processingHandler handle
 	}
 
 	if err := GetRepositoriesMyValidateURLParams(h, ctx); err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	if processingHandler == nil {

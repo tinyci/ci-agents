@@ -6,21 +6,21 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/repository"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // SetupHook sets up the pr webhook in github.
 func (rs *RepositoryServer) SetupHook(ctx context.Context, hsr *repository.HookSetupRequest) (*empty.Empty, error) {
 	owner, repo, err := utils.OwnerRepo(hsr.RepoName)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	gh, err := rs.getClientForRepo(ctx, hsr.RepoName)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	_, _, eErr := gh.Repositories.CreateHook(ctx, owner, repo, &github.Hook{
@@ -35,7 +35,7 @@ func (rs *RepositoryServer) SetupHook(ctx context.Context, hsr *repository.HookS
 	})
 
 	if eErr != nil {
-		return nil, errors.New(eErr).Wrapf("configuring hook on repo %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "configuring hook on repo %v/%v: %v", owner, repo, err)
 	}
 
 	return &empty.Empty{}, nil
@@ -45,12 +45,12 @@ func (rs *RepositoryServer) SetupHook(ctx context.Context, hsr *repository.HookS
 func (rs *RepositoryServer) TeardownHook(ctx context.Context, htr *repository.HookTeardownRequest) (*empty.Empty, error) {
 	owner, repo, err := utils.OwnerRepo(htr.RepoName)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	gh, err := rs.getClientForRepo(ctx, htr.RepoName)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	var id int64
@@ -74,7 +74,7 @@ finish:
 	if id != 0 {
 		_, err := gh.Repositories.DeleteHook(context.Background(), owner, repo, id)
 		if err != nil {
-			return nil, errors.New(err).ToGRPC(codes.FailedPrecondition)
+			return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 		}
 	}
 

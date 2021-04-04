@@ -10,10 +10,11 @@ package jsonbuffer
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"sync"
 
-	"github.com/tinyci/ci-agents/errors"
+	"errors"
 )
 
 const (
@@ -68,7 +69,7 @@ func (w *Wrapper) Recv() (string, error) {
 	var msg Message
 	var eof bool
 	if err := w.dec.Decode(&msg); err != nil && err != io.EOF {
-		return msg.Payload, errors.New(err)
+		return msg.Payload, err
 	} else if err == io.EOF && msg.Type != "" {
 		eof = true
 	} else if err == io.EOF {
@@ -86,7 +87,7 @@ func (w *Wrapper) Recv() (string, error) {
 	case TypeError:
 		return "", errors.New(msg.Payload)
 	default:
-		return "", errors.Errorf("invalid type %v", msg.Type)
+		return "", fmt.Errorf("invalid type %v", msg.Type)
 	}
 }
 

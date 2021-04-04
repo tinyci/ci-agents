@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"strings"
 
+	"errors"
+
 	gh "github.com/google/go-github/github"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/gorm"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/utils"
 )
 
@@ -58,16 +59,16 @@ type Repository struct {
 }
 
 // NewRepositoryFromProto converts a proto repository to a model repository.
-func NewRepositoryFromProto(r *types.Repository) (*Repository, *errors.Error) {
+func NewRepositoryFromProto(r *types.Repository) (*Repository, error) {
 	github := &gh.Repository{}
 	if err := json.Unmarshal(r.Github, github); err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	var owner *User
 
 	if r.Owner != nil {
-		var err *errors.Error
+		var err error
 		owner, err = NewUserFromProto(r.Owner)
 		if err != nil {
 			return nil, err
@@ -108,13 +109,13 @@ func (r *Repository) ToProto() *types.Repository {
 }
 
 // OwnerRepo validates the owner/repo github path then returns each part.
-func (r *Repository) OwnerRepo() (string, string, *errors.Error) {
+func (r *Repository) OwnerRepo() (string, string, error) {
 	return utils.OwnerRepo(r.Name)
 }
 
 // GetRepositoryByNameForUser retrieves the repository by name if the user can
 // see it (aka, if it's not private or if it's owned by them)
-func (m *Model) GetRepositoryByNameForUser(name string, u *User) (*Repository, *errors.Error) {
+func (m *Model) GetRepositoryByNameForUser(name string, u *User) (*Repository, error) {
 	r := &Repository{}
 
 	var id int64
@@ -126,13 +127,13 @@ func (m *Model) GetRepositoryByNameForUser(name string, u *User) (*Repository, *
 }
 
 // GetOwnedRepos returns all repos the user owns.
-func (m *Model) GetOwnedRepos(u *User, search string) (RepositoryList, *errors.Error) {
+func (m *Model) GetOwnedRepos(u *User, search string) (RepositoryList, error) {
 	return m.getRepoSearch("owner_id = ?", search, u.ID)
 }
 
 // GetVisibleReposForUser retrieves all repos the user can "see" in the
 // database.
-func (m *Model) GetVisibleReposForUser(u *User, search string) (RepositoryList, *errors.Error) {
+func (m *Model) GetVisibleReposForUser(u *User, search string) (RepositoryList, error) {
 	r, err := m.GetAllPublicRepos(search)
 	if err != nil {
 		return nil, err
@@ -147,7 +148,7 @@ func (m *Model) GetVisibleReposForUser(u *User, search string) (RepositoryList, 
 	return append(r2, r...), nil
 }
 
-func (m *Model) getRepoSearch(where, search string, args ...interface{}) (RepositoryList, *errors.Error) {
+func (m *Model) getRepoSearch(where, search string, args ...interface{}) (RepositoryList, error) {
 	r := []*Repository{}
 
 	search = strings.Replace(search, "%", "\\%", -1)
@@ -161,17 +162,17 @@ func (m *Model) getRepoSearch(where, search string, args ...interface{}) (Reposi
 }
 
 // GetAllPublicRepos retrieves all repos that are not private
-func (m *Model) GetAllPublicRepos(search string) (RepositoryList, *errors.Error) {
+func (m *Model) GetAllPublicRepos(search string) (RepositoryList, error) {
 	return m.getRepoSearch("not private", search)
 }
 
 // GetPrivateReposForUser retrieves all private repos that the user owns.
-func (m *Model) GetPrivateReposForUser(u *User, search string) (RepositoryList, *errors.Error) {
+func (m *Model) GetPrivateReposForUser(u *User, search string) (RepositoryList, error) {
 	return m.getRepoSearch("owner_id = ? and private", search, u.ID)
 }
 
 // GetRepositoryByName retrieves the repository by its unique name.
-func (m *Model) GetRepositoryByName(name string) (*Repository, *errors.Error) {
+func (m *Model) GetRepositoryByName(name string) (*Repository, error) {
 	r := &Repository{}
 	return r, m.WrapError(m.Where("name = ?", name).First(r), "obtain repository by name")
 }
@@ -180,11 +181,11 @@ func (m *Model) GetRepositoryByName(name string) (*Repository, *errors.Error) {
 // hook chain
 func (r *Repository) AfterFind(tx *gorm.DB) error {
 	if err := json.Unmarshal(r.GithubJSON, &r.Github); err != nil {
-		return errors.New(err).Wrapf("reading github repository for id %d (%q)", r.ID, r.Name)
+		return utils.WrapError(err, "reading github repository for id %d (%q)", r.ID, r.Name)
 	}
 
 	if err := r.Validate(false); err != nil {
-		return errors.New(err).Wrapf("reading repository id %d (%q)", r.ID, r.Name)
+		return utils.WrapError(err, "reading repository id %d (%q)", r.ID, r.Name)
 	}
 
 	return nil
@@ -198,20 +199,20 @@ func (r *Repository) BeforeCreate(tx *gorm.DB) error {
 // BeforeSave is a gorm hook to marshal the token JSON before saving the record
 func (r *Repository) BeforeSave(tx *gorm.DB) error {
 	if err := r.Validate(true); err != nil {
-		return errors.New(err).Wrapf("saving repository %q", r.Name)
+		return utils.WrapError(err, "saving repository %q", r.Name)
 	}
 
 	var err error
 	r.GithubJSON, err = json.Marshal(&r.Github)
 	if err != nil {
-		return errors.New(err).Wrapf("reading github repository for id %d (%q)", r.ID, r.Name)
+		return utils.WrapError(err, "reading github repository for id %d (%q)", r.ID, r.Name)
 	}
 
 	return nil
 }
 
 // Validate validates the repository object
-func (r *Repository) Validate(validOwner bool) *errors.Error {
+func (r *Repository) Validate(validOwner bool) error {
 	if r.Name == "" {
 		return errors.New("name is empty")
 	}
@@ -233,7 +234,7 @@ func (r *Repository) Enabled() bool {
 }
 
 // DisableRepository removes it from CI.
-func (m *Model) DisableRepository(repo *Repository) *errors.Error {
+func (m *Model) DisableRepository(repo *Repository) error {
 	if !repo.Enabled() {
 		return errors.New("repo is not enabled")
 	}
@@ -243,7 +244,7 @@ func (m *Model) DisableRepository(repo *Repository) *errors.Error {
 }
 
 // EnableRepository adds it to CI.
-func (m *Model) EnableRepository(repo *Repository, owner *User) *errors.Error {
+func (m *Model) EnableRepository(repo *Repository, owner *User) error {
 	if repo.Enabled() {
 		return errors.New("repo is already enabled")
 	}
@@ -255,7 +256,7 @@ func (m *Model) EnableRepository(repo *Repository, owner *User) *errors.Error {
 }
 
 // AssignRepository assigns the repository to the user explicitly.
-func (m *Model) AssignRepository(repo *Repository, owner *User) *errors.Error {
+func (m *Model) AssignRepository(repo *Repository, owner *User) error {
 	repo.Owner = owner
 	return m.WrapError(m.Save(repo), fmt.Sprintf("assigning repository to %q", owner.Username))
 }

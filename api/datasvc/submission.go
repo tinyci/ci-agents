@@ -6,16 +6,16 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // GetSubmission returns a submission from the provided ID
 func (ds *DataServer) GetSubmission(ctx context.Context, id *types.IntID) (*types.Submission, error) {
 	s, err := ds.H.Model.GetSubmissionByID(id.ID)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	return s.ToProto(), nil
@@ -25,12 +25,12 @@ func (ds *DataServer) GetSubmission(ctx context.Context, id *types.IntID) (*type
 func (ds *DataServer) GetSubmissionRuns(ctx context.Context, sub *data.SubmissionQuery) (*types.RunList, error) {
 	protoSub, err := model.NewSubmissionFromProto(sub.Submission)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	runs, err := ds.H.Model.RunsForSubmission(protoSub, sub.Page, sub.PerPage)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	rl := &types.RunList{}
@@ -46,12 +46,12 @@ func (ds *DataServer) GetSubmissionRuns(ctx context.Context, sub *data.Submissio
 func (ds *DataServer) GetSubmissionTasks(ctx context.Context, sub *data.SubmissionQuery) (*types.TaskList, error) {
 	protoSub, err := model.NewSubmissionFromProto(sub.Submission)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	tasks, err := ds.H.Model.TasksForSubmission(protoSub, sub.Page, sub.PerPage)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	tl := &types.TaskList{}
@@ -67,11 +67,11 @@ func (ds *DataServer) GetSubmissionTasks(ctx context.Context, sub *data.Submissi
 func (ds *DataServer) PutSubmission(ctx context.Context, sub *types.Submission) (*types.Submission, error) {
 	s, err := model.NewSubmissionFromProto(sub)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	if err := ds.H.Model.Create(s).Error; err != nil {
-		return nil, errors.New(err).ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	return s.ToProto(), nil
@@ -81,7 +81,7 @@ func (ds *DataServer) PutSubmission(ctx context.Context, sub *types.Submission) 
 func (ds *DataServer) ListSubmissions(ctx context.Context, req *data.RepositoryFilterRequestWithPagination) (*types.SubmissionList, error) {
 	list, err := ds.H.Model.SubmissionList(req.Page, req.PerPage, req.Repository, req.Sha)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	newList := &types.SubmissionList{}
@@ -97,7 +97,7 @@ func (ds *DataServer) ListSubmissions(ctx context.Context, req *data.RepositoryF
 func (ds *DataServer) CountSubmissions(ctx context.Context, req *data.RepositoryFilterRequest) (*data.Count, error) {
 	count, err := ds.H.Model.SubmissionCount(req.Repository, req.Sha)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	return &data.Count{Count: count}, nil
@@ -108,7 +108,7 @@ func (ds *DataServer) CancelSubmission(ctx context.Context, id *types.IntID) (*e
 	empty := &empty.Empty{}
 
 	if err := ds.H.Model.CancelSubmissionByID(id.ID, ds.H.URL, nil); err != nil {
-		return empty, err.ToGRPC(codes.FailedPrecondition)
+		return empty, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	return empty, nil

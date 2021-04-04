@@ -5,7 +5,6 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/asset"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"google.golang.org/grpc"
 )
 
@@ -14,7 +13,7 @@ import (
 func MakeAssetServer() (*handler.H, chan struct{}, error) {
 	t, err := transport.Listen(nil, "tcp", config.DefaultServices.Asset.String())
 	if err != nil {
-		return nil, nil, errors.New(err)
+		return nil, nil, err
 	}
 
 	h := &handler.H{
@@ -30,5 +29,5 @@ func MakeAssetServer() (*handler.H, chan struct{}, error) {
 	asset.RegisterAssetServer(srv, &AssetServer{H: h})
 
 	doneChan, err := h.Boot(t, srv, make(chan struct{}))
-	return h, doneChan, errors.New(err)
+	return h, doneChan, err
 }

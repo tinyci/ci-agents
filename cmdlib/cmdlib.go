@@ -10,7 +10,7 @@ import (
 	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
+	"github.com/tinyci/ci-agents/utils"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 )
@@ -55,7 +55,7 @@ func (s *GRPCServer) Make(commands []*cli.Command) []*cli.Command {
 func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, error) {
 	h := &handler.H{}
 	if err := config.Parse(configFile, &h); err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	h.Name = s.Name
@@ -69,7 +69,7 @@ func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, error) {
 
 	t, transportErr := transport.Listen(cert, "tcp", fmt.Sprintf(":%v", s.DefaultService.Port)) // FIXME parameterize
 	if transportErr != nil {
-		return nil, errors.New(transportErr)
+		return nil, transportErr
 	}
 
 	grpc, closer, err := h.CreateServer()
@@ -78,7 +78,7 @@ func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, error) {
 	}
 
 	if err := s.RegisterService(grpc, h); err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	return func() (*ServerStatus, error) {
@@ -99,12 +99,12 @@ func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, error) {
 func (s *GRPCServer) serve(ctx *cli.Context) error {
 	fun, err := s.MakeHandlerFunc(ctx.String("config"))
 	if err != nil {
-		return errors.New(err).Wrap("while constructing GRPC handler")
+		return utils.WrapError(err, "while constructing GRPC handler")
 	}
 
 	status, err := fun()
 	if err != nil {
-		return errors.New(err).Wrap("while booting service")
+		return utils.WrapError(err, "while booting service")
 	}
 
 	sigChan := make(chan os.Signal, 2)

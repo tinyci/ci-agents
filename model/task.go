@@ -2,12 +2,14 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
+
+	"errors"
 
 	"github.com/jinzhu/gorm"
 	gtypes "github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/github"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 )
@@ -37,10 +39,10 @@ type Task struct {
 }
 
 // NewTaskFromProto converts the proto representation to the task type.
-func NewTaskFromProto(gt *gtypes.Task) (*Task, *errors.Error) {
+func NewTaskFromProto(gt *gtypes.Task) (*Task, error) {
 	var sub *Submission
 	if gt.Submission != nil {
-		var err *errors.Error
+		var err error
 		sub, err = NewSubmissionFromProto(gt.Submission)
 		if err != nil {
 			return nil, err
@@ -91,7 +93,7 @@ func (t *Task) ToProto() *gtypes.Task {
 }
 
 // Validate ensures all parameters are set properly.
-func (t *Task) Validate() *errors.Error {
+func (t *Task) Validate() error {
 	if t.Submission == nil {
 		return errors.New("invalid submission in task")
 	}
@@ -107,11 +109,11 @@ func (t *Task) Validate() *errors.Error {
 // hook chain
 func (t *Task) AfterFind(tx *gorm.DB) error {
 	if err := json.Unmarshal(t.TaskSettingsJSON, &t.TaskSettings); err != nil {
-		return errors.New(err).Wrapf("unpacking task settings for task %d", t.ID)
+		return utils.WrapError(err, "unpacking task settings for task %d", t.ID)
 	}
 
 	if err := t.Validate(); err != nil {
-		return errors.New(err).Wrapf("reading task id %d", t.ID)
+		return utils.WrapError(err, "reading task id %d", t.ID)
 	}
 
 	return nil
@@ -125,20 +127,20 @@ func (t *Task) BeforeCreate(tx *gorm.DB) error {
 // BeforeSave is a gorm hook to marshal the token JSON before saving the record
 func (t *Task) BeforeSave(tx *gorm.DB) error {
 	if err := t.Validate(); err != nil {
-		return errors.New(err).Wrapf("saving task id %d", t.ID)
+		return utils.WrapError(err, "saving task id %d", t.ID)
 	}
 
 	var err error
 	t.TaskSettingsJSON, err = json.Marshal(t.TaskSettings)
 	if err != nil {
-		return errors.New(err).Wrapf("marshaling settings for task id %d", t.ID)
+		return utils.WrapError(err, "marshaling settings for task id %d", t.ID)
 	}
 
 	return nil
 }
 
 // CancelTasksForPR cancels all tasks for a PR.
-func (m *Model) CancelTasksForPR(repository string, prID int64, baseURL string) *errors.Error {
+func (m *Model) CancelTasksForPR(repository string, prID int64, baseURL string) error {
 	tasks := []*Task{}
 
 	err := m.WrapError(m.
@@ -167,7 +169,7 @@ func (m *Model) CancelTasksForPR(repository string, prID int64, baseURL string) 
 }
 
 // CancelTaskByID cancels a task by ID
-func (m *Model) CancelTaskByID(id int64, baseURL string, gh github.Client) *errors.Error {
+func (m *Model) CancelTaskByID(id int64, baseURL string, gh github.Client) error {
 	var task Task
 	if err := m.WrapError(m.Where("id = ?", id).First(&task), "locating task for cancellation"); err != nil {
 		return err
@@ -179,21 +181,21 @@ func (m *Model) CancelTaskByID(id int64, baseURL string, gh github.Client) *erro
 // CancelTask finds the queue items and runs for the task, removes them,
 // cancels the associated runs for the task, and finally, saves the task itself. It will
 // fail to do all of this if the task is already finished.
-func (m *Model) CancelTask(task *Task, baseURL string, gh github.Client) *errors.Error {
+func (m *Model) CancelTask(task *Task, baseURL string, gh github.Client) error {
 	if task.FinishedAt != nil {
-		return errors.Errorf("task %d was already finished; cannot cancel", task.ID)
+		return fmt.Errorf("task %d was already finished; cannot cancel", task.ID)
 	}
 
 	runs := []*Run{}
 
 	if err := m.WrapError(m.Where("task_id = ?", task.ID).Find(&runs), "finding runs by task ID"); err != nil {
-		return errors.New(err).Wrapf("locating runs to be canceled for task %d", task.ID)
+		return utils.WrapError(err, "locating runs to be canceled for task %d", task.ID)
 	}
 
 	for _, thisRun := range runs {
 		if thisRun.Status == nil {
 			if err := m.SetRunStatus(thisRun.ID, gh, false, true, baseURL, ""); err != nil {
-				return errors.New(err).Wrapf("setting run state for ID %d", thisRun.ID)
+				return utils.WrapError(err, "setting run state for ID %d", thisRun.ID)
 			}
 		}
 	}
@@ -207,7 +209,7 @@ func (m *Model) CancelTask(task *Task, baseURL string, gh github.Client) *errors
 }
 
 // UpdateTaskStatus is triggered when a run state change happens that is *not* a cancellation.
-func (m *Model) UpdateTaskStatus(task *Task) *errors.Error {
+func (m *Model) UpdateTaskStatus(task *Task) error {
 	runs := []*Run{}
 
 	if task.FinishedAt != nil && task.Status != nil {
@@ -216,7 +218,7 @@ func (m *Model) UpdateTaskStatus(task *Task) *errors.Error {
 
 	err := m.WrapError(m.Where(`task_id = ?`, task.ID).Order("id DESC").Find(&runs), "looking up runs by task id")
 	if err != nil {
-		if err.Contains(errors.ErrNotFound) {
+		if err == utils.ErrNotFound {
 			return nil
 		}
 		return err
@@ -242,7 +244,7 @@ func (m *Model) UpdateTaskStatus(task *Task) *errors.Error {
 	return m.WrapError(m.Save(task), "saving task")
 }
 
-func (m *Model) prepTaskListQuery(repository, sha string) (*gorm.DB, *errors.Error) {
+func (m *Model) prepTaskListQuery(repository, sha string) (*gorm.DB, error) {
 	db := m.Model(&Task{})
 
 	if repository != "" {
@@ -262,7 +264,7 @@ func (m *Model) prepTaskListQuery(repository, sha string) (*gorm.DB, *errors.Err
 }
 
 // CountTasks counts all the tasks, optionally based on the repository and sha.
-func (m *Model) CountTasks(repository, sha string) (int64, *errors.Error) {
+func (m *Model) CountTasks(repository, sha string) (int64, error) {
 	var count int64
 
 	db, err := m.prepTaskListQuery(repository, sha)
@@ -272,13 +274,13 @@ func (m *Model) CountTasks(repository, sha string) (int64, *errors.Error) {
 
 	dbErr := db.Count(&count).Error
 	if dbErr != nil {
-		return 0, errors.New(dbErr)
+		return 0, dbErr
 	}
 
 	return count, nil
 }
 
-func (m *Model) assignRunCountsToTask(tasks []*Task) *errors.Error {
+func (m *Model) assignRunCountsToTask(tasks []*Task) error {
 	idmap := map[int64]*Task{}
 	ids := []int64{}
 
@@ -289,14 +291,14 @@ func (m *Model) assignRunCountsToTask(tasks []*Task) *errors.Error {
 
 	rows, eErr := m.Raw("select distinct task_id, count(*) from runs where task_id in (?) group by task_id", ids).Rows()
 	if eErr != nil {
-		return errors.New(eErr)
+		return eErr
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var id, count int64
 		if err := rows.Scan(&id, &count); err != nil {
-			return errors.New(err)
+			return err
 		}
 
 		idmap[id].Runs = count
@@ -306,7 +308,7 @@ func (m *Model) assignRunCountsToTask(tasks []*Task) *errors.Error {
 }
 
 // ListTasks gathers all the tasks based on the page and perPage values. It can optionally filter by repository and SHA.
-func (m *Model) ListTasks(repository, sha string, page, perPage int64) ([]*Task, *errors.Error) {
+func (m *Model) ListTasks(repository, sha string, page, perPage int64) ([]*Task, error) {
 	page, perPage, err := utils.ScopePaginationInt(page, perPage)
 	if err != nil {
 		return nil, err
@@ -321,7 +323,7 @@ func (m *Model) ListTasks(repository, sha string, page, perPage int64) ([]*Task,
 
 	dbErr := db.Limit(perPage).Offset(page * perPage).Find(&tasks).Error
 	if dbErr != nil {
-		return nil, errors.New(dbErr)
+		return nil, dbErr
 	}
 
 	return tasks, m.assignRunCountsToTask(tasks)

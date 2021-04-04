@@ -5,14 +5,13 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/queue"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/testutil"
 	"google.golang.org/grpc"
 )
 
 // MakeQueueServer makes an instance of the queuesvc on port 6001. It returns a
 // chan which can be closed to terminate it, and any boot-time errors.
-func MakeQueueServer() (*handler.H, chan struct{}, *errors.Error) {
+func MakeQueueServer() (*handler.H, chan struct{}, error) {
 	h := &handler.H{
 		Service: config.Service{
 			Name: "queuesvc",
@@ -30,12 +29,12 @@ func MakeQueueServer() (*handler.H, chan struct{}, *errors.Error) {
 
 	t, err := transport.Listen(nil, "tcp", config.DefaultServices.Queue.String())
 	if err != nil {
-		return nil, nil, errors.New(err)
+		return nil, nil, err
 	}
 
 	srv := grpc.NewServer()
 	queue.RegisterQueueServer(srv, &QueueServer{H: h})
 
 	doneChan, err := h.Boot(t, srv, make(chan struct{}))
-	return h, doneChan, errors.New(err)
+	return h, doneChan, err
 }

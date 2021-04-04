@@ -7,7 +7,6 @@ import (
 	transport "github.com/erikh/go-transport"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/auth"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc"
 )
@@ -19,11 +18,11 @@ type Client struct {
 }
 
 // NewClient creates a new *Client for use.
-func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, *errors.Error) {
+func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, error) {
 	var (
 		closer  io.Closer
 		options []grpc.DialOption
-		eErr    *errors.Error
+		eErr    error
 	)
 
 	if trace {
@@ -35,26 +34,26 @@ func NewClient(addr string, cert *transport.Cert, trace bool) (*Client, *errors.
 
 	t, err := transport.GRPCDial(cert, addr, options...)
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	return &Client{closer: closer, ac: auth.NewAuthClient(t)}, nil
 }
 
 // Close closes the client's tracing functionality
-func (c *Client) Close() *errors.Error {
+func (c *Client) Close() error {
 	if c.closer != nil {
-		return errors.New(c.closer.Close())
+		return c.closer.Close()
 	}
 
 	return nil
 }
 
 // Capabilities notes what types of auth this server supports.
-func (c *Client) Capabilities(ctx context.Context) ([]string, *errors.Error) {
+func (c *Client) Capabilities(ctx context.Context) ([]string, error) {
 	caps, err := c.ac.Capabilities(ctx, &empty.Empty{})
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	return caps.List, nil

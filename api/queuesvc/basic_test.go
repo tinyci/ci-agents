@@ -11,11 +11,11 @@ import (
 	"github.com/golang/mock/gomock"
 	gh "github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/mocks/github"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/types"
+	"github.com/tinyci/ci-agents/utils"
 )
 
 var ctx = context.Background()
@@ -161,7 +161,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 				qis[i].Name,
 				sub.HeadSHA,
 				fmt.Sprintf("url/log/%d", qis[i].ID),
-				errors.ErrRunCanceled,
+				utils.ErrRunCanceled,
 			).Return(nil)
 	}
 
@@ -205,7 +205,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 				qis[i].Name,
 				"be3d26c478991039e951097f2c99f56b55396942",
 				fmt.Sprintf("url/log/%d", qis[i].ID),
-				errors.ErrRunCanceled,
+				utils.ErrRunCanceled,
 			).Return(nil)
 	}
 

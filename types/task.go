@@ -5,9 +5,11 @@ import (
 	"reflect"
 	"time"
 
+	"errors"
+
 	_struct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/errors"
+	"github.com/tinyci/ci-agents/utils"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -100,17 +102,17 @@ func (t *TaskSettings) ToProto() *types.TaskSettings {
 }
 
 // NewTaskSettings creates a new task configuration from a byte buffer.
-func NewTaskSettings(buf []byte, requireRuns bool, rc RepoConfig) (*TaskSettings, *errors.Error) {
+func NewTaskSettings(buf []byte, requireRuns bool, rc RepoConfig) (*TaskSettings, error) {
 	t := &TaskSettings{}
 
 	if err := yaml.UnmarshalStrict(buf, t); err != nil {
-		return nil, errors.New(err).Wrap(ErrTaskParse)
+		return nil, utils.WrapError(ErrTaskParse, err.Error())
 	}
 
 	t.Config = rc
 
 	if err := t.Validate(requireRuns); err != nil {
-		return nil, errors.New(err).Wrap(ErrTaskValidation)
+		return nil, utils.WrapError(ErrTaskValidation, err.Error())
 	}
 
 	return t, nil
@@ -194,13 +196,13 @@ func (t *TaskSettings) handleOverrides() {
 }
 
 // Validate validates the task settings.
-func (t *TaskSettings) Validate(requireRuns bool) *errors.Error {
+func (t *TaskSettings) Validate(requireRuns bool) error {
 	t.handleOverrides()
 
 	if !t.Config.AllowPrivileged {
 		for _, run := range t.Runs {
 			if run.Privileged {
-				return errors.Errorf("Run %q cannot launch because it wants a privileged container and they are denied", run.Name)
+				return fmt.Errorf("Run %q cannot launch because it wants a privileged container and they are denied", run.Name)
 			}
 		}
 	}
@@ -310,7 +312,7 @@ func (rs *RunSettings) ToProto() *types.RunSettings {
 }
 
 // Validate validates the run settings, returning errors on any found.
-func (rs *RunSettings) Validate(t *TaskSettings) *errors.Error {
+func (rs *RunSettings) Validate(t *TaskSettings) error {
 	if len(rs.Command) == 0 {
 		return errors.New("command was empty")
 	}
@@ -373,11 +375,11 @@ type RepoConfig struct {
 }
 
 // NewRepoConfig creates a new repo config from a byte buffer.
-func NewRepoConfig(buf []byte) (RepoConfig, *errors.Error) {
+func NewRepoConfig(buf []byte) (RepoConfig, error) {
 	r := RepoConfig{}
 
 	if err := yaml.UnmarshalStrict(buf, &r); err != nil {
-		return r, errors.New(err)
+		return r, err
 	}
 
 	r.handleOverrides()
@@ -443,7 +445,7 @@ func (r *RepoConfig) handleOverrides() {
 }
 
 // Validate returns any error if there are validation errors in the repo config.
-func (r *RepoConfig) Validate() *errors.Error {
+func (r *RepoConfig) Validate() error {
 	// it doesn't do much right now..
 	if r.Queue == "" {
 		return errors.New("queue was empty")

@@ -8,10 +8,11 @@ package operations
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/tinyci/ci-agents/clients/log"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 
 	"github.com/gin-gonic/gin"
@@ -22,14 +23,14 @@ import (
 // Removes a specific repository from CI.
 // Will fail if not added to CI already; does not currently clear the hook.
 //
-func GetRepositoriesCiDelOwnerRepo(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
+func GetRepositoriesCiDelOwnerRepo(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) error {
 	if h.RequestLogging {
 		start := time.Now()
 		u := uuid.New()
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), fmt.Errorf("encoding params for log message: %w", jsonErr))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{
@@ -52,7 +53,7 @@ func GetRepositoriesCiDelOwnerRepo(h *handlers.H, ctx *gin.Context, processingHa
 	}
 
 	if err := GetRepositoriesCiDelOwnerRepoValidateURLParams(h, ctx); err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	if processingHandler == nil {

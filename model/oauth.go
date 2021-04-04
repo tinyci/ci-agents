@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
-	"github.com/tinyci/ci-agents/errors"
+	"github.com/tinyci/ci-agents/utils"
 )
 
 // OAuthExpiration is a constant for the oauth state expiration time. It really
@@ -49,7 +49,7 @@ func (o *OAuth) GetScopes() map[string]struct{} {
 
 // OAuthRegisterState registers a state code in a uniqueness table that tracks
 // it.
-func (m *Model) OAuthRegisterState(state string, scopes []string) *errors.Error {
+func (m *Model) OAuthRegisterState(state string, scopes []string) error {
 	oa := &OAuth{
 		State:     state,
 		ExpiresOn: time.Now().Add(OAuthExpiration),
@@ -61,11 +61,11 @@ func (m *Model) OAuthRegisterState(state string, scopes []string) *errors.Error 
 
 // OAuthValidateState validates that the state we sent actually exists and is
 // ready to be consumed. In the event it is not, it returns error.
-func (m *Model) OAuthValidateState(state string) (*OAuth, *errors.Error) {
+func (m *Model) OAuthValidateState(state string) (*OAuth, error) {
 	oa := &OAuth{}
 	err := m.WrapError(m.Where("state = ? and expires_on > now()", state).Find(&oa), "validating oauth state")
 	if err != nil {
-		return nil, errors.New(err).Wrap(errors.ErrNotFound)
+		return nil, utils.WrapError(utils.ErrNotFound, "%v", err)
 	}
 
 	defer m.Delete(&OAuth{State: state})

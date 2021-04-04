@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"github.com/google/go-github/github"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/types"
 )
 
-func (ms *modelSuite) CreateRef(r *Repository, name, sha string) (*Ref, *errors.Error) {
+func (ms *modelSuite) CreateRef(r *Repository, name, sha string) (*Ref, error) {
 	ref := &Ref{
 		Repository: r,
 		SHA:        sha,
@@ -22,7 +21,7 @@ func (ms *modelSuite) CreateRef(r *Repository, name, sha string) (*Ref, *errors.
 }
 
 // CreateUsers creates `count` random users.
-func (ms *modelSuite) CreateUsers(count int) ([]*User, *errors.Error) {
+func (ms *modelSuite) CreateUsers(count int) ([]*User, error) {
 	users := []*User{}
 
 	for i := 0; i < count; i++ {
@@ -38,14 +37,14 @@ func (ms *modelSuite) CreateUsers(count int) ([]*User, *errors.Error) {
 }
 
 // CreateRepository creates a random repository.
-func (ms *modelSuite) CreateRepository() (*Repository, *errors.Error) {
+func (ms *modelSuite) CreateRepository() (*Repository, error) {
 	return ms.CreateRepositoryWithName(path.Join(testutil.RandString(8), testutil.RandString(8)))
 }
 
-func (ms *modelSuite) CreateRepositoryWithName(name string) (*Repository, *errors.Error) {
+func (ms *modelSuite) CreateRepositoryWithName(name string) (*Repository, error) {
 	owners, err := ms.CreateUsers(1)
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 	r := &Repository{
 		Name:   name,
@@ -54,7 +53,7 @@ func (ms *modelSuite) CreateRepositoryWithName(name string) (*Repository, *error
 	}
 
 	if err := ms.model.Save(r).Error; err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	return r, nil
@@ -84,7 +83,7 @@ func (ms *modelSuite) CreateTaskForSubmission(sub *Submission) (*Task, error) {
 	}
 
 	if err := ms.model.Save(run).Error; err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	qi := &QueueItem{
@@ -93,13 +92,13 @@ func (ms *modelSuite) CreateTaskForSubmission(sub *Submission) (*Task, error) {
 	}
 
 	if err := ms.model.Save(qi).Error; err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	return run.Task, nil
 }
 
-func (ms *modelSuite) CreateRun() (*Run, *errors.Error) {
+func (ms *modelSuite) CreateRun() (*Run, error) {
 	parent, err := ms.CreateRepository()
 	if err != nil {
 		return nil, err
@@ -116,7 +115,7 @@ func (ms *modelSuite) CreateRun() (*Run, *errors.Error) {
 	}
 
 	if err := ms.model.Save(baseref).Error; err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	headref := &Ref{
@@ -126,13 +125,13 @@ func (ms *modelSuite) CreateRun() (*Run, *errors.Error) {
 	}
 
 	if err := ms.model.Save(headref).Error; err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	sub := &Submission{HeadRef: headref, BaseRef: baseref}
 
 	if err := ms.model.Save(sub).Error; err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	runName := testutil.RandString(8)
@@ -159,7 +158,7 @@ func (ms *modelSuite) CreateRun() (*Run, *errors.Error) {
 		Task:        task,
 	}
 
-	return run, errors.New(ms.model.Save(run).Error)
+	return run, ms.model.Save(run).Error
 }
 
 func (ms *modelSuite) FillQueue(count int64) ([]*QueueItem, error) {
@@ -191,7 +190,7 @@ func (ms *modelSuite) FillQueue(count int64) ([]*QueueItem, error) {
 	return qis, nil
 }
 
-func (ms *modelSuite) CreateSubmission(sub *types.Submission) (*Submission, *errors.Error) {
+func (ms *modelSuite) CreateSubmission(sub *types.Submission) (*Submission, error) {
 	if sub.SubmittedBy != "" {
 		if _, err := ms.model.CreateUser(sub.SubmittedBy, testutil.DummyToken); err != nil {
 			return nil, err
@@ -225,11 +224,11 @@ func (ms *modelSuite) CreateSubmission(sub *types.Submission) (*Submission, *err
 
 	s, err := ms.model.NewSubmissionFromMessage(sub)
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	if err := ms.model.Save(s).Error; err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	return s, nil

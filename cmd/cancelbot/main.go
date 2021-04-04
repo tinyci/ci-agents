@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tinyci/ci-agents/clients/data"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
+	"github.com/tinyci/ci-agents/utils"
 	"github.com/urfave/cli/v2"
 )
 
@@ -64,7 +64,8 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		errors.New(err).Exit()
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }
 
@@ -76,7 +77,7 @@ func run(ctx *cli.Context) error {
 		// last arg is CRL
 		cert, err = transport.LoadCert(ctx.String("cacert"), ctx.String("cert"), ctx.String("key"), "")
 		if err != nil {
-			return errors.New(err).Wrap("while loading cert")
+			return utils.WrapError(err, "while loading cert")
 		}
 	}
 

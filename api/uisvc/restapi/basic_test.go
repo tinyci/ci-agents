@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"errors"
+
 	check "github.com/erikh/check"
 	"github.com/golang/mock/gomock"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/mocks/github"
 	"github.com/tinyci/ci-agents/types"
 

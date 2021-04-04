@@ -1,7 +1,8 @@
 package types
 
 import (
-	"github.com/tinyci/ci-agents/errors"
+	"errors"
+
 	"github.com/tinyci/ci-agents/utils"
 )
 
@@ -19,7 +20,7 @@ type Submission struct {
 }
 
 // Validate validates the submission, and returns an error if it encounters any.
-func (sub *Submission) Validate() *errors.Error {
+func (sub *Submission) Validate() error {
 	if !sub.Manual && !utils.IsOwnerRepo(sub.Parent) {
 		return errors.New("parent is invalid")
 	}
@@ -37,7 +38,7 @@ func (sub *Submission) Validate() *errors.Error {
 	}
 
 	if !utils.IsSHA(sub.HeadSHA) {
-		var err *errors.Error
+		var err error
 		sub.HeadSHA, err = utils.QualifyBranch(sub.HeadSHA)
 		if err != nil {
 			return err
@@ -47,7 +48,7 @@ func (sub *Submission) Validate() *errors.Error {
 	if sub.BaseSHA == "" && !sub.Manual {
 		return errors.New("base sha is empty")
 	} else if !sub.Manual && !utils.IsSHA(sub.BaseSHA) {
-		var err *errors.Error
+		var err error
 		sub.BaseSHA, err = utils.QualifyBranch(sub.BaseSHA)
 		if err != nil {
 			return err

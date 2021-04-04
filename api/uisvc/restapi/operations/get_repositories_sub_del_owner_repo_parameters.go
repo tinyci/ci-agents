@@ -1,14 +1,15 @@
 package operations
 
 import (
+	"errors"
+
 	"github.com/gin-gonic/gin"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 )
 
 // GetRepositoriesSubDelOwnerRepoValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func GetRepositoriesSubDelOwnerRepoValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
+func GetRepositoriesSubDelOwnerRepoValidateURLParams(h *handlers.H, ctx *gin.Context) error {
 	owner := ctx.Param("owner")
 
 	if len(owner) == 0 {

@@ -8,13 +8,15 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"errors"
+
 	"github.com/fatih/color"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/asset"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -46,21 +48,21 @@ func (as *AssetServer) GetLog(id *types.IntID, ag asset.Asset_GetLogServer) erro
 	return as.attach(id.ID, ag, as.getLogsRoot())
 }
 
-func (as *AssetServer) submit(ap asset.Asset_PutLogServer, p string) (retErr *errors.Error) {
+func (as *AssetServer) submit(ap asset.Asset_PutLogServer, p string) (retErr error) {
 	defer func() {
 		if retErr != nil {
 			md := metadata.New(nil)
-			md.Append("errors", retErr.ToGRPC(codes.FailedPrecondition).Error())
+			md.Append("errors", status.Errorf(codes.FailedPrecondition, "%v", retErr).Error())
 			ap.SetTrailer(md)
 		}
 	}()
 	if err := os.MkdirAll(p, 0700); err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	ls, err := ap.Recv()
 	if err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	file := path.Join(p, fmt.Sprintf("%d", ls.ID))
@@ -75,7 +77,7 @@ func (as *AssetServer) submit(ap asset.Asset_PutLogServer, p string) (retErr *er
 
 	writing, err := os.Create(file + ".writing")
 	if err != nil {
-		return errors.New(err)
+		return err
 	}
 	defer func() {
 		writing.Close()
@@ -84,16 +86,16 @@ func (as *AssetServer) submit(ap asset.Asset_PutLogServer, p string) (retErr *er
 
 	f, err := os.Create(file)
 	if err != nil {
-		return errors.New(err)
+		return err
 	}
 	defer f.Close()
 
 	for {
 		if _, err := f.Write(ls.Chunk); err != nil {
-			return errors.New(err)
+			return err
 		}
 		if ls, err = ap.Recv(); err != nil {
-			return errors.New(err)
+			return err
 		}
 	}
 }
@@ -105,13 +107,7 @@ func write(ag asset.Asset_GetLogServer, buf []byte) error {
 func (as *AssetServer) attach(id int64, ag asset.Asset_GetLogServer, p string) (retErr error) {
 	defer func() {
 		if retErr != nil {
-			switch err := retErr.(type) {
-			case *errors.Error:
-				retErr = err.ToGRPC(codes.FailedPrecondition)
-			default:
-				retErr = errors.New(err).ToGRPC(codes.FailedPrecondition)
-			}
-
+			retErr = status.Errorf(codes.FailedPrecondition, "%v", retErr)
 		} else {
 			retErr = write(ag, []byte(color.New(color.FgGreen).Sprintln("---- LOG COMPLETE ----")))
 		}

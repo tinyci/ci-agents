@@ -7,9 +7,9 @@ import (
 	"net/url"
   "io"
   "time"
+  "errors"
   "golang.org/x/net/websocket"
 
-  "github.com/tinyci/ci-agents/errors"
   "github.com/tinyci/ci-agents/clients/jsonbuffer"
 	transport "github.com/erikh/go-transport"
 
@@ -31,15 +31,15 @@ type Client struct {
 
 // New creates a new *Client. Passing a cert will enable client/server
 // certificate authentication; otherwise pass nil for no auth.
-func New(baseURL string, token string, cert *transport.Cert) (*Client, *errors.Error) {
+func New(baseURL string, token string, cert *transport.Cert) (*Client, error) {
   t, err := transport.NewHTTP(cert)
   if err != nil {
-    return nil, errors.New(err)
+    return nil, err
   }
 
 	u, err := url.Parse(baseURL)
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	client := t.Client(&http.Transport{IdleConnTimeout: 15*time.Second, MaxIdleConns: 10})
@@ -77,7 +77,7 @@ func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .
 {{- .SuccessResponse.Schema.GoType }},
 {{- end }}
 {{- end }}
-{{- end }}*errors.Error) {
+{{- end }}error) {
   route := {{ printf "%q" .Path }}
 
   {{- range $param := .Params }}
@@ -114,21 +114,21 @@ func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .
 
   conn, err := websocket.Dial(u.String(), "", "http://localhost")
   if err != nil {
-    return {{ if .SuccessResponse }}{{ if .SuccessResponse.Schema }}{{ if .SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ .SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} errors.New(err)
+    return {{ if .SuccessResponse }}{{ if .SuccessResponse.Schema }}{{ if .SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ .SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} err
   }
 
   {{- if eq (index .Extensions "x-websocket") "read" }}
   if _, err := io.Copy(w, jsonbuffer.NewWrapper(conn)); err != nil {
-    return errors.New(err)
+    return err
   }
   {{ else }}
   if _, err := io.Copy(jsonbuffer.NewWrapper(conn), r); err != nil {
-    return errors.New(err)
+    return err
   }
   {{ end }}
 
   if err := conn.Close(); err != nil {
-    return errors.New(err)
+    return err
   }
 
   return nil
@@ -145,7 +145,7 @@ func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .
   postForm.Add({{ printf "%q" $param.Name }}, {{ varname $param.Name }})
   {{ else }}
   if content, err := json.Marshal({{ varname $param.Name }}); err != nil {
-    return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if $op.SuccessResponse }}{{ if $op.SuccessResponse.Schema }}{{ if $op.SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ $op.SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} errors.New(err)
+    return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if $op.SuccessResponse }}{{ if $op.SuccessResponse.Schema }}{{ if $op.SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ $op.SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} err
   } else {
     postForm.Add({{ printf "%q" $param.Name }}, string(content))
   }
@@ -160,7 +160,7 @@ func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .
   {{ if $param.IsBodyParam -}}
   body, err = json.Marshal({{ varname $param.Name }})
   if err != nil {
-    return {{ if index $op.Extensions "x-websocket" }}nil, nil,{{ else if $op.SuccessResponse }}{{ if $op.SuccessResponse.Schema }}{{ if $op.SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ $op.SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} errors.New(err)
+    return {{ if index $op.Extensions "x-websocket" }}nil, nil,{{ else if $op.SuccessResponse }}{{ if $op.SuccessResponse.Schema }}{{ if $op.SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ $op.SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} err
   }
   {{ end -}}
   {{ end }}
@@ -168,7 +168,7 @@ func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .
 
   req, err := http.NewRequest({{ printf "%q" .Method }}, u.String(), bytes.NewBuffer(body))
   if err != nil {
-    return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if .SuccessResponse }}{{ if .SuccessResponse.Schema }}{{ if .SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ .SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} errors.New(err)
+    return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if .SuccessResponse }}{{ if .SuccessResponse.Schema }}{{ if .SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ .SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} err
   }
 
   req.Header.Add("Authorization", c.token)
@@ -179,27 +179,29 @@ func (c *Client) {{ pascalize .Name }}(ctx context.Context {{- range $param := .
 
   resp, err := c.client.Do(req.WithContext(ctx))
   if err != nil {
-    return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if .SuccessResponse }}{{ if .SuccessResponse.Schema }}{{ if .SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ .SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} errors.New(err)
-  }
-
-  if resp.StatusCode == 500 {
-    origErr := &errors.Error{}
-
-    if err := json.NewDecoder(resp.Body).Decode(origErr); err != nil {
-      return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if .SuccessResponse }}{{ if .SuccessResponse.Schema }}{{ if .SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ .SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} errors.New(err)
-    }
-
-    return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if .SuccessResponse }}{{ if .SuccessResponse.Schema }}{{ if .SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ .SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} origErr
+    return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if .SuccessResponse }}{{ if .SuccessResponse.Schema }}{{ if .SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ .SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} err
   }
 
   defer resp.Body.Close()
+
+  if resp.StatusCode == 500 {
+    var origErr string
+
+    if err := json.NewDecoder(io.TeeReader(resp.Body, os.Stdout)).Decode(&origErr); err != nil {
+      return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if .SuccessResponse }}{{ if .SuccessResponse.Schema }}{{ if .SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ .SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} err
+    }
+
+    err := errors.New(origErr)
+
+    return {{ if index .Extensions "x-websocket" }}nil, nil,{{ else if .SuccessResponse }}{{ if .SuccessResponse.Schema }}{{ if .SuccessResponse.Schema.IsNullable }}nil,{{ else }}{{ .SuccessResponse.Schema.Zero }},{{ end }}{{ end }}{{ end }} err
+  }
 
   {{ if .SuccessResponse }}
   {{ if .SuccessResponse.Schema }}
   var result {{ .SuccessResponse.Schema.GoType }}
 
   if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-    return {{ if .SuccessResponse.Schema.IsNullable }}nil{{ else }}{{ .SuccessResponse.Schema.Zero }}{{ end }}, errors.New(err)
+    return {{ if .SuccessResponse.Schema.IsNullable }}nil{{ else }}{{ .SuccessResponse.Schema.Zero }}{{ end }}, err 
   }
 
   return {{ if .SuccessResponse.Schema.IsNullable }}&{{ end }}result, nil

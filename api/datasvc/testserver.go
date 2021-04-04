@@ -5,7 +5,6 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/testutil"
 	"google.golang.org/grpc"
 )
@@ -31,12 +30,12 @@ func MakeDataServer() (*handler.H, chan struct{}, error) {
 
 	t, err := transport.Listen(nil, "tcp", config.DefaultServices.Data.String())
 	if err != nil {
-		return nil, nil, errors.New(err)
+		return nil, nil, err
 	}
 
 	srv := grpc.NewServer()
 	data.RegisterDataServer(srv, &DataServer{H: h})
 
 	doneChan, err := h.Boot(t, srv, make(chan struct{}))
-	return h, doneChan, errors.New(err)
+	return h, doneChan, err
 }
