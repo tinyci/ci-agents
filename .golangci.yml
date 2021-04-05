@@ -14,7 +14,7 @@ linters:
     - bodyclose                                                                                                                                                                                                                                
     - golint
     - misspell                                                                                                                                                                                                                                 
-    # - staticcheck
+    - staticcheck
 issues:
   exclude-use-default: false
 run:
