@@ -3,6 +3,9 @@ CONTAINER_DIR=/go/src/github.com/tinyci/ci-agents
 
 GOLANGCI_LINT_VERSION=1.39.0
 
+TESTRUN ?=
+TESTPATH ?= ./...
+
 STD_DOCKERFILE=dockerfiles/Dockerfile
 RELEASE_DOCKERFILE=dockerfiles/Dockerfile.release
 RELEASE_CONTEXT=release
@@ -40,6 +43,8 @@ TEST_DOCKER_RUN=\
 								-e CREATE_DB=1 \
 								-e GIN_MODE=test \
 								-e TESTING=1 \
+								-e TESTRUN='${TESTRUN}' \
+								-e TESTPATH='${TESTPATH}' \
 								--name $(TEST_DOCKER_IMAGE) \
 								$(DOCKER_CONTAINER_DIR) \
 								$(TEST_DOCKER_IMAGE)
@@ -72,10 +77,10 @@ DEMO_DOCKER_RUN=\
 								$(DEMO_DOCKER_IMAGE)
 
 test: build-image
-	$(TEST_DOCKER_RUN) make do-test
+	$(TEST_DOCKER_RUN) make 'TESTRUN=${TESTRUN}' 'TESTPATH=${TESTPATH}' do-test
 
 do-test:
-	go test -timeout 30m -p 1 -race -v ./... -check.v # -p 1 is needed because of gorilla/sessions init routines
+	go test -timeout 30m -p 1 -race -v ${TESTPATH} -check.v -check.f "${TESTRUN}" # -p 1 is needed because of gorilla/sessions init routines
 
 test-debug: build-debug-image
 	$(DEBUG_DOCKER_RUN) bash
