@@ -4,14 +4,15 @@ import (
 	"context"
 	"strconv"
 
+	"errors"
+
 	"github.com/gin-gonic/gin"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 	"github.com/tinyci/ci-agents/utils"
 )
 
 // ListTasks retrieves the task list.
-func ListTasks(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func ListTasks(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	page, perPage, err := utils.ScopePagination(ctx.GetString("page"), ctx.GetString("perPage"))
 	if err != nil {
 		return nil, 500, err
@@ -26,7 +27,7 @@ func ListTasks(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface
 }
 
 // CountTasks counts the task list with the supplied repo/sha filtering.
-func CountTasks(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func CountTasks(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	count, err := h.Clients.Data.CountTasks(ctx, ctx.GetString("repository"), ctx.GetString("sha"))
 	if err != nil {
 		return nil, 500, err
@@ -36,10 +37,10 @@ func CountTasks(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interfac
 }
 
 // GetRunsForTask retrieves all the runs by task id. Pagination rules are in effect.
-func GetRunsForTask(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func GetRunsForTask(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	id, eErr := strconv.ParseInt(ctx.GetString("id"), 10, 64)
 	if eErr != nil {
-		return nil, 500, errors.New(eErr)
+		return nil, 500, eErr
 	}
 
 	page, perPage, err := utils.ScopePagination(ctx.GetString("page"), ctx.GetString("perPage"))
@@ -56,10 +57,10 @@ func GetRunsForTask(pCtx context.Context, h *handlers.H, ctx *gin.Context) (inte
 }
 
 // CountRunsForTask counts all the runs by task ID.
-func CountRunsForTask(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func CountRunsForTask(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	id, eErr := strconv.ParseInt(ctx.GetString("id"), 10, 64)
 	if eErr != nil {
-		return nil, 500, errors.New(eErr)
+		return nil, 500, eErr
 	}
 
 	count, err := h.Clients.Data.CountRunsForTask(ctx, id)
@@ -71,7 +72,7 @@ func CountRunsForTask(pCtx context.Context, h *handlers.H, ctx *gin.Context) (in
 }
 
 // ListSubscribedTasksForUser lists only the tasks for the repositories the user is subscribed to.
-func ListSubscribedTasksForUser(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func ListSubscribedTasksForUser(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	page, perPage, err := utils.ScopePagination(ctx.GetString("page"), ctx.GetString("perPage"))
 	if err != nil {
 		return nil, 500, err
@@ -97,10 +98,10 @@ func ListSubscribedTasksForUser(pCtx context.Context, h *handlers.H, ctx *gin.Co
 }
 
 // CancelTask cancels a task by ID.
-func CancelTask(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, *errors.Error) {
+func CancelTask(pCtx context.Context, h *handlers.H, ctx *gin.Context) (interface{}, int, error) {
 	id, eErr := strconv.ParseInt(ctx.GetString("id"), 10, 64)
 	if eErr != nil {
-		return nil, 500, errors.New(eErr)
+		return nil, 500, eErr
 	}
 
 	if err := h.Clients.Data.CancelTask(pCtx, id); err != nil {

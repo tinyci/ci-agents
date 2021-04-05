@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"os"
 
+	"errors"
+
 	"github.com/google/go-github/github"
 	"github.com/google/uuid"
 	"github.com/tinyci/ci-agents/clients/data"
 	"github.com/tinyci/ci-agents/clients/log"
 	"github.com/tinyci/ci-agents/clients/queue"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
@@ -143,7 +144,7 @@ func (h *Handler) prDispatch(obj interface{}) (*types.Submission, error) {
 	case actionClosed:
 		return nil, &ErrCancelPR{Repository: pr.PullRequest.Base.Repo.GetFullName(), PRID: int64(pr.PullRequest.GetNumber())}
 	default:
-		return nil, errors.Errorf("cannot submit; entered %s state\n", action)
+		return nil, fmt.Errorf("cannot submit; entered %s state", action)
 	}
 }
 

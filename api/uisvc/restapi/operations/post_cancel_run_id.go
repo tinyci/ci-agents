@@ -8,10 +8,11 @@ package operations
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/tinyci/ci-agents/clients/log"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 
 	"github.com/gin-gonic/gin"
@@ -23,14 +24,14 @@ import (
 // Cancel the run by ID; this will actually trickle back and cancel the whole task, since it can no longer succeed in any way.
 // Please keep in mind to stop runs, runners must implement a cancel poller.
 //
-func PostCancelRunID(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
+func PostCancelRunID(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) error {
 	if h.RequestLogging {
 		start := time.Now()
 		u := uuid.New()
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), fmt.Errorf("encoding params for log message: %w", jsonErr))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{
@@ -53,7 +54,7 @@ func PostCancelRunID(h *handlers.H, ctx *gin.Context, processingHandler handlers
 	}
 
 	if err := PostCancelRunIDValidateURLParams(h, ctx); err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	if processingHandler == nil {

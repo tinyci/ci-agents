@@ -2,7 +2,7 @@ package model
 
 import (
 	check "github.com/erikh/check"
-	"github.com/tinyci/ci-agents/errors"
+	"github.com/tinyci/ci-agents/utils"
 )
 
 func (ms *modelSuite) TestBasicToken(c *check.C) {
@@ -33,5 +33,5 @@ func (ms *modelSuite) TestBasicToken(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(retUser.Username, check.Equals, u.Username)
 	_, err = ms.model.ValidateToken(token)
-	c.Assert(err, check.DeepEquals, errors.ErrInvalidAuth)
+	c.Assert(err, check.DeepEquals, utils.ErrInvalidAuth)
 }

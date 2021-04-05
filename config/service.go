@@ -12,8 +12,8 @@ import (
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/clients/log"
 	"github.com/tinyci/ci-agents/clients/queue"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
+	"github.com/tinyci/ci-agents/utils"
 )
 
 var (
@@ -89,7 +89,7 @@ type ClientConfig struct {
 	Cert CertConfig `yaml:"tls"`
 }
 
-func parseURL(svc, u string) *errors.Error {
+func parseURL(svc, u string) error {
 	if strings.TrimSpace(u) == "" {
 		// URLs do not need to be supplied for all services, so the services themselves
 		// will validate this later. This is just for ensuring they're actual URLs.
@@ -98,14 +98,14 @@ func parseURL(svc, u string) *errors.Error {
 
 	_, err := url.Parse(u)
 	if err != nil {
-		return errors.New(err).Wrapf("url for service %v is invalid: %q", svc, u)
+		return utils.WrapError(err, "url for service %v is invalid: %q", svc, u)
 	}
 
 	return nil
 }
 
 // Validate validates the client configuration to ensure basic needs are met.
-func (cc *ClientConfig) Validate() *errors.Error {
+func (cc *ClientConfig) Validate() error {
 	urlmap := map[string]string{
 		"datasvc":   cc.Data,
 		"uisvc":     cc.UI,
@@ -126,7 +126,7 @@ func (cc *ClientConfig) Validate() *errors.Error {
 
 // CreateClients creates all the clients that are populated in the clients
 // struct. It will also tweak any settings for the github client.
-func (cc *ClientConfig) CreateClients(uc UserConfig, service string) (*Clients, *errors.Error) {
+func (cc *ClientConfig) CreateClients(uc UserConfig, service string) (*Clients, error) {
 	if err := cc.Validate(); err != nil {
 		return nil, err
 	}

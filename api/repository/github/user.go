@@ -5,9 +5,9 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/repository"
-	"github.com/tinyci/ci-agents/errors"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // MyLogin returns the login username for the token provided.
@@ -19,7 +19,7 @@ func (rs *RepositoryServer) MyLogin(ctx context.Context, token *repository.Strin
 
 	u, _, err := gh.Users.Get(ctx, "")
 	if err != nil {
-		return nil, errors.New(err).Wrap("trying to get login username for token").ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "trying to get login username for token: %v", err)
 	}
 
 	return &repository.String{Name: u.GetLogin()}, nil

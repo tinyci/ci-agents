@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"golang.org/x/net/websocket"
 )
@@ -19,18 +18,18 @@ type Route struct {
 	UseCORS            bool
 	UseAuth            bool
 	WebsocketProcessor WebsocketFunc
-	Handler            func(*H, *gin.Context, HandlerFunc) *errors.Error
+	Handler            func(*H, *gin.Context, HandlerFunc) error
 	Processor          HandlerFunc
-	ParamValidator     func(*H, *gin.Context) *errors.Error
+	ParamValidator     func(*H, *gin.Context) error
 	Capability         model.Capability
 	TokenScope         string
 }
 
 // HandlerFunc is the basic kind of HandlerFunc.
-type HandlerFunc func(context.Context, *H, *gin.Context) (interface{}, int, *errors.Error)
+type HandlerFunc func(context.Context, *H, *gin.Context) (interface{}, int, error)
 
 // WebsocketFunc is the controller for websocket operations.
-type WebsocketFunc func(context.Context, *H, *gin.Context, *websocket.Conn) *errors.Error
+type WebsocketFunc func(context.Context, *H, *gin.Context, *websocket.Conn) error
 
 // SetProcessor allows you to more simply set the processor for a given route.
 func (r Routes) SetProcessor(route string, method string, processor HandlerFunc) {

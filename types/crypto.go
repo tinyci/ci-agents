@@ -13,11 +13,13 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/tinyci/ci-agents/errors"
+	"errors"
+
+	"github.com/tinyci/ci-agents/utils"
 )
 
 // EncryptToken encrypts an oauth token with gcm+aes.
-func EncryptToken(key []byte, tok *OAuthToken) ([]byte, *errors.Error) {
+func EncryptToken(key []byte, tok *OAuthToken) ([]byte, error) {
 	// I know the storage management of this is terrible, but I don't have a better
 	// solution (or know someone who has one).
 	//
@@ -26,18 +28,18 @@ func EncryptToken(key []byte, tok *OAuthToken) ([]byte, *errors.Error) {
 	// that won't resolve the case where CI jobs need the token.
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, errors.New(err).Wrap("while setting up encrypter")
+		return nil, utils.WrapError(err, "while setting up encrypter")
 	}
 
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, errors.New(err).Wrap("while setting up encryption cipher suite")
+		return nil, utils.WrapError(err, "while setting up encryption cipher suite")
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
 	c, err := rand.Reader.Read(nonce)
 	if err != nil {
-		return nil, errors.New(err).Wrap("reading entropy")
+		return nil, utils.WrapError(err, "reading entropy")
 	}
 
 	if c < gcm.NonceSize() {
@@ -47,7 +49,7 @@ func EncryptToken(key []byte, tok *OAuthToken) ([]byte, *errors.Error) {
 	buf := bytes.NewBuffer(nil)
 
 	if err := json.NewEncoder(buf).Encode(tok); err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	outbuf := gcm.Seal(nil, nonce, buf.Bytes(), nil)
@@ -57,14 +59,14 @@ func EncryptToken(key []byte, tok *OAuthToken) ([]byte, *errors.Error) {
 }
 
 // DecryptToken decrypts a token message that was encrypted by EncryptToken.
-func DecryptToken(key, tokenBytes []byte) (*OAuthToken, *errors.Error) {
+func DecryptToken(key, tokenBytes []byte) (*OAuthToken, error) {
 	if len(tokenBytes) == 0 {
 		return &OAuthToken{}, nil
 	}
 
 	decoded, err := base64.StdEncoding.DecodeString(string(tokenBytes))
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	if len(decoded) == 0 {
@@ -73,12 +75,12 @@ func DecryptToken(key, tokenBytes []byte) (*OAuthToken, *errors.Error) {
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, errors.New(err).Wrap("while setting up decrypter")
+		return nil, utils.WrapError(err, "while setting up decrypter")
 	}
 
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, errors.New(err).Wrap("while setting up decryption cipher suite")
+		return nil, utils.WrapError(err, "while setting up decryption cipher suite")
 	}
 
 	if len(decoded) < gcm.NonceSize()+1 {
@@ -87,12 +89,12 @@ func DecryptToken(key, tokenBytes []byte) (*OAuthToken, *errors.Error) {
 
 	tb, err := gcm.Open(nil, decoded[:gcm.NonceSize()], decoded[gcm.NonceSize():], nil)
 	if err != nil {
-		return nil, errors.New(err).Wrap("decrypting token")
+		return nil, utils.WrapError(err, "decrypting token")
 	}
 
 	tok := OAuthToken{}
 	if err := json.Unmarshal(tb, &tok); err != nil {
-		return nil, errors.New(err).Wrap("While decrypting and unmarshalling token")
+		return nil, utils.WrapError(err, "While decrypting and unmarshalling token")
 	}
 
 	return &tok, nil

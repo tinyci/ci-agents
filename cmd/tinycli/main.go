@@ -11,11 +11,12 @@ import (
 	"strings"
 	"time"
 
+	"errors"
+
 	"github.com/erikh/colorwriter"
 	transport "github.com/erikh/go-transport"
 	"github.com/fatih/color"
 	"github.com/tinyci/ci-agents/clients/tinyci"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/utils"
 	"github.com/urfave/cli/v2"
@@ -30,13 +31,13 @@ type Config struct {
 	Token    string
 }
 
-func getConfigPath(ctx *cli.Context) (string, *errors.Error) {
+func getConfigPath(ctx *cli.Context) (string, error) {
 	if fi, err := os.Stat(tinyCIConfig); err != nil {
 		if mkerr := os.MkdirAll(tinyCIConfig, 0700); mkerr != nil {
-			return "", errors.New("Could not make config dir").Wrap(mkerr).Wrap(err)
+			return "", utils.WrapError(mkerr, "Could not make config dir: %v", err)
 		}
 	} else if !fi.IsDir() {
-		return "", errors.Errorf("tinycli configuration path %q exists and is not a directory", tinyCIConfig)
+		return "", fmt.Errorf("tinycli configuration path %q exists and is not a directory", tinyCIConfig)
 	}
 
 	config := ctx.String("config")
@@ -47,7 +48,7 @@ func getConfigPath(ctx *cli.Context) (string, *errors.Error) {
 	return path.Join(tinyCIConfig, config), nil
 }
 
-func getCert(ctx *cli.Context) (*transport.Cert, *errors.Error) {
+func getCert(ctx *cli.Context) (*transport.Cert, error) {
 	ca, certStr, keyStr := ctx.String("ca"),
 		ctx.String("cert"),
 		ctx.String("key")
@@ -58,13 +59,13 @@ func getCert(ctx *cli.Context) (*transport.Cert, *errors.Error) {
 
 	cert, err := transport.LoadCert(ca, certStr, keyStr, "")
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	return cert, nil
 }
 
-func loadConfig(ctx *cli.Context) (*tinyci.Client, *errors.Error) {
+func loadConfig(ctx *cli.Context) (*tinyci.Client, error) {
 	filename, e := getConfigPath(ctx)
 	if e != nil {
 		return nil, e
@@ -72,23 +73,23 @@ func loadConfig(ctx *cli.Context) (*tinyci.Client, *errors.Error) {
 
 	f, err := os.Open(filename) // #nosec
 	if err != nil {
-		return nil, errors.New(err).Wrapf("Cannot open tinyci configuration file %q", filename)
+		return nil, utils.WrapError(err, "Cannot open tinyci configuration file %q", filename)
 	}
 	defer f.Close()
 
 	c := Config{}
 
 	if err := json.NewDecoder(f).Decode(&c); err != nil {
-		return nil, errors.New(err).Wrapf("Could not decode tinyCI JSON configuration in %q", filename)
+		return nil, utils.WrapError(err, "Could not decode tinyCI JSON configuration in %q", filename)
 	}
 
 	return c.mkClient(ctx)
 }
 
-func (c Config) mkClient(ctx *cli.Context) (*tinyci.Client, *errors.Error) {
+func (c Config) mkClient(ctx *cli.Context) (*tinyci.Client, error) {
 	cert, err := getCert(ctx)
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 	return tinyci.New(c.Endpoint, c.Token, cert)
 }
@@ -287,7 +288,8 @@ You can also specify the TINYCLI_CONFIG environment variable.
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		errors.New(err).Exit()
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }
 
@@ -320,7 +322,7 @@ func doInit(ctx *cli.Context) error {
 
 	cert, err := getCert(ctx)
 	if err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	if u == "" {
@@ -352,11 +354,11 @@ func doInit(ctx *cli.Context) error {
 
 	client, err := tinyci.New(u, token, cert)
 	if err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	if _, err := client.Errors(context.Background()); err != nil {
-		return err.Wrap("Could not retrieve with the client, token or URL issue")
+		return utils.WrapError(err, "Could not retrieve with the client, token or URL issue")
 	}
 
 	c := Config{
@@ -370,7 +372,7 @@ func doInit(ctx *cli.Context) error {
 	}
 	f, ferr := os.Create(filename)
 	if ferr != nil {
-		return errors.New(ferr).Wrapf("Could not create configuration file %v", filename)
+		return utils.WrapError(ferr, "Could not create configuration file %v", filename)
 	}
 	defer f.Close()
 	defer fmt.Printf("Created configuration file %q\n", filename)
@@ -643,7 +645,7 @@ func log(ctx *cli.Context) error {
 
 	id, convErr := strconv.ParseInt(ctx.Args().First(), 10, 64)
 	if convErr != nil {
-		return errors.New(convErr).Wrap("Invalid ID")
+		return utils.WrapError(convErr, "Invalid ID")
 	}
 
 	return client.LogAttach(context.Background(), id, os.Stdout)

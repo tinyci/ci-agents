@@ -8,10 +8,11 @@ package operations
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/tinyci/ci-agents/clients/log"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 
 	"github.com/gin-gonic/gin"
@@ -23,14 +24,14 @@ import (
 // Validate the logged-in status of the user. Validates the session cookie against the internal database.
 // If the user is logged in, a JSON string of "true" will be sent; otherwise an oauth redirect url will be passed for calling out to by the client.
 //
-func GetLoggedin(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
+func GetLoggedin(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) error {
 	if h.RequestLogging {
 		start := time.Now()
 		u := uuid.New()
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), fmt.Errorf("encoding params for log message: %w", jsonErr))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{
@@ -53,7 +54,7 @@ func GetLoggedin(h *handlers.H, ctx *gin.Context, processingHandler handlers.Han
 	}
 
 	if err := GetLoggedinValidateURLParams(h, ctx); err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	if processingHandler == nil {

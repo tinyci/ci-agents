@@ -1,14 +1,15 @@
 package operations
 
 import (
+	"errors"
+
 	"github.com/gin-gonic/gin"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 )
 
 // GetTasksRunsIDCountValidateURLParams validates the parameters in the
 // URL according to the swagger specification.
-func GetTasksRunsIDCountValidateURLParams(h *handlers.H, ctx *gin.Context) *errors.Error {
+func GetTasksRunsIDCountValidateURLParams(h *handlers.H, ctx *gin.Context) error {
 	id := ctx.Param("id")
 
 	if len(id) == 0 {

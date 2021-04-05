@@ -7,8 +7,9 @@ import (
 	"os"
 	"testing"
 
+	"errors"
+
 	"github.com/erikh/check"
-	"github.com/tinyci/ci-agents/errors"
 )
 
 type jsonbufferSuite struct{}

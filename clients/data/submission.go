@@ -5,35 +5,34 @@ import (
 
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 )
 
 // PutSubmission puts a submission into the datasvc. Updates the created_at time.
-func (c *Client) PutSubmission(ctx context.Context, sub *model.Submission) (*model.Submission, *errors.Error) {
+func (c *Client) PutSubmission(ctx context.Context, sub *model.Submission) (*model.Submission, error) {
 	s, err := c.client.PutSubmission(ctx, sub.ToProto())
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	return model.NewSubmissionFromProto(s)
 }
 
 // GetSubmissionByID returns the submission for the given ID.
-func (c *Client) GetSubmissionByID(ctx context.Context, id int64) (*model.Submission, *errors.Error) {
+func (c *Client) GetSubmissionByID(ctx context.Context, id int64) (*model.Submission, error) {
 	s, err := c.client.GetSubmission(ctx, &types.IntID{ID: id})
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	return model.NewSubmissionFromProto(s)
 }
 
 // GetRunsForSubmission returns the runs for the given submission; with pagination
-func (c *Client) GetRunsForSubmission(ctx context.Context, sub *model.Submission, page, perPage int64) ([]*model.Run, *errors.Error) {
+func (c *Client) GetRunsForSubmission(ctx context.Context, sub *model.Submission, page, perPage int64) ([]*model.Run, error) {
 	runs, err := c.client.GetSubmissionRuns(ctx, &data.SubmissionQuery{Submission: sub.ToProto(), Page: page, PerPage: perPage})
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	list := []*model.Run{}
@@ -50,10 +49,10 @@ func (c *Client) GetRunsForSubmission(ctx context.Context, sub *model.Submission
 }
 
 // GetTasksForSubmission returns the tasks for the given submission; with pagination
-func (c *Client) GetTasksForSubmission(ctx context.Context, sub *model.Submission, page, perPage int64) ([]*model.Task, *errors.Error) {
+func (c *Client) GetTasksForSubmission(ctx context.Context, sub *model.Submission, page, perPage int64) ([]*model.Task, error) {
 	tasks, err := c.client.GetSubmissionTasks(ctx, &data.SubmissionQuery{Submission: sub.ToProto(), Page: page, PerPage: perPage})
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	list := []*model.Task{}
@@ -71,10 +70,10 @@ func (c *Client) GetTasksForSubmission(ctx context.Context, sub *model.Submissio
 
 // ListSubmissions lists the submissions with pagination, and an optional (just
 // pass empty strings if undesired) repository and sha filter.
-func (c *Client) ListSubmissions(ctx context.Context, page, perPage int64, repository, sha string) ([]*model.Submission, *errors.Error) {
+func (c *Client) ListSubmissions(ctx context.Context, page, perPage int64, repository, sha string) ([]*model.Submission, error) {
 	list, err := c.client.ListSubmissions(ctx, &data.RepositoryFilterRequestWithPagination{Page: page, PerPage: perPage, Repository: repository, Sha: sha})
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	subs := []*model.Submission{}
@@ -93,19 +92,19 @@ func (c *Client) ListSubmissions(ctx context.Context, page, perPage int64, repos
 
 // CountSubmissions returns the count of all submissions that meet the optional
 // filtering requirements.
-func (c *Client) CountSubmissions(ctx context.Context, repository, sha string) (int64, *errors.Error) {
+func (c *Client) CountSubmissions(ctx context.Context, repository, sha string) (int64, error) {
 	count, err := c.client.CountSubmissions(ctx, &data.RepositoryFilterRequest{Repository: repository, Sha: sha})
 	if err != nil {
-		return 0, errors.New(err)
+		return 0, err
 	}
 
 	return count.Count, nil
 }
 
 // CancelSubmission cancels a submission by ID.
-func (c *Client) CancelSubmission(ctx context.Context, id int64) *errors.Error {
+func (c *Client) CancelSubmission(ctx context.Context, id int64) error {
 	if _, err := c.client.CancelSubmission(ctx, &types.IntID{ID: id}); err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	return nil

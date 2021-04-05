@@ -6,9 +6,9 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/repository"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // MyRepositories returns all the writable repositories accessible to user
@@ -20,7 +20,7 @@ func (rs *RepositoryServer) MyRepositories(ctx context.Context, user *types.User
 
 	gh, err := rs.getClientForUser(ctx, user)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	for {
@@ -36,7 +36,7 @@ func (rs *RepositoryServer) MyRepositories(ctx context.Context, user *types.User
 			},
 		)
 		if err != nil {
-			return nil, errors.New(err)
+			return nil, err
 		}
 
 		for _, repo := range repos {
@@ -73,17 +73,17 @@ func (rs *RepositoryServer) MyRepositories(ctx context.Context, user *types.User
 func (rs *RepositoryServer) GetRepository(ctx context.Context, uwn *repository.UserWithRepo) (*repository.RepositoryData, error) {
 	owner, repo, err := utils.OwnerRepo(uwn.RepoName)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	gh, err := rs.getClientForUser(ctx, uwn.User)
 	if err != nil {
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	r, _, eErr := gh.Repositories.Get(ctx, owner, repo)
 	if eErr != nil {
-		return nil, errors.New(eErr).Wrapf("Could not fetch repository %v/%v", owner, repo).ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", utils.WrapError(eErr, "Could not fetch repository %v/%v", owner, repo))
 	}
 
 	outRepo := &repository.RepositoryData{

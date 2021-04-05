@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"errors"
+
 	transport "github.com/erikh/go-transport"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
 )
@@ -36,7 +37,7 @@ type CertConfig struct {
 }
 
 // Validate the certificate configuration (if supplied)
-func (cc *CertConfig) Validate() *errors.Error {
+func (cc *CertConfig) Validate() error {
 	ca := strings.TrimSpace(cc.CAFile)
 	cert := strings.TrimSpace(cc.CertFile)
 	key := strings.TrimSpace(cc.KeyFile)
@@ -61,7 +62,7 @@ func (cc *CertConfig) Validate() *errors.Error {
 }
 
 // Validate ensures the auth configuration is sane.
-func (ac *AuthConfig) Validate(parseCrypt bool) *errors.Error {
+func (ac *AuthConfig) Validate(parseCrypt bool) error {
 	if parseCrypt {
 		ac.sessionCryptKey = types.DecodeKey(ac.SessionCryptKey)
 		if err := validateAESKey(ac.sessionCryptKey); err != nil {
@@ -76,7 +77,7 @@ func (ac *AuthConfig) Validate(parseCrypt bool) *errors.Error {
 	return nil
 }
 
-func validateAESKey(key []byte) *errors.Error {
+func validateAESKey(key []byte) error {
 	switch len(key) {
 	case 16, 24, 32:
 	default:
@@ -87,7 +88,7 @@ func validateAESKey(key []byte) *errors.Error {
 }
 
 // ParseTokenKey reads the key from the config, validates it, and assigns it to the appropriate variables
-func (ac *AuthConfig) ParseTokenKey() *errors.Error {
+func (ac *AuthConfig) ParseTokenKey() error {
 	ac.tokenCryptKey = types.DecodeKey(ac.TokenCryptKey)
 	if err := validateAESKey(ac.tokenCryptKey); err != nil {
 		return err
@@ -103,7 +104,7 @@ func (ac *AuthConfig) ParsedSessionCryptKey() []byte {
 }
 
 // Load loads the cert based on the provided config and returns it.
-func (cc CertConfig) Load() (*transport.Cert, *errors.Error) {
+func (cc CertConfig) Load() (*transport.Cert, error) {
 	if cc.CAFile == "" || cc.CertFile == "" || cc.KeyFile == "" {
 		fmt.Println("Some TLS parameters were missing; running insecure!")
 		return nil, nil
@@ -111,7 +112,7 @@ func (cc CertConfig) Load() (*transport.Cert, *errors.Error) {
 
 	cert, err := transport.LoadCert(cc.CAFile, cc.CertFile, cc.KeyFile, "")
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, err
 	}
 
 	return cert, nil

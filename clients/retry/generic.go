@@ -5,8 +5,6 @@ import (
 	"net"
 	"net/url"
 	"time"
-
-	"github.com/tinyci/ci-agents/errors"
 )
 
 // Generic is a generic retry mechanism that can retry any block of code.
@@ -26,7 +24,7 @@ func NewGenericWithInterval(interval time.Duration) *Generic {
 
 // Do provides a mechanism to retry the function until it succeeds. Any error
 // returned will continue the loop.
-func (g *Generic) Do(f func() error) *errors.Error {
+func (g *Generic) Do(f func() error) error {
 	for {
 		if err := f(); err != nil {
 			switch err {
@@ -37,7 +35,7 @@ func (g *Generic) Do(f func() error) *errors.Error {
 				case *net.OpError, *url.Error:
 					goto sleep
 				default:
-					return errors.New(err)
+					return err
 				}
 			}
 		sleep:

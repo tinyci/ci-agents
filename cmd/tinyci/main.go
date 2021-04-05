@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,8 +11,8 @@ import (
 	"github.com/tinyci/ci-agents/api/uisvc/restapi"
 	"github.com/tinyci/ci-agents/cmdlib"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
+	"github.com/tinyci/ci-agents/utils"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/sys/unix"
 )
@@ -65,7 +66,8 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		errors.New(err).Exit()
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }
 
@@ -84,7 +86,7 @@ func launch(ctx *cli.Context) error {
 	for _, s := range servers {
 		handler, err := s.MakeHandlerFunc(configFile)
 		if err != nil {
-			return errors.New(err).Wrapf("while constructing handler for %s", s.Name)
+			return utils.WrapError(err, "while constructing handler for %s", s.Name)
 		}
 
 		handlers = append(handlers, handler)
@@ -126,16 +128,16 @@ func startHooksvc(ctx *cli.Context) error {
 	h := &hooksvc.Handler{}
 
 	if err := config.Parse(ctx.String("config"), &h.Config); err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	if err := h.Init(); err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	http.Handle("/hook", h)
 	if err := http.ListenAndServe(config.DefaultServices.Hook.String(), http.DefaultServeMux); err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	return nil
@@ -153,7 +155,7 @@ func makeUISvcHandler(configFile string) (cmdlib.HandlerFunc, error) {
 		finished := make(chan struct{})
 		doneChan, err := handlers.Boot(nil, h, finished)
 		if err != nil {
-			return nil, errors.New(err)
+			return nil, err
 		}
 
 		return &cmdlib.ServerStatus{

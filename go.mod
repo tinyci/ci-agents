@@ -14,7 +14,6 @@ require (
 	github.com/gin-contrib/sessions v0.0.3
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-openapi/errors v0.20.0
-	github.com/go-openapi/loads v0.20.2 // indirect
 	github.com/go-openapi/runtime v0.19.27
 	github.com/go-openapi/strfmt v0.20.1
 	github.com/go-openapi/swag v0.19.14
@@ -50,9 +49,8 @@ require (
 	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558
 	golang.org/x/sys v0.0.0-20210330210617-4fbd30eecc44
 	golang.org/x/term v0.0.0-20210317153231-de623e64d2a6
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20210330181207-2295ebbda0c6 // indirect
+	google.golang.org/genproto v0.0.0-20210402141018-6c239bbf2bb1 // indirect
 	google.golang.org/grpc v1.36.1
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v2 v2.4.0

@@ -6,16 +6,18 @@ import (
 	"strings"
 	"time"
 
+	"errors"
+
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/queue"
 	gtypes "github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/log"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // QueueServer encapsulates a GRPC server for the queuesvc.
@@ -26,7 +28,7 @@ type QueueServer struct {
 // SetCancel mirrors the cancel in datasvc -- just easier to access by runners.
 func (qs *QueueServer) SetCancel(ctx context.Context, id *gtypes.IntID) (*empty.Empty, error) {
 	if err := qs.H.Clients.Data.SetCancel(ctx, id.ID); err != nil {
-		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
+		return &empty.Empty{}, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	return &empty.Empty{}, nil
@@ -36,7 +38,7 @@ func (qs *QueueServer) SetCancel(ctx context.Context, id *gtypes.IntID) (*empty.
 func (qs *QueueServer) GetCancel(ctx context.Context, id *gtypes.IntID) (*gtypes.Status, error) {
 	state, err := qs.H.Clients.Data.GetCancel(ctx, id.ID)
 	if err != nil {
-		return &gtypes.Status{}, err.ToGRPC(codes.FailedPrecondition)
+		return &gtypes.Status{}, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	return &gtypes.Status{Status: state}, nil
@@ -44,9 +46,9 @@ func (qs *QueueServer) GetCancel(ctx context.Context, id *gtypes.IntID) (*gtypes
 
 // PutStatus pushes the finished run's status out to github and back into the
 // datasvc.
-func (qs *QueueServer) PutStatus(ctx context.Context, status *gtypes.Status) (*empty.Empty, error) {
-	if err := qs.H.Clients.Data.PutStatus(ctx, status.Id, status.Status, status.AdditionalMessage); err != nil {
-		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
+func (qs *QueueServer) PutStatus(ctx context.Context, s *gtypes.Status) (*empty.Empty, error) {
+	if err := qs.H.Clients.Data.PutStatus(ctx, s.Id, s.Status, s.AdditionalMessage); err != nil {
+		return &empty.Empty{}, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	return &empty.Empty{}, nil
@@ -58,10 +60,7 @@ func (qs *QueueServer) PutStatus(ctx context.Context, status *gtypes.Status) (*e
 func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueRequest) (*gtypes.QueueItem, error) {
 	qi, err := qs.H.Clients.Data.NextQueueItem(ctx, qr.QueueName, qr.RunningOn)
 	if err != nil {
-		if err.Contains(errors.ErrNotFound) {
-			err.SetLog(false)
-		}
-		return &gtypes.QueueItem{}, err.ToGRPC(codes.FailedPrecondition)
+		return &gtypes.QueueItem{}, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	if qi.Run.Task.Submission.BaseRef.Repository.Owner == nil {
@@ -72,18 +71,18 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 			"ran_on":     qr.RunningOn,
 		}).Error(ctx, err)
 
-		return nil, err.ToGRPC(codes.FailedPrecondition)
+		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	token := &types.OAuthToken{}
 	if err := utils.JSONIO(qi.Run.Task.Submission.BaseRef.Repository.Owner.Token, token); err != nil {
-		return &gtypes.QueueItem{}, err.ToGRPC(codes.FailedPrecondition)
+		return &gtypes.QueueItem{}, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	github := qs.H.OAuth.GithubClient(token)
 	parts := strings.SplitN(qi.Run.Task.Submission.BaseRef.Repository.Name, "/", 2)
 	if len(parts) != 2 {
-		return &gtypes.QueueItem{}, errors.New("invalid repository").ToGRPC(codes.FailedPrecondition)
+		return &gtypes.QueueItem{}, status.Errorf(codes.FailedPrecondition, "invalid repository")
 	}
 
 	go func() {
@@ -95,7 +94,7 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 	return qi.ToProto(), nil
 }
 
-func doSubmit(ctx context.Context, h *handler.H, qis []*model.QueueItem) (retErr *errors.Error) {
+func doSubmit(ctx context.Context, h *handler.H, qis []*model.QueueItem) (retErr error) {
 	since := time.Now()
 	defer func() {
 		if retErr == nil {
@@ -142,7 +141,7 @@ func (qs *QueueServer) Submit(ctx context.Context, sub *queue.Submission) (*empt
 	qis, err := sp.process(processCtx, submission)
 	if err != nil {
 		submissionLogger.Errorf(ctx, "Post-processing error: %v", err)
-		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
+		return &empty.Empty{}, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	submissionLogger.Infof(ctx, "Putting %d queue items from submissions", len(qis))
@@ -153,7 +152,7 @@ func (qs *QueueServer) Submit(ctx context.Context, sub *queue.Submission) (*empt
 			}
 		}
 
-		return &empty.Empty{}, err.ToGRPC(codes.FailedPrecondition)
+		return &empty.Empty{}, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	return &empty.Empty{}, nil

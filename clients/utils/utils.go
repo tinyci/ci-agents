@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/tinyci/ci-agents/errors"
+	"errors"
 )
 
 var (

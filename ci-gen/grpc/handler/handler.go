@@ -8,7 +8,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc"
@@ -21,7 +20,7 @@ type H struct {
 }
 
 // CreateServer creates the grpc server
-func (h *H) CreateServer() (*grpc.Server, io.Closer, *errors.Error) {
+func (h *H) CreateServer() (*grpc.Server, io.Closer, error) {
 	if h.EnableTracing {
 		closer, err := utils.CreateTracer(h.Name)
 		if err != nil {
@@ -39,9 +38,9 @@ func (h *H) CreateServer() (*grpc.Server, io.Closer, *errors.Error) {
 }
 
 // Boot boots the service. It returns a done channel for closing and any errors.
-func (h *H) Boot(t net.Listener, s *grpc.Server, finished chan struct{}) (chan struct{}, *errors.Error) {
+func (h *H) Boot(t net.Listener, s *grpc.Server, finished chan struct{}) (chan struct{}, error) {
 	if h.Service.UseDB {
-		var err *errors.Error
+		var err error
 		h.Model, err = model.New(h.UserConfig.DSN)
 		if err != nil {
 			return nil, err
@@ -52,7 +51,7 @@ func (h *H) Boot(t net.Listener, s *grpc.Server, finished chan struct{}) (chan s
 		return nil, err
 	}
 
-	var err *errors.Error
+	var err error
 	h.Clients, err = h.UserConfig.ClientConfig.CreateClients(h.UserConfig, h.Name)
 	if err != nil {
 		return nil, err

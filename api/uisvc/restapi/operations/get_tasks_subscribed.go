@@ -8,10 +8,11 @@ package operations
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/tinyci/ci-agents/clients/log"
-	"github.com/tinyci/ci-agents/errors"
 	"github.com/tinyci/ci-agents/handlers"
 
 	"github.com/gin-gonic/gin"
@@ -22,14 +23,14 @@ import (
 // Obtain the list of tasks that belong to repositories you are subscribed to.
 // This call implements basic pagination over the entire task corpus that intersects with your subscription list. It returns a list of tasks.
 //
-func GetTasksSubscribed(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) *errors.Error {
+func GetTasksSubscribed(h *handlers.H, ctx *gin.Context, processingHandler handlers.HandlerFunc) error {
 	if h.RequestLogging {
 		start := time.Now()
 		u := uuid.New()
 
 		content, jsonErr := json.Marshal(ctx.Params)
 		if jsonErr != nil {
-			h.Clients.Log.Error(ctx.Request.Context(), errors.New(jsonErr).Wrap("encoding params for log message"))
+			h.Clients.Log.Error(ctx.Request.Context(), fmt.Errorf("encoding params for log message: %w", jsonErr))
 		}
 
 		logger := h.Clients.Log.WithRequest(ctx.Request).WithFields(log.FieldMap{
@@ -52,7 +53,7 @@ func GetTasksSubscribed(h *handlers.H, ctx *gin.Context, processingHandler handl
 	}
 
 	if err := GetTasksSubscribedValidateURLParams(h, ctx); err != nil {
-		return errors.New(err)
+		return err
 	}
 
 	if processingHandler == nil {
