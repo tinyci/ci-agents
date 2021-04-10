@@ -2,6 +2,7 @@ package datasvc
 
 import (
 	"context"
+	"errors"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
@@ -95,7 +96,15 @@ func (ds *DataServer) QueueAdd(ctx context.Context, list *data.QueueList) (*data
 func (ds *DataServer) QueueNext(ctx context.Context, r *types.QueueRequest) (*types.QueueItem, error) {
 	qi, err := ds.H.Model.NextQueueItem(r.RunningOn, r.QueueName)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, utils.ErrNotFound) {
+			return nil, status.Error(codes.NotFound, "not found")
+		}
+
+		if stat, ok := status.FromError(err); ok {
+			return nil, stat.Err()
+		}
+
+		return nil, status.Error(codes.FailedPrecondition, err.Error())
 	}
 
 	return qi.ToProto(), nil

@@ -23,6 +23,9 @@ then
   chown postgres:postgres /var/lib/postgresql/${POSTGRES_VERSION}/main
   su postgres -c "/usr/lib/postgresql/${POSTGRES_VERSION}/bin/initdb -D /var/lib/postgresql/${POSTGRES_VERSION}/main"
 
+  echo shared_buffers=1GB >> /etc/postgresql/${POSTGRES_VERSION}/main/postgresql.conf
+  echo max_connections=200 >> /etc/postgresql/${POSTGRES_VERSION}/main/postgresql.conf
+
   service postgresql start
 
   su postgres -c "bash -c 'createuser -s root'"

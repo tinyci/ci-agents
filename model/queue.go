@@ -148,7 +148,9 @@ func (m *Model) NextQueueItem(runningOn string, queueName string) (*QueueItem, e
 			First(qi),
 		"getting task owners during queue next",
 	)
-	if err != nil {
+	if errors.Is(err, utils.ErrNotFound) {
+		return nil, utils.ErrNotFound
+	} else if err != nil {
 		return nil, err
 	}
 

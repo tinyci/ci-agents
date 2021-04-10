@@ -33,15 +33,3 @@ services:
       - jaeger
     external_links:
       - react
-  runner:
-    network_mode: "bridge"
-    privileged: true
-    image: tinyci/runners:latest
-    command: "/usr/local/bin/overlay-runner -c /runner.yaml"
-    volumes:
-      - "./.config/daemon.json:/etc/docker/daemon.json"
-      - "./.config/runner.yaml:/runner.yaml"
-      - "./.runner:/var/db/git:shared,rw"
-      - "./.runner-overlay:/var/db/overlay:shared,rw"
-    links:
-      - tinyci

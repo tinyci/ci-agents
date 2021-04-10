@@ -60,6 +60,10 @@ func (qs *QueueServer) PutStatus(ctx context.Context, s *gtypes.Status) (*empty.
 func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueRequest) (*gtypes.QueueItem, error) {
 	qi, err := qs.H.Clients.Data.NextQueueItem(ctx, qr.QueueName, qr.RunningOn)
 	if err != nil {
+		if stat, ok := status.FromError(err); ok {
+			return &gtypes.QueueItem{}, stat.Err()
+		}
+
 		return &gtypes.QueueItem{}, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 

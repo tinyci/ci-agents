@@ -2,11 +2,13 @@ package model
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	check "github.com/erikh/check"
 	"github.com/tinyci/ci-agents/types"
+	"github.com/tinyci/ci-agents/utils"
 )
 
 func (ms *modelSuite) TestQueueValidate(c *check.C) {
@@ -321,6 +323,10 @@ func (ms *modelSuite) TestQueueConcurrent(c *check.C) {
 
 				qi, err := ms.model.NextQueueItem("hostname", "default")
 				if err != nil {
+					if errors.Is(err, utils.ErrNotFound) {
+						return
+					}
+
 					errChan <- err
 					return
 				}
@@ -344,6 +350,8 @@ func (ms *modelSuite) TestQueueConcurrent(c *check.C) {
 			c.Assert(*qi.Run.RanOn, check.Equals, "hostname")
 		}
 	}
+
+	cancel()
 
 	fmt.Println("Iterating queue took", time.Since(start))
 }
