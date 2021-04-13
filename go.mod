@@ -9,7 +9,7 @@ require (
 	github.com/erikh/check v0.0.1
 	github.com/erikh/colorwriter v1.0.0
 	github.com/erikh/go-transport v0.1.0
-	github.com/erikh/migrator v0.0.0-20191117045638-9485ee10af48 // indirect
+	github.com/erikh/migrator v0.0.0-20210413225442-e8f5d364dd21 // indirect
 	github.com/fatih/color v1.10.0
 	github.com/gin-contrib/sessions v0.0.3
 	github.com/gin-gonic/gin v1.6.3
@@ -27,6 +27,7 @@ require (
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645
+	github.com/jackc/pgx v3.6.2+incompatible // indirect
 	github.com/jinzhu/gorm v1.9.16
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/kr/pretty v0.2.1 // indirect
@@ -43,12 +44,14 @@ require (
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	github.com/ugorji/go v1.2.5 // indirect
+	github.com/urfave/cli v1.22.5 // indirect
 	github.com/urfave/cli/v2 v2.3.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2 // indirect
 	golang.org/x/net v0.0.0-20210330210036-cd0ac97f97f6
 	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558
-	golang.org/x/sys v0.0.0-20210330210617-4fbd30eecc44
-	golang.org/x/term v0.0.0-20210317153231-de623e64d2a6
+	golang.org/x/sys v0.0.0-20210412220455-f1c623a9e750
+	golang.org/x/term v0.0.0-20210406210042-72f3dc4e9b72
+	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20210402141018-6c239bbf2bb1 // indirect
 	google.golang.org/grpc v1.36.1
