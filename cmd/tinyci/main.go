@@ -145,7 +145,7 @@ func startHooksvc(ctx *cli.Context) error {
 
 func makeUISvcHandler(configFile string) (cmdlib.HandlerFunc, error) {
 	h := &handlers.H{}
-	if err := config.Parse(configFile, &h); err != nil {
+	if err := config.Parse(configFile, h); err != nil {
 		return nil, err
 	}
 
