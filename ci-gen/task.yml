@@ -1,6 +1,6 @@
 mountpoint: "/go/src/github.com/tinyci/ci-agents"
 workdir: "/go/src/github.com/tinyci/ci-agents"
-default_image: registry:5000/tinyci/ci-gen:03.30.2021
+default_image: tinyci/ci-agents:04.15.2021
 runs:
   gen-clean:
     command: [ "bash", "-c", "bash ci-gen/gen.sh && git diff --stat --exit-code" ]
