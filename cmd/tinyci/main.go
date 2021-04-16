@@ -136,7 +136,7 @@ func startHooksvc(ctx *cli.Context) error {
 	}
 
 	http.Handle("/hook", h)
-	if err := http.ListenAndServe(config.DefaultServices.Hook.String(), http.DefaultServeMux); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.DefaultServices.Hook.Port), http.DefaultServeMux); err != nil {
 		return err
 	}
 
@@ -145,7 +145,7 @@ func startHooksvc(ctx *cli.Context) error {
 
 func makeUISvcHandler(configFile string) (cmdlib.HandlerFunc, error) {
 	h := &handlers.H{}
-	if err := config.Parse(configFile, &h); err != nil {
+	if err := config.Parse(configFile, h); err != nil {
 		return nil, err
 	}
 

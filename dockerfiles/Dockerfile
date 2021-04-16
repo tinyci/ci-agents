@@ -49,7 +49,7 @@ RUN dpkg -i caddy_${CADDY_VERSION}_linux_amd64.deb
 ENV protoc_fn=protoc-${PROTOC_VERSION}-linux-x86_64.zip
 
 RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${protoc_fn}
-RUN unzip "${protoc_fn}" -d /usr && rm -f "${protoc_fn}"
+RUN unzip "${protoc_fn}" -d /usr && rm -f "${protoc_fn}" && chmod -R 755 /usr/bin/protoc /usr/include/google
 RUN curl -sSL "https://github.com/go-swagger/go-swagger/releases/download/${SWAGGER_VERSION}/swagger_linux_amd64" >/go/bin/swagger && chmod +x /go/bin/swagger
 
 COPY .config/Caddyfile /Caddyfile

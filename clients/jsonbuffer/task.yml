@@ -3,7 +3,7 @@ env:
   - CREATE_DB=1
   - TESTING=1
   - GIN_MODE=release
-default_image: registry:5000/tinyci/ci-agents:03.26.2021
+default_image: tinyci/ci-agents:04.15.2021
 mountpoint: "/go/src/github.com/tinyci/ci-agents"
 dependencies:
   - api/uisvc
