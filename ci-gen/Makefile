@@ -4,15 +4,12 @@ DOCKER_RUN=docker run \
 					 --rm -it
 DOCKER_CONTAINER_DIR=-v $(shell realpath ${PWD}/..):$(CONTAINER_DIR) \
 								-w $(CONTAINER_DIR)
-DOCKER_IMAGE=tinyci-gen
+DOCKER_IMAGE=tinyci-agents-test
 SWAGGER_SERVICES := uisvc
 TARGET_DIR=${PWD}
 
 build-gen-image:
-	docker build -t $(DOCKER_IMAGE) .
-
-tag-gen-image:
-	docker build --no-cache -t tinyci/ci-gen:$(shell date '+%m.%d.%Y') .
+	cd .. && make build-image
 
 gen: gen-javascript build-gen-image
 	$(DOCKER_RUN) -u $$(id -u):$$(id -g) $(DOCKER_CONTAINER_DIR) $(DOCKER_IMAGE) bash ci-gen/gen.sh

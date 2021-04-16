@@ -24,11 +24,11 @@ mkdir -p gen/client/uisvc
 /go/bin/swagger generate client --template-dir ci-gen/swagger/templates -f ci-gen/swagger/uisvc/swagger.yml -t ci-gen/gen/client/uisvc
 /go/bin/swagger	generate server --template-dir ci-gen/swagger/templates -f ci-gen/swagger/uisvc/swagger.yml -t api/uisvc
 
-protoc -I/go/src /go/src/github.com/tinyci/ci-agents/ci-gen/grpc/types/*.proto --go_out=plugins=grpc:/go/src
+protoc -I/usr/include:/go/src /go/src/github.com/tinyci/ci-agents/ci-gen/grpc/types/*.proto --go_out=plugins=grpc:/go/src
 
 for i in $(find ci-gen/grpc/services -maxdepth 1 -type d -name '*' | tail -n +2)
 do 
   SPEC=$(basename $i .proto)
-  protoc -I/go/src ${PWD}/ci-gen/grpc/services/${SPEC}/server.proto --go_out=plugins=grpc:/go/src
-  protoc -I/usr/include/google/protobuf:${PWD}/ci-gen:/go/src ${PWD}/ci-gen/grpc/services/${SPEC}/server.proto --go_out=plugins=grpc:/go/src
+  protoc -I/usr/include:/go/src ${PWD}/ci-gen/grpc/services/${SPEC}/server.proto --go_out=plugins=grpc:/go/src
+  protoc -I/usr/include:${PWD}/ci-gen:/go/src ${PWD}/ci-gen/grpc/services/${SPEC}/server.proto --go_out=plugins=grpc:/go/src
 done
