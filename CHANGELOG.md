@@ -1,3 +1,21 @@
+## 0.3.0 -- Fri 16 Apr 2021 03:04:27 AM PDT
+
+- hooksvc now listens on 0.0.0.0, not localhost
+- independent branches & "do not merge": you can now select specific branches
+  to not be merged against the default branch. Just configure these in the
+  default branch's tinyci.yml. See types/task.go's RepoConfig struct for more
+  information.
+  - additionally, you can get this behavior by specifying the "do not merge"
+    flag in the same place. It applies to all branches and PRs.
+  - currently, only the overlay-runner supports this functionality.
+- `tinycli` now has a splash of color in certain spots. Feedback please! Set
+  `TINYCI_NOCOLOR` to something in your environment to turn it off.
+- per-run environment properties. Add to each run in task.ymls to utilize.
+- Using golang 1.16
+- (optional!) privileged mode for runners.
+- unified `tinyci` binary for launching all services.
+- Many internal build improvements & upgraded dependencies
+
 ## 0.2.6 -- Thu 16 Jul 2020 05:06:39 AM UTC
 
 This release contains many small bug fixes to the underlying components:
