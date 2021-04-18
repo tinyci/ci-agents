@@ -7,11 +7,13 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/tinyci/ci-agents/api/hooksvc"
-	"github.com/tinyci/ci-agents/api/uisvc/restapi"
+	"github.com/labstack/echo/v4"
+	httpHandler "github.com/tinyci/ci-agents/api/handlers/openapi"
+	"github.com/tinyci/ci-agents/api/services/hybrid/hooksvc"
+	uisvcHandlers "github.com/tinyci/ci-agents/api/services/openapi/uisvc"
+	"github.com/tinyci/ci-agents/ci-gen/openapi/services/uisvc"
 	"github.com/tinyci/ci-agents/cmdlib"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/handlers"
 	"github.com/tinyci/ci-agents/utils"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/sys/unix"
@@ -144,16 +146,31 @@ func startHooksvc(ctx *cli.Context) error {
 }
 
 func makeUISvcHandler(configFile string) (cmdlib.HandlerFunc, error) {
-	h := &handlers.H{}
-	if err := config.Parse(configFile, h); err != nil {
+	h := &httpHandler.H{Port: 6010, RegisterFunc: func(h *httpHandler.H, server *echo.Echo) {
+		handler := uisvcHandlers.NewHandler(h.Config, h.Clients)
+		uisvc.RegisterHandlers(server, handler)
+	}}
+	if err := config.Parse(configFile, &h.Config); err != nil {
 		return nil, err
 	}
 
-	h.Config = restapi.MakeHandlerConfig(h.ServiceConfig)
+	if err := h.Config.Auth.Validate(true); err != nil {
+		return nil, err
+	}
+
+	var err error
+	h.Swagger, err = uisvc.GetSwagger()
+	if err != nil {
+		return nil, fmt.Errorf("while configuring the openapi specification: %w", err)
+	}
+
+	h.Swagger.Servers = nil
+	h.Swagger.Security = nil
 
 	return func() (*cmdlib.ServerStatus, error) {
 		finished := make(chan struct{})
-		doneChan, err := handlers.Boot(nil, h, finished)
+
+		doneChan, err := h.Boot(finished)
 		if err != nil {
 			return nil, err
 		}

@@ -68,15 +68,20 @@ func (us *utilsSuite) TestJSONIO(c *check.C) {
 }
 
 func (us *utilsSuite) TestScopePagination(c *check.C) {
-	_, _, err := ScopePaginationInt(-1, 0)
+	_, _, err := ScopePaginationInt(intp(-1), intp(0))
 	c.Assert(err, check.NotNil)
 
-	pg, ppg, err := ScopePaginationInt(0, 0)
+	pg, ppg, err := ScopePaginationInt(intp(0), intp(0))
 	c.Assert(err, check.IsNil)
 	c.Assert(pg, check.Equals, int64(0))
 	c.Assert(ppg, check.Equals, defaultPerPage)
 
-	pg, ppg, err = ScopePaginationInt(0, MaxPerPage*2)
+	pg, ppg, err = ScopePaginationInt(nil, nil)
+	c.Assert(err, check.IsNil)
+	c.Assert(pg, check.Equals, int64(0))
+	c.Assert(ppg, check.Equals, defaultPerPage)
+
+	pg, ppg, err = ScopePaginationInt(intp(0), intp(MaxPerPage*2))
 	c.Assert(err, check.IsNil)
 	c.Assert(pg, check.Equals, int64(0))
 	c.Assert(ppg, check.Equals, MaxPerPage)

@@ -4,11 +4,10 @@ env:
   - TESTING=1
   - GIN_MODE=release
 mountpoint: "/go/src/github.com/tinyci/ci-agents"
-default_image: tinyci/ci-agents:04.15.2021
+default_image: tinyci/ci-agents:04.21.2021
 dependencies:
-  - api/queuesvc
-  - api/datasvc
-  - api/uisvc
+  - api/services/grpc/queuesvc
+  - api/services/grpc/datasvc
   - model
 runs:
   main:

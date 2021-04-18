@@ -57,12 +57,12 @@ func (qc *QueueClient) SetUpSubmissionRepo(name string, forkOf string) error {
 
 // SetMockSubmissionOnFork sets mock submissions for fork-only repositories. Used in a few tests.
 func (qc *QueueClient) SetMockSubmissionOnFork(mock *github.MockClientMockRecorder, sub *types.Submission, parent, resolvedSHA, pathadd string) error {
-	repoConfigBytes, err := ioutil.ReadFile(pathadd + "../testdata/standard_repoconfig.yml")
+	repoConfigBytes, err := ioutil.ReadFile(pathadd + "../../../testdata/standard_repoconfig.yml")
 	if err != nil {
 		return err
 	}
 
-	taskBytes, err := ioutil.ReadFile(pathadd + "../testdata/standard_task.yml")
+	taskBytes, err := ioutil.ReadFile(pathadd + "../../../testdata/standard_task.yml")
 	if err != nil {
 		return err
 	}
@@ -103,12 +103,12 @@ func (qc *QueueClient) SetMockSubmissionOnFork(mock *github.MockClientMockRecord
 
 // GetYAMLs finds the test yamls needed to run the tests.
 func (qc *QueueClient) GetYAMLs(pathadd string) ([]byte, []byte, error) {
-	repoConfigBytes, err := ioutil.ReadFile(pathadd + "../testdata/standard_repoconfig.yml")
+	repoConfigBytes, err := ioutil.ReadFile(pathadd + "../../../testdata/standard_repoconfig.yml")
 	if err != nil {
 		return nil, nil, err
 	}
 
-	taskBytes, err := ioutil.ReadFile(pathadd + "../testdata/standard_task.yml")
+	taskBytes, err := ioutil.ReadFile(pathadd + "../../../testdata/standard_task.yml")
 	if err != nil {
 		return nil, nil, err
 	}

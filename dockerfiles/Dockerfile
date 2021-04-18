@@ -1,9 +1,8 @@
 # vim: ft=dockerfile
 FROM ubuntu:20.04
 
-ARG GO_VERSION=1.16.2
+ARG GO_VERSION=1.16.3
 ARG POSTGRES_VERSION=11
-ARG SWAGGER_VERSION=v0.18.0
 ARG PROTOC_VERSION=3.15.6
 ARG CADDY_VERSION=2.3.0
 ARG TIMEZONE=Etc/UTC
@@ -42,6 +41,7 @@ RUN go get github.com/erikh/migrator
 RUN go get filippo.io/mkcert
 RUN go get -u github.com/golang/protobuf/protoc-gen-go
 RUN go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
+RUN go get -u github.com/deepmap/oapi-codegen/cmd/oapi-codegen
 
 RUN wget https://github.com/caddyserver/caddy/releases/download/v2.3.0/caddy_${CADDY_VERSION}_linux_amd64.deb
 RUN dpkg -i caddy_${CADDY_VERSION}_linux_amd64.deb
@@ -50,7 +50,6 @@ ENV protoc_fn=protoc-${PROTOC_VERSION}-linux-x86_64.zip
 
 RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${protoc_fn}
 RUN unzip "${protoc_fn}" -d /usr && rm -f "${protoc_fn}" && chmod -R 755 /usr/bin/protoc /usr/include/google
-RUN curl -sSL "https://github.com/go-swagger/go-swagger/releases/download/${SWAGGER_VERSION}/swagger_linux_amd64" >/go/bin/swagger && chmod +x /go/bin/swagger
 
 COPY .config/Caddyfile /Caddyfile
 COPY entrypoint.sh /entrypoint.sh

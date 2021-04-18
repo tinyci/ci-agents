@@ -452,7 +452,7 @@ func mkTaskRunCounts(ctx context.Context, client *tinyci.Client, task *model.Tas
 	runs := []*model.Run{}
 
 	for i := int64(0); i <= totalCount/utils.MaxPerPage; i++ {
-		tmp, err := client.RunsForTask(ctx, task.ID, i, utils.MaxPerPage)
+		tmp, err := client.RunsForTask(ctx, task.ID, &i, int64p(utils.MaxPerPage))
 		if err != nil {
 			return 0, 0, 0, err
 		}
@@ -472,6 +472,14 @@ func mkTaskRunCounts(ctx context.Context, client *tinyci.Client, task *model.Tas
 	return runningCount, finishedCount, totalCount, nil
 }
 
+func stringp(s string) *string {
+	return &s
+}
+
+func int64p(i int64) *int64 {
+	return &i
+}
+
 func submissions(ctx *cli.Context) error {
 	client, err := loadConfig(ctx)
 	if err != nil {
@@ -479,7 +487,7 @@ func submissions(ctx *cli.Context) error {
 	}
 
 	ct := context.Background()
-	subs, err := client.Submissions(ct, ctx.String("repository"), ctx.String("ref"), ctx.Int64("page"), ctx.Int64("count"))
+	subs, err := client.Submissions(ct, stringp(ctx.String("repository")), stringp(ctx.String("ref")), int64p(ctx.Int64("page")), int64p(ctx.Int64("count")))
 	if err != nil {
 		return err
 	}
@@ -541,7 +549,7 @@ func tasks(ctx *cli.Context) error {
 
 	ct := context.Background()
 
-	tasks, err := client.Tasks(ct, ctx.String("repository"), ctx.String("ref"), ctx.Int64("page"), ctx.Int64("count"))
+	tasks, err := client.Tasks(ct, stringp(ctx.String("repository")), stringp(ctx.String("ref")), int64p(ctx.Int64("page")), int64p(ctx.Int64("count")))
 	if err != nil {
 		return err
 	}
@@ -591,7 +599,7 @@ func runs(ctx *cli.Context) error {
 		return err
 	}
 
-	runs, err := client.Runs(context.Background(), ctx.String("repository"), ctx.String("ref"), ctx.Int64("page"), ctx.Int64("count"))
+	runs, err := client.Runs(context.Background(), stringp(ctx.String("repository")), stringp(ctx.String("ref")), int64p(ctx.Int64("page")), int64p(ctx.Int64("count")))
 	if err != nil {
 		return err
 	}

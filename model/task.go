@@ -309,7 +309,7 @@ func (m *Model) assignRunCountsToTask(tasks []*Task) error {
 
 // ListTasks gathers all the tasks based on the page and perPage values. It can optionally filter by repository and SHA.
 func (m *Model) ListTasks(repository, sha string, page, perPage int64) ([]*Task, error) {
-	page, perPage, err := utils.ScopePaginationInt(page, perPage)
+	page, perPage, err := utils.ScopePaginationInt(&page, &perPage)
 	if err != nil {
 		return nil, err
 	}

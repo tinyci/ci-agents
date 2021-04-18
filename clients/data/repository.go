@@ -72,8 +72,13 @@ func (c *Client) DisableRepository(ctx context.Context, user, name string) error
 }
 
 // OwnedRepositories lists the owned repositories by the user.
-func (c *Client) OwnedRepositories(ctx context.Context, name, search string) (model.RepositoryList, error) {
-	list, err := c.client.OwnedRepositories(ctx, &data.NameSearch{Name: name, Search: search}, grpc.WaitForReady(true))
+func (c *Client) OwnedRepositories(ctx context.Context, name string, search *string) (model.RepositoryList, error) {
+	s := ""
+	if search != nil {
+		s = *search
+	}
+
+	list, err := c.client.OwnedRepositories(ctx, &data.NameSearch{Name: name, Search: s}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +87,13 @@ func (c *Client) OwnedRepositories(ctx context.Context, name, search string) (mo
 }
 
 // AllRepositories lists all visible repositories by the user.
-func (c *Client) AllRepositories(ctx context.Context, name, search string) (model.RepositoryList, error) {
-	list, err := c.client.AllRepositories(ctx, &data.NameSearch{Name: name, Search: search}, grpc.WaitForReady(true))
+func (c *Client) AllRepositories(ctx context.Context, name string, search *string) (model.RepositoryList, error) {
+	s := ""
+	if search != nil {
+		s = *search
+	}
+
+	list, err := c.client.AllRepositories(ctx, &data.NameSearch{Name: name, Search: s}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, err
 	}

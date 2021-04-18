@@ -262,7 +262,7 @@ func (m *Model) getRunBits(runID int64, gh github.Client) (*runBits, error) {
 func (m *Model) RunList(page, perPage int64, repository, sha string) ([]*Run, error) {
 	runs := []*Run{}
 
-	page, perPage, err := utils.ScopePaginationInt(page, perPage)
+	page, perPage, err := utils.ScopePaginationInt(&page, &perPage)
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +295,7 @@ func (m *Model) RunList(page, perPage int64, repository, sha string) ([]*Run, er
 func (m *Model) RunListForRepository(repo *Repository, ref *Ref, page, perPage int64) ([]*Run, error) {
 	runs := []*Run{}
 
-	page, perPage, err := utils.ScopePaginationInt(page, perPage)
+	page, perPage, err := utils.ScopePaginationInt(&page, &perPage)
 	if err != nil {
 		return nil, err
 	}

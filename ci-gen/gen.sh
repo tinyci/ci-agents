@@ -18,11 +18,7 @@ fi
 
 echo $GOPATH
 
-rm -rf gen/client api/uisvc/models api/uisvc/restapi/operations
-mkdir -p gen/client/uisvc
-
-/go/bin/swagger generate client --template-dir ci-gen/swagger/templates -f ci-gen/swagger/uisvc/swagger.yml -t ci-gen/gen/client/uisvc
-/go/bin/swagger	generate server --template-dir ci-gen/swagger/templates -f ci-gen/swagger/uisvc/swagger.yml -t api/uisvc
+oapi-codegen -package uisvc -o ${PWD}/ci-gen/openapi/services/uisvc/uisvc.gen.go ${PWD}/ci-gen/openapi/spec.yaml
 
 protoc -I/usr/include:/go/src /go/src/github.com/tinyci/ci-agents/ci-gen/grpc/types/*.proto --go_out=plugins=grpc:/go/src
 

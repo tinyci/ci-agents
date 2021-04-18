@@ -179,7 +179,7 @@ func (m *Model) NextQueueItem(runningOn string, queueName string) (*QueueItem, e
 func (m *Model) QueueList(page, perPage int64) ([]*QueueItem, error) {
 	qis := []*QueueItem{}
 
-	page, perPage, err := utils.ScopePaginationInt(page, perPage)
+	page, perPage, err := utils.ScopePaginationInt(&page, &perPage)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +191,7 @@ func (m *Model) QueueList(page, perPage int64) ([]*QueueItem, error) {
 func (m *Model) QueueListForRepository(repo *Repository, page, perPage int64) ([]*QueueItem, error) {
 	qis := []*QueueItem{}
 
-	page, perPage, err := utils.ScopePaginationInt(page, perPage)
+	page, perPage, err := utils.ScopePaginationInt(&page, &perPage)
 	if err != nil {
 		return nil, err
 	}
