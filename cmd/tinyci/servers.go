@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/tinyci/ci-agents/api/assetsvc"
-	"github.com/tinyci/ci-agents/api/auth/github"
-	"github.com/tinyci/ci-agents/api/datasvc"
-	"github.com/tinyci/ci-agents/api/logsvc"
-	"github.com/tinyci/ci-agents/api/queuesvc"
-	repoGithub "github.com/tinyci/ci-agents/api/repository/github"
-	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
+	grpcHandler "github.com/tinyci/ci-agents/api/handlers/grpc"
+	"github.com/tinyci/ci-agents/api/services/grpc/assetsvc"
+	"github.com/tinyci/ci-agents/api/services/grpc/auth/github"
+	"github.com/tinyci/ci-agents/api/services/grpc/datasvc"
+	"github.com/tinyci/ci-agents/api/services/grpc/logsvc"
+	"github.com/tinyci/ci-agents/api/services/grpc/queuesvc"
+	repoGithub "github.com/tinyci/ci-agents/api/services/grpc/repository/github"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/asset"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/auth"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
@@ -24,7 +24,7 @@ var servers = []*cmdlib.GRPCServer{
 		Name:           "assetsvc",
 		Description:    "Asset & Log management for tinyCI",
 		DefaultService: config.DefaultServices.Asset,
-		RegisterService: func(s *grpc.Server, h *handler.H) error {
+		RegisterService: func(s *grpc.Server, h *grpcHandler.H) error {
 			asset.RegisterAssetServer(s, &assetsvc.AssetServer{H: h})
 			return nil
 		},
@@ -33,7 +33,7 @@ var servers = []*cmdlib.GRPCServer{
 		Name:           "github-authsvc",
 		Description:    "Github conduit for authentication in tinyCI",
 		DefaultService: config.DefaultServices.Auth,
-		RegisterService: func(s *grpc.Server, h *handler.H) error {
+		RegisterService: func(s *grpc.Server, h *grpcHandler.H) error {
 			auth.RegisterAuthServer(s, &github.AuthServer{H: h})
 			return nil
 		},
@@ -44,7 +44,7 @@ var servers = []*cmdlib.GRPCServer{
 		UseDB:          true,
 		UseSessions:    true,
 		DefaultService: config.DefaultServices.Data,
-		RegisterService: func(s *grpc.Server, h *handler.H) error {
+		RegisterService: func(s *grpc.Server, h *grpcHandler.H) error {
 			data.RegisterDataServer(s, &datasvc.DataServer{H: h})
 			return nil
 		},
@@ -53,7 +53,7 @@ var servers = []*cmdlib.GRPCServer{
 		Name:           "logsvc",
 		Description:    "Centralized logging for tinyCI",
 		DefaultService: config.DefaultServices.Log,
-		RegisterService: func(s *grpc.Server, h *handler.H) error {
+		RegisterService: func(s *grpc.Server, h *grpcHandler.H) error {
 			log.RegisterLogServer(s, logsvc.New(nil))
 			return nil
 		},
@@ -62,7 +62,7 @@ var servers = []*cmdlib.GRPCServer{
 		Name:           "queuesvc",
 		Description:    "Queue & Run management for tinyCI",
 		DefaultService: config.DefaultServices.Queue,
-		RegisterService: func(s *grpc.Server, h *handler.H) error {
+		RegisterService: func(s *grpc.Server, h *grpcHandler.H) error {
 			queue.RegisterQueueServer(s, &queuesvc.QueueServer{H: h})
 			return nil
 		},
@@ -71,7 +71,7 @@ var servers = []*cmdlib.GRPCServer{
 		Name:           "github-reposvc",
 		Description:    "Github conduit for repository management in tinyCI",
 		DefaultService: config.DefaultServices.Repository,
-		RegisterService: func(s *grpc.Server, h *handler.H) error {
+		RegisterService: func(s *grpc.Server, h *grpcHandler.H) error {
 			repository.RegisterRepositoryServer(s, &repoGithub.RepositoryServer{H: h})
 			return nil
 		},

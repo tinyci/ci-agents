@@ -11,53 +11,68 @@ const MaxPerPage int64 = 100
 
 const defaultPerPage int64 = 10
 
+func intp(p int64) *int64 {
+	return &p
+}
+
 // ScopePaginationInt applies constraints to pagination; it sets a maximum and a
 // default if not supplied to perPage. Integer-only version.
-func ScopePaginationInt(page, perPage int64) (int64, int64, error) {
-	if page < 0 {
+func ScopePaginationInt(page, perPage *int64) (int64, int64, error) {
+	if page == nil {
+		page = intp(0)
+	}
+
+	if perPage == nil {
+		perPage = intp(defaultPerPage)
+	}
+
+	if *perPage == 0 {
+		*perPage = defaultPerPage
+	}
+
+	if *page < 0 {
 		return 0, 0, errors.New("invalid page")
 	}
 
-	if perPage > MaxPerPage {
-		perPage = MaxPerPage
+	if *perPage > MaxPerPage {
+		*perPage = MaxPerPage
 	}
 
-	if perPage < 0 {
+	if *perPage < 0 {
 		return 0, 0, errors.New("invalid per page")
 	}
 
-	if perPage == 0 {
-		perPage = defaultPerPage
-	}
-
-	return page, perPage, nil
+	return *page, *perPage, nil
 }
 
 // ScopePagination applies constraints to pagination; it sets a maximum and a
 // default if not supplied to perPage. String version.
 func ScopePagination(pg, ppg string) (int64, int64, error) {
 	var (
-		err           error
 		page, perPage int64
 	)
 
 	if pg == "" {
 		page = 0
 	} else {
-		page, err = strconv.ParseInt(pg, 10, 64)
+		p, err := strconv.ParseInt(pg, 10, 64)
 		if err != nil {
 			return 0, 0, err
 		}
+
+		page = p
 	}
 
 	if ppg == "" || ppg == "0" {
 		perPage = defaultPerPage
 	} else {
-		perPage, err = strconv.ParseInt(ppg, 10, 64)
+		p, err := strconv.ParseInt(ppg, 10, 64)
 		if err != nil {
 			return 0, 0, err
 		}
+
+		perPage = p
 	}
 
-	return ScopePaginationInt(page, perPage)
+	return ScopePaginationInt(&page, &perPage)
 }

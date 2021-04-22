@@ -1,19 +1,19 @@
-linters:                                                                                                                                                                                                                                       
-  disable-all: true                                                                                                                                                                                                                            
-  enable:                                                                                                                                                                                                                                      
-    - goimports                                                                                                                                                                                                                                
-    - gocyclo                                                                                                                                                                                                                                  
-    - deadcode                                                                                                                                                                                                                                 
-    - gosimple                                                                                                                                                                                                                                 
-    - govet                                                                                                                                                                                                                                    
-    - ineffassign                                                                                                                                                                                                                              
-    - structcheck                                                                                                                                                                                                                              
-    - typecheck                                                                                                                                                                                                                                
-    - unused                                                                                                                                                                                                                                   
-    - varcheck                                                                                                                                                                                                                                 
-    - bodyclose                                                                                                                                                                                                                                
-    - golint
-    - misspell                                                                                                                                                                                                                                 
+linters:
+  disable-all: true
+  enable:
+    - goimports
+    - gocyclo
+    - deadcode
+    - gosimple
+    - govet
+    - ineffassign
+    - structcheck
+    - typecheck
+    - unused
+    - varcheck
+    - bodyclose
+      #- golint
+    - misspell
     - staticcheck
 issues:
   exclude-use-default: false

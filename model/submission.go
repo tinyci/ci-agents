@@ -179,7 +179,7 @@ func (m *Model) NewSubmissionFromMessage(sub *types.Submission) (*Submission, er
 func (m *Model) SubmissionList(page, perPage int64, repository, sha string) ([]*Submission, error) {
 	subs := []*Submission{}
 
-	page, perPage, err := utils.ScopePaginationInt(page, perPage)
+	page, perPage, err := utils.ScopePaginationInt(&page, &perPage)
 	if err != nil {
 		return nil, err
 	}
@@ -396,7 +396,7 @@ func (m *Model) populateStates(ids []int64, idmap map[int64]*Submission) error {
 func (m *Model) SubmissionListForRepository(repo, sha string, page, perPage int64) ([]*Submission, error) {
 	subs := []*Submission{}
 
-	page, perPage, err := utils.ScopePaginationInt(page, perPage)
+	page, perPage, err := utils.ScopePaginationInt(&page, &perPage)
 	if err != nil {
 		return nil, err
 	}

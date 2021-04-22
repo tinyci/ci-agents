@@ -188,7 +188,7 @@ func (m *Model) FindUserByName(username string) (*User, error) {
 }
 
 // FindUserByNameWithSubscriptions finds a user by unique key username. It also fetches the subscriptions for the user.
-func (m *Model) FindUserByNameWithSubscriptions(username, search string) (*User, error) {
+func (m *Model) FindUserByNameWithSubscriptions(username string, search string) (*User, error) {
 	u := &User{}
 	if search == "" {
 		return u, m.WrapError(m.Preload("Subscribed").Where("username = ?", username).First(u), "preloading subscriptions with user")

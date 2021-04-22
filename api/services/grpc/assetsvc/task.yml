@@ -1,0 +1,10 @@
+---
+env:
+  - CREATE_DB=1
+  - TESTING=1
+  - GIN_MODE=release
+default_image: tinyci/ci-agents:04.21.2021
+mountpoint: "/go/src/github.com/tinyci/ci-agents"
+runs:
+  main:
+    command: [ "go", "test", "-race", "-v", "./api/services/grpc/assetsvc", "-check.v" ]

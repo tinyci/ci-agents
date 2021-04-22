@@ -127,13 +127,13 @@ func (m *Model) GetRepositoryByNameForUser(name string, u *User) (*Repository, e
 }
 
 // GetOwnedRepos returns all repos the user owns.
-func (m *Model) GetOwnedRepos(u *User, search string) (RepositoryList, error) {
+func (m *Model) GetOwnedRepos(u *User, search *string) (RepositoryList, error) {
 	return m.getRepoSearch("owner_id = ?", search, u.ID)
 }
 
 // GetVisibleReposForUser retrieves all repos the user can "see" in the
 // database.
-func (m *Model) GetVisibleReposForUser(u *User, search string) (RepositoryList, error) {
+func (m *Model) GetVisibleReposForUser(u *User, search *string) (RepositoryList, error) {
 	r, err := m.GetAllPublicRepos(search)
 	if err != nil {
 		return nil, err
@@ -148,26 +148,28 @@ func (m *Model) GetVisibleReposForUser(u *User, search string) (RepositoryList, 
 	return append(r2, r...), nil
 }
 
-func (m *Model) getRepoSearch(where, search string, args ...interface{}) (RepositoryList, error) {
+func (m *Model) getRepoSearch(where string, search *string, args ...interface{}) (RepositoryList, error) {
 	r := []*Repository{}
 
-	search = strings.Replace(search, "%", "\\%", -1)
-	search = strings.Replace(search, "_", "\\_", -1)
-	if search == "" {
+	if search == nil {
 		return RepositoryList(r), m.WrapError(m.Where(where, args...).Find(&r), "obtaining repositories")
 	}
 
-	args = append(args, "%"+search+"%")
+	searchStr := *search
+	searchStr = strings.Replace(searchStr, "%", "\\%", -1)
+	searchStr = strings.Replace(searchStr, "_", "\\_", -1)
+
+	args = append(args, "%"+searchStr+"%")
 	return RepositoryList(r), m.WrapError(m.Where(where+" and name like ? escape '\\'", args...).Find(&r), "obtaining repositories")
 }
 
 // GetAllPublicRepos retrieves all repos that are not private
-func (m *Model) GetAllPublicRepos(search string) (RepositoryList, error) {
+func (m *Model) GetAllPublicRepos(search *string) (RepositoryList, error) {
 	return m.getRepoSearch("not private", search)
 }
 
 // GetPrivateReposForUser retrieves all private repos that the user owns.
-func (m *Model) GetPrivateReposForUser(u *User, search string) (RepositoryList, error) {
+func (m *Model) GetPrivateReposForUser(u *User, search *string) (RepositoryList, error) {
 	return m.getRepoSearch("owner_id = ? and private", search, u.ID)
 }
 

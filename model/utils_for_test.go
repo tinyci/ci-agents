@@ -10,6 +10,10 @@ import (
 	"github.com/tinyci/ci-agents/types"
 )
 
+func stringp(s string) *string {
+	return &s
+}
+
 func (ms *modelSuite) CreateRef(r *Repository, name, sha string) (*Ref, error) {
 	ref := &Ref{
 		Repository: r,

@@ -8,7 +8,7 @@ import (
 func (m *Model) GetRunsForTask(id, page, perPage int64) ([]*Run, error) {
 	runs := []*Run{}
 
-	page, perPage, err := utils.ScopePaginationInt(page, perPage)
+	page, perPage, err := utils.ScopePaginationInt(&page, &perPage)
 	if err != nil {
 		return nil, err
 	}

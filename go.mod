@@ -6,11 +6,13 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v1.0.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
+	github.com/deepmap/oapi-codegen v1.6.1
 	github.com/erikh/check v0.0.1
 	github.com/erikh/colorwriter v1.0.0
 	github.com/erikh/go-transport v0.1.0
-	github.com/erikh/migrator v0.0.0-20210413225442-e8f5d364dd21 // indirect
+	github.com/erikh/migrator v0.0.0-20210413225943-f4575a0ef449 // indirect
 	github.com/fatih/color v1.10.0
+	github.com/getkin/kin-openapi v0.55.0
 	github.com/gin-contrib/sessions v0.0.3
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-openapi/errors v0.20.0
@@ -27,10 +29,11 @@ require (
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645
-	github.com/jackc/pgx v3.6.2+incompatible // indirect
 	github.com/jinzhu/gorm v1.9.16
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/kr/pretty v0.2.1 // indirect
+	github.com/labstack/echo-contrib v0.9.0 // indirect
+	github.com/labstack/echo/v4 v4.2.2
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lib/pq v1.10.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -44,10 +47,9 @@ require (
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	github.com/ugorji/go v1.2.5 // indirect
-	github.com/urfave/cli v1.22.5 // indirect
 	github.com/urfave/cli/v2 v2.3.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2 // indirect
-	golang.org/x/net v0.0.0-20210330210036-cd0ac97f97f6
+	golang.org/x/net v0.0.0-20210415231046-e915ea6b2b7d
 	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558
 	golang.org/x/sys v0.0.0-20210412220455-f1c623a9e750
 	golang.org/x/term v0.0.0-20210406210042-72f3dc4e9b72

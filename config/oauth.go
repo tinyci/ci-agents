@@ -7,7 +7,6 @@ import (
 	"errors"
 
 	"github.com/tinyci/ci-agents/clients/github"
-	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 	"golang.org/x/oauth2"
 	ghoauth "golang.org/x/oauth2/github"
@@ -76,13 +75,13 @@ func DefaultGithubClient(username string) github.Client {
 }
 
 // GithubClient either returns the client for the token.
-func (oc OAuthConfig) GithubClient(token *types.OAuthToken) github.Client {
-	client := DefaultGithubClient(token.Username)
+func (oc OAuthConfig) GithubClient(username string, token string) github.Client {
+	client := DefaultGithubClient(username)
 	if client != nil {
 		return client
 	}
 
-	return github.NewClientFromAccessToken(token.Token)
+	return github.NewClientFromAccessToken(token)
 }
 
 // Config returns the oauth configuration if one was provided.

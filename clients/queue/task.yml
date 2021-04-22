@@ -1,3 +1,3 @@
 ---
 dependencies:
-  - api/queuesvc
+  - api/services/grpc/queuesvc

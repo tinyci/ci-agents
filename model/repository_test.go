@@ -91,42 +91,42 @@ func (ms *modelSuite) TestRepositoryOwners(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(tmp.Name, check.Equals, r1.Name)
 
-	list, err := ms.model.GetAllPublicRepos("")
+	list, err := ms.model.GetAllPublicRepos(nil)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(list), check.Equals, 1)
 	c.Assert(list[0].Name, check.Equals, r2.Name)
 
-	searched, err := ms.model.GetAllPublicRepos("not a match")
+	searched, err := ms.model.GetAllPublicRepos(stringp("not a match"))
 	c.Assert(err, check.IsNil)
 	c.Assert(len(searched), check.Equals, 0)
 
-	searched, err = ms.model.GetAllPublicRepos(r2.Name)
+	searched, err = ms.model.GetAllPublicRepos(&r2.Name)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(searched), check.Equals, 1)
 
-	list, err = ms.model.GetPrivateReposForUser(r1.Owner, "")
+	list, err = ms.model.GetPrivateReposForUser(r1.Owner, nil)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(list), check.Equals, 1)
 	c.Assert(list[0].Name, check.Equals, r1.Name)
 
-	searched, err = ms.model.GetPrivateReposForUser(r1.Owner, "not a match")
+	searched, err = ms.model.GetPrivateReposForUser(r1.Owner, stringp("not a match"))
 	c.Assert(err, check.IsNil)
 	c.Assert(len(searched), check.Equals, 0)
 
-	searched, err = ms.model.GetPrivateReposForUser(r1.Owner, r1.Name)
+	searched, err = ms.model.GetPrivateReposForUser(r1.Owner, &r1.Name)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(searched), check.Equals, 1)
 	c.Assert(searched[0].Name, check.Equals, r1.Name)
 
-	list, err = ms.model.GetPrivateReposForUser(r2.Owner, "")
+	list, err = ms.model.GetPrivateReposForUser(r2.Owner, nil)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(list), check.Equals, 0)
 
-	list, err = ms.model.GetPrivateReposForUser(r2.Owner, r2.Name)
+	list, err = ms.model.GetPrivateReposForUser(r2.Owner, &r2.Name)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(list), check.Equals, 0)
 
-	list, err = ms.model.GetVisibleReposForUser(r2.Owner, r2.Name)
+	list, err = ms.model.GetVisibleReposForUser(r2.Owner, &r2.Name)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(list), check.Equals, 1)
 }

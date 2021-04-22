@@ -8,7 +8,8 @@ import (
 	"syscall"
 
 	transport "github.com/erikh/go-transport"
-	"github.com/tinyci/ci-agents/ci-gen/grpc/handler"
+
+	grpcHandler "github.com/tinyci/ci-agents/api/handlers/grpc"
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/utils"
 	"github.com/urfave/cli/v2"
@@ -33,7 +34,7 @@ type GRPCServer struct {
 	Name            string
 	Description     string
 	DefaultService  config.ServiceAddress
-	RegisterService func(*grpc.Server, *handler.H) error
+	RegisterService func(*grpc.Server, *grpcHandler.H) error
 	UseDB           bool
 	UseSessions     bool
 }
@@ -53,7 +54,7 @@ func (s *GRPCServer) Make(commands []*cli.Command) []*cli.Command {
 // error it received while trying to create the server. It accepts a
 // string to get the configuration filename.
 func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, error) {
-	h := &handler.H{}
+	h := &grpcHandler.H{}
 	if err := config.Parse(configFile, &h); err != nil {
 		return nil, err
 	}

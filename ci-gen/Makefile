@@ -15,19 +15,19 @@ gen: gen-javascript build-gen-image
 	$(DOCKER_RUN) -u $$(id -u):$$(id -g) $(DOCKER_CONTAINER_DIR) $(DOCKER_IMAGE) bash ci-gen/gen.sh
 
 gen-javascript:
-	rm -rf ${TARGET_DIR}/gen/javascript
-	mkdir -p ${TARGET_DIR}/gen/javascript
+	rm -rf ${TARGET_DIR}/javascript
+	mkdir -p ${TARGET_DIR}/javascript
 	docker pull openapitools/openapi-generator-cli:latest
-	docker run --rm -u $$(id -u):$$(id -g) -v ${TARGET_DIR}/gen/javascript:/swagger -v ${PWD}:/local openapitools/openapi-generator-cli generate \
-		-i /local/swagger/uisvc/swagger.yml \
+	docker run --rm -u $$(id -u):$$(id -g) -v ${TARGET_DIR}/javascript:/swagger -v ${PWD}:/local openapitools/openapi-generator-cli generate \
+		-i /local/openapi/spec.yaml \
 		-g javascript \
 		-o /swagger
 
 swagger-serve:
-	docker run -p 8080:8080 -it -v ${PWD}:/swagger tinyci/redoc-cli serve file:///swagger/uisvc/swagger.yml
+	docker run -p 8080:8080 -it -v ${PWD}:/swagger tinyci/redoc-cli serve file:///swagger/openapi/spec.yaml
 
 swagger-docs:
-	docker run --rm -it -u $(shell id -u):$(shell id -g) -v ${PWD}/swagger:/swagger tinyci/redoc-cli bundle file:///swagger/uisvc/swagger.yml -o /swagger/docs.html
+	docker run --rm -it -u $(shell id -u):$(shell id -g) -v ${PWD}/swagger:/swagger tinyci/redoc-cli bundle file:///swagger/openapi/spec.yaml -o /swagger/docs.html
 
 grpc-docs: build-gen-image
 	mkdir -p ci-gen/grpc/docs
