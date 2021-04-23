@@ -1,0 +1,9 @@
+---
+env:
+  - CREATE_DB=1
+  - TESTING=1
+mountpoint: "/go/src/github.com/tinyci/ci-agents"
+default_image: tinyci/ci-agents:04.21.2021
+runs:
+  main:
+    command: [ "go", "test", "-v", "-race", "./api/services/openapi/uisvc", "-check.v" ]

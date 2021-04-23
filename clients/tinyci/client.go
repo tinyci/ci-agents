@@ -1,12 +1,16 @@
 package tinyci
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"strings"
 
 	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/ci-gen/openapi/services/uisvc"
@@ -33,6 +37,34 @@ type Client struct {
 	tls     bool
 }
 
+type httpClientWrapper struct{ *http.Client }
+
+func (hcw *httpClientWrapper) Do(req *http.Request) (*http.Response, error) {
+	resp, err := hcw.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode == 500 {
+		var uerr uisvc.Error
+		buf := bytes.NewBuffer(nil)
+
+		if err := json.NewDecoder(io.TeeReader(resp.Body, buf)).Decode(&uerr); err != nil {
+			return nil, errors.New(buf.String())
+		}
+
+		var err error
+
+		if uerr.Errors != nil {
+			err = errors.New(strings.Join(*uerr.Errors, "; "))
+		}
+
+		return nil, err
+	}
+
+	return resp, nil
+}
+
 // New constructs a new *Client
 func New(u, token string, cert *transport.Cert) (*Client, error) {
 	baseURL, err := url.Parse(u)
@@ -48,7 +80,7 @@ func New(u, token string, cert *transport.Cert) (*Client, error) {
 	client := gt.Client(nil)
 	client.Transport = &roundTripper{token: token, under: client.Transport}
 
-	c, err := uisvc.NewClient(baseURL.String(), uisvc.WithHTTPClient(client))
+	c, err := uisvc.NewClient(baseURL.String(), uisvc.WithHTTPClient(&httpClientWrapper{client}))
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +107,7 @@ func (c *Client) Errors(ctx context.Context) ([]*model.UserError, error) {
 
 	ue := []*model.UserError{}
 
-	return ue, json.NewDecoder(resp.Body).Decode(&ue)
+	return ue, json.NewDecoder(io.TeeReader(resp.Body, os.Stdout)).Decode(&ue)
 }
 
 // Submit submits a request to test a repository to tinyCI.

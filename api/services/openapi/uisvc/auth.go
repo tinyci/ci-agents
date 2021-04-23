@@ -87,9 +87,9 @@ func (h *H) GetLogin(ctx echo.Context, params uisvc.GetLoginParams) error {
 
 // GetUserProperties gives an object containing information about the user.
 func (h *H) GetUserProperties(ctx echo.Context) error {
-	user, err := h.getUser(ctx)
-	if err != nil {
-		return err
+	user, ok := h.getUser(ctx)
+	if !ok {
+		return utils.ErrInvalidAuth
 	}
 
 	caps, err := h.clients.Data.GetCapabilities(ctx.Request().Context(), user)

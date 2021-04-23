@@ -7,10 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/labstack/echo/v4"
-	httpHandler "github.com/tinyci/ci-agents/api/handlers/openapi"
 	"github.com/tinyci/ci-agents/api/services/hybrid/hooksvc"
-	uisvcHandlers "github.com/tinyci/ci-agents/api/services/openapi/uisvc"
+	httpHandler "github.com/tinyci/ci-agents/api/services/openapi/uisvc"
 	"github.com/tinyci/ci-agents/ci-gen/openapi/services/uisvc"
 	"github.com/tinyci/ci-agents/cmdlib"
 	"github.com/tinyci/ci-agents/config"
@@ -146,10 +144,10 @@ func startHooksvc(ctx *cli.Context) error {
 }
 
 func makeUISvcHandler(configFile string) (cmdlib.HandlerFunc, error) {
-	h := &httpHandler.H{Port: 6010, RegisterFunc: func(h *httpHandler.H, server *echo.Echo) {
-		handler := uisvcHandlers.NewHandler(h.Config, h.Clients)
-		uisvc.RegisterHandlers(server, handler)
-	}}
+	h := &httpHandler.H{
+		Port:        6010,
+		ServiceName: "uisvc",
+	}
 	if err := config.Parse(configFile, &h.Config); err != nil {
 		return nil, err
 	}

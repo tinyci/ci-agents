@@ -65,9 +65,9 @@ func (h *H) GetTasksSubscribed(ctx echo.Context, params uisvc.GetTasksSubscribed
 		return err
 	}
 
-	u, err := h.getUser(ctx)
-	if err != nil {
-		return err
+	u, ok := h.getUser(ctx)
+	if !ok {
+		return utils.ErrInvalidAuth
 	}
 
 	tasks, err := h.clients.Data.ListSubscribedTasksForUser(ctx.Request().Context(), u.ID, int64(page), int64(perPage))
