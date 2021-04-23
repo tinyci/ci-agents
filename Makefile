@@ -15,6 +15,7 @@ DOCKER_RUN=docker run \
 DOCKER_CONTAINER_DIR=-v ${PWD}:$(CONTAINER_DIR) \
 								-w $(CONTAINER_DIR)
 
+DOCKER_BUILD_CACHE_VOLUME=-v ci-agents-buildcache:/go/pkg
 DEMO_DOCKER_IMAGE=tinyci-agents
 DEBUG_DOCKER_IMAGE=tinyci-agents-debug
 TEST_DOCKER_IMAGE=tinyci-agents-test
@@ -34,6 +35,7 @@ BUILD_DOCKER_RUN=\
 								-e GOCACHE=/tmp/cache \
 								-u $$(id -u):$$(id -g) \
 								-v ${PWD}/build/:/tmp/bin \
+								$(DOCKER_BUILD_CACHE_VOLUME) \
 								-w $(CONTAINER_DIR) \
 								-v ${PWD}:$(CONTAINER_DIR) \
 								golang:${GO_VERSION}
@@ -45,6 +47,7 @@ TEST_DOCKER_RUN=\
 								-e TESTING=1 \
 								-e TESTRUN='${TESTRUN}' \
 								-e TESTPATH='${TESTPATH}' \
+								$(DOCKER_BUILD_CACHE_VOLUME) \
 								--name $(TEST_DOCKER_IMAGE) \
 								$(DOCKER_CONTAINER_DIR) \
 								$(TEST_DOCKER_IMAGE)
@@ -56,6 +59,7 @@ DEBUG_DOCKER_RUN=\
 								$(if ${USE_JAEGER}, -e JAEGER_AGENT_HOST=jaegertracing,) \
 								$(DEBUG_PORTS) \
 								--link react:react \
+								$(DOCKER_BUILD_CACHE_VOLUME) \
 								$(if ${USE_JAEGER}, --link jaegertracing:jaegertracing,) \
 								--name $(DEBUG_DOCKER_IMAGE) \
 								$(DOCKER_CONTAINER_DIR) \
