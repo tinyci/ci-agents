@@ -10,9 +10,9 @@ import (
 
 // GetErrors processes the /errors GET endpoint
 func (h *H) GetErrors(ctx echo.Context) error {
-	user, err := h.getUser(ctx)
-	if err != nil {
-		return err
+	user, ok := h.getUser(ctx)
+	if !ok {
+		return utils.ErrInvalidAuth
 	}
 
 	errs, err := h.clients.Data.GetErrors(ctx.Request().Context(), user.Username)

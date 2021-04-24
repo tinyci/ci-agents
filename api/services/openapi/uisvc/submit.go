@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tinyci/ci-agents/ci-gen/openapi/services/uisvc"
 	"github.com/tinyci/ci-agents/types"
+	"github.com/tinyci/ci-agents/utils"
 )
 
 // GetSubmit powers a manual submission to the queuesvc.
@@ -18,15 +19,15 @@ func (h *H) GetSubmit(ctx echo.Context, params uisvc.GetSubmitParams) error {
 		all = *params.All
 	}
 
-	user, err := h.getUser(ctx)
-	if err != nil {
-		return err
+	user, ok := h.getUsername(ctx)
+	if !ok {
+		return utils.ErrInvalidAuth
 	}
 
-	err = h.clients.Queue.Submit(context.Background(), &types.Submission{
+	err := h.clients.Queue.Submit(context.Background(), &types.Submission{
 		Fork:        repo,
 		HeadSHA:     sha,
-		SubmittedBy: user.Username,
+		SubmittedBy: user,
 		All:         all,
 		Manual:      true,
 	})

@@ -84,10 +84,10 @@ test: build-image
 	$(TEST_DOCKER_RUN) make 'TESTRUN=${TESTRUN}' 'TESTPATH=${TESTPATH}' do-test
 
 do-test:
-	go test -timeout 30m -p 1 -race -v ${TESTPATH} -check.v -check.f "${TESTRUN}" # -p 1 is needed because of gorilla/sessions init routines
+	go test -v -timeout 30m -p 1 -race ${TESTPATH} -check.v -check.f "${TESTRUN}" # -p 1 is needed because of gorilla/sessions init routines
 
-test-debug: build-debug-image
-	$(DEBUG_DOCKER_RUN) bash
+test-debug: build-image
+	$(TEST_DOCKER_RUN) bash
 
 test-debug-attach:
 	docker exec -it $(DEBUG_DOCKER_IMAGE) bash
