@@ -19,8 +19,8 @@ func (h *H) GetLoginUpgrade(ctx echo.Context) error {
 func (h *H) GetLoggedin(ctx echo.Context) error {
 	res := "true"
 
-	sess, err := h.getSession(ctx)
-	if err != nil {
+	sess, ok := h.getSession(ctx)
+	if !ok {
 		// if there are any errors retrieving the session, just ask the user to relog
 		url, err := h.clients.Auth.GetOAuthURL(ctx.Request().Context(), nil)
 		if err != nil {
@@ -45,9 +45,9 @@ func (h *H) GetLoggedin(ctx echo.Context) error {
 
 // GetLogout logs the user out of the tinyCI system.
 func (h *H) GetLogout(ctx echo.Context) error {
-	sess, err := h.getSession(ctx)
-	if err != nil {
-		return err
+	sess, ok := h.getSession(ctx)
+	if !ok {
+		return utils.ErrInvalidAuth
 	}
 
 	delete(sess.Values, SessionUsername)
@@ -71,9 +71,9 @@ func (h *H) GetLogin(ctx echo.Context, params uisvc.GetLoginParams) error {
 		return ctx.Redirect(302, oauthinfo.Url)
 	}
 
-	sess, err := h.getSession(ctx)
-	if err != nil {
-		return err
+	sess, ok := h.getSession(ctx)
+	if !ok {
+		return utils.ErrInvalidAuth
 	}
 
 	sess.Values[SessionUsername] = oauthinfo.Username

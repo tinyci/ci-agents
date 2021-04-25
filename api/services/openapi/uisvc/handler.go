@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/config"
@@ -18,6 +17,7 @@ import (
 	"github.com/erikh/go-transport"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/routers/legacy"
+	gsessions "github.com/gorilla/sessions"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/tinyci/ci-agents/api/sessions"
 	"github.com/tinyci/ci-agents/ci-gen/openapi/services/uisvc"
@@ -80,7 +80,7 @@ func (h *H) Boot(finished chan struct{}) (chan struct{}, error) {
 }
 
 func (h *H) customHTTPErrorHandler(err error, ctx echo.Context) {
-	go h.clients.Log.Error(context.Background(), err)
+	go h.clients.Log.WithFields(log.FieldMap{"route": ctx.Request().URL.String()}).Error(context.Background(), err)
 
 	uerr := uisvc.Error{Errors: &[]string{err.Error()}}
 
@@ -106,18 +106,16 @@ func (h *H) createServer() (*http.Server, error) {
 	}
 
 	h.Swagger.Servers = nil
-	h.Swagger.Security = nil
 
-	server.Use(h.echoUser())
 	server.Use(h.echoLog())
+	sessdb := sessions.New(h.clients.Data, nil, h.Config.Auth.ParsedSessionCryptKey())
+	server.Use(h.echoSessions(sessdb))
+	server.Use(h.echoUser())
 
 	server.Use(echomiddleware.CORSWithConfig(echomiddleware.CORSConfig{
 		// FIXME defaults are to configure '*' for the origin bypass; which is pretty insecure.
 		AllowHeaders: []string{echo.HeaderContentType},
 	}))
-
-	sessdb := sessions.New(h.clients.Data, nil, h.Config.Auth.ParsedSessionCryptKey())
-	server.Use(session.Middleware(sessdb))
 
 	//server.Use(middleware.OapiRequestValidator(h.Swagger))
 	server.Use(h.processOpenAPIExtensions())
@@ -153,6 +151,21 @@ func (h *H) createTransport() (*transport.HTTP, error) {
 	return t, nil
 }
 
+func (h *H) echoSessions(sessdb *sessions.SessionManager) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(ctx echo.Context) error {
+			sess, err := sessdb.New(ctx.Request(), SessionKey)
+			if err == nil && sess != nil {
+				ctx.Set("tinyci.Session", sess)
+			} else {
+				go h.clients.Log.Errorf(context.Background(), "Error retrieving session: %v", err)
+			}
+
+			return next(ctx)
+		}
+	}
+}
+
 func (h *H) echoUser() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
@@ -161,7 +174,9 @@ func (h *H) echoUser() echo.MiddlewareFunc {
 				if !errors.As(err, &utils.ErrInvalidAuth) {
 					go h.clients.Log.Errorf(context.Background(), "Error retrieving user: %v", err)
 				}
-			} else {
+
+				return err
+			} else if u != nil {
 				ctx.Set("tinyci.User", u)
 				ctx.Set("tinyci.Username", u.Username)
 			}
@@ -294,6 +309,11 @@ func (h *H) getUsername(ctx echo.Context) (string, bool) {
 	return u, ok
 }
 
+func (h *H) getSession(ctx echo.Context) (*gsessions.Session, bool) {
+	sess, ok := ctx.Get("tinyci.Session").(*gsessions.Session)
+	return sess, ok
+}
+
 // findUser retrieves the user based on information in the gin context.
 func (h *H) findUser(ctx echo.Context) (*model.User, error) {
 	var u *model.User
@@ -310,26 +330,22 @@ func (h *H) findUser(ctx echo.Context) (*model.User, error) {
 			}
 		}
 	} else {
-		sess, err := h.getSession(ctx)
-		if err != nil {
-			fields := log.FieldMap{"route": ctx.Request().URL.String()}
-			go h.clients.Log.WithFields(fields).Errorf(context.Background(), "While retrieving session: %v", err)
-			return nil, utils.ErrInvalidAuth
+		var err error
+
+		sess, ok := h.getSession(ctx)
+		if !ok || sess == nil {
+			return nil, nil
 		}
 
 		username, ok := sess.Values[SessionUsername].(string)
 		if !ok {
-			return nil, utils.ErrInvalidAuth
+			return nil, nil
 		}
 
 		u, err = h.clients.Data.GetUser(reqCtx, username)
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if u == nil {
-		return nil, utils.ErrInvalidAuth
 	}
 
 	return u, nil
@@ -347,9 +363,9 @@ func (h *H) getClient(ctx echo.Context) (github.Client, error) {
 
 // GetGithub gets the github user from the session and loads it.
 func (h *H) getGithub(ctx echo.Context) (u *model.User, outErr error) {
-	sess, err := h.getSession(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("while retrieving github information about the user: %w", err)
+	sess, ok := h.getSession(ctx)
+	if !ok {
+		return nil, utils.ErrInvalidAuth
 	}
 
 	defer func() {
