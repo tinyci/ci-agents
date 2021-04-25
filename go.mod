@@ -11,6 +11,7 @@ require (
 	github.com/erikh/check v0.0.1
 	github.com/erikh/colorwriter v1.0.0
 	github.com/erikh/go-transport v0.1.0
+	github.com/erikh/migrator v0.0.0-20210413225943-f4575a0ef449 // indirect
 	github.com/fatih/color v1.10.0
 	github.com/getkin/kin-openapi v0.55.0
 	github.com/gin-contrib/sessions v0.0.3
