@@ -45,6 +45,10 @@ func (h *H) Boot(t net.Listener, s *grpc.Server, finished chan struct{}) (chan s
 		if err != nil {
 			return nil, err
 		}
+
+		if size, ok := h.UserConfig.ServiceConfig["db_pool_size"].(int); ok {
+			h.Model.SetConnPoolSize(size)
+		}
 	}
 
 	if err := h.Auth.ParseTokenKey(); err != nil {
