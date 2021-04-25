@@ -392,7 +392,7 @@ func (c *Client) Submissions(ctx context.Context, repository, sha *string, page,
 
 // TasksForSubmission returns the tasks for the given submission.
 func (c *Client) TasksForSubmission(ctx context.Context, sub *model.Submission) ([]*model.Task, error) {
-	perPage := int64(20)
+	perPage := utils.MaxPerPage
 	page := int64(0)
 
 	totalTasks := []*model.Task{}
@@ -421,4 +421,28 @@ func (c *Client) TasksForSubmission(ctx context.Context, sub *model.Submission) 
 	}
 
 	return totalTasks, nil
+}
+
+// GetSubmission retrieves a full submission by ID
+func (c *Client) GetSubmission(ctx context.Context, id int64) (*model.Submission, error) {
+	resp, err := c.client.GetSubmissionId(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	sub := &model.Submission{}
+	return sub, json.NewDecoder(resp.Body).Decode(sub)
+}
+
+// RunsForSubmission retrieves all the runs for a submission, by id.
+func (c *Client) RunsForSubmission(ctx context.Context, id int64, page, perPage int64) ([]*model.Run, error) {
+	resp, err := c.client.GetSubmissionIdRuns(ctx, id, &uisvc.GetSubmissionIdRunsParams{Page: &page, PerPage: &perPage})
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	runs := []*model.Run{}
+	return runs, json.NewDecoder(resp.Body).Decode(&runs)
 }
