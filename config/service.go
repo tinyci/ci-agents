@@ -52,6 +52,7 @@ type UserConfig struct {
 	URL            string      `yaml:"url"`
 	EnableTracing  bool        `yaml:"enable_tracing"`
 	ReadonlyClient bool        `yaml:"readonly_client"`
+	CORSOrigins    []string    `yaml:"cors_origins"`
 }
 
 // Service is the internal configuration for a service
