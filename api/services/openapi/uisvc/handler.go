@@ -112,8 +112,13 @@ func (h *H) createServer() (*http.Server, error) {
 	server.Use(h.echoSessions(sessdb))
 	server.Use(h.echoUser())
 
+	origins := h.Config.CORSOrigins
+	if len(origins) == 0 {
+		origins = []string{"*"}
+	}
+
 	server.Use(echomiddleware.CORSWithConfig(echomiddleware.CORSConfig{
-		// FIXME defaults are to configure '*' for the origin bypass; which is pretty insecure.
+		AllowOrigins: origins,
 		AllowHeaders: []string{echo.HeaderContentType},
 	}))
 
