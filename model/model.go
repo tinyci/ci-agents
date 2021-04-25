@@ -31,11 +31,24 @@ func New(sqlURL string) (*Model, error) {
 		db = db.LogMode(false)
 	}
 
+	sqlDB := db.DB()
+	sqlDB.SetConnMaxIdleTime(-1)
+	sqlDB.SetConnMaxLifetime(-1)
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(10)
+
 	return &Model{DB: db}, nil
 }
 
 var errorMapping = map[string]error{
 	"record not found": utils.ErrNotFound,
+}
+
+// SetConnPoolSize sets the connection pool size
+func (m *Model) SetConnPoolSize(size int) {
+	sqlDB := m.DB.DB()
+	sqlDB.SetMaxIdleConns(size)
+	sqlDB.SetMaxOpenConns(size)
 }
 
 // MapError finds an error by string and returns an appropriate Error for it.
