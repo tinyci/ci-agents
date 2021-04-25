@@ -423,50 +423,59 @@ func mkTaskStatus(task *model.Task) string {
 }
 
 func mkSubRunCounts(ctx context.Context, client *tinyci.Client, sub *model.Submission) (int64, int64, int64, error) {
-	tasks, err := client.TasksForSubmission(ctx, sub)
-	if err != nil {
-		return 0, 0, 0, err
+	var (
+		page = int64(0)
+		runs = []*model.Run{}
+	)
+
+	for {
+		tmp, err := client.RunsForSubmission(ctx, sub.ID, page, utils.MaxPerPage)
+		if err != nil || len(tmp) == 0 {
+			break
+		}
+
+		runs = append(runs, tmp...)
+		page++
 	}
 
 	var runningCount, finishedCount, totalCount int64
 
-	for _, task := range tasks {
-		running, finished, total, err := mkTaskRunCounts(ctx, client, task)
-		if err != nil {
-			return 0, 0, 0, err
-		}
-		runningCount += running
-		finishedCount += finished
-		totalCount += total
-	}
-
-	return runningCount, finishedCount, totalCount, nil
-}
-
-func mkTaskRunCounts(ctx context.Context, client *tinyci.Client, task *model.Task) (int64, int64, int64, error) {
-	totalCount, err := client.RunsForTaskCount(ctx, task.ID)
-	if err != nil {
-		return 0, 0, 0, err
-	}
-
-	runs := []*model.Run{}
-
-	for i := int64(0); i <= totalCount/utils.MaxPerPage; i++ {
-		tmp, err := client.RunsForTask(ctx, task.ID, &i, int64p(utils.MaxPerPage))
-		if err != nil {
-			return 0, 0, 0, err
-		}
-
-		runs = append(runs, tmp...)
-	}
-
-	var runningCount, finishedCount int64
 	for _, run := range runs {
 		if run.FinishedAt != nil {
 			finishedCount++
 		} else if run.StartedAt != nil {
 			runningCount++
 		}
+
+		totalCount++
+	}
+
+	return runningCount, finishedCount, totalCount, nil
+}
+
+func mkTaskRunCounts(ctx context.Context, client *tinyci.Client, task *model.Task) (int64, int64, int64, error) {
+	runs := []*model.Run{}
+
+	var i int64
+	for {
+		tmp, err := client.RunsForTask(ctx, task.ID, &i, int64p(utils.MaxPerPage))
+		if err != nil || len(tmp) == 0 {
+			break
+		}
+
+		runs = append(runs, tmp...)
+		i++
+	}
+
+	var totalCount, runningCount, finishedCount int64
+	for _, run := range runs {
+		if run.FinishedAt != nil {
+			finishedCount++
+		} else if run.StartedAt != nil {
+			runningCount++
+		}
+
+		totalCount++
 	}
 
 	return runningCount, finishedCount, totalCount, nil
