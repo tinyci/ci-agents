@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"encoding/base32"
+	"encoding/json"
 	"strings"
 
 	"errors"
@@ -13,7 +14,7 @@ import (
 	"github.com/tinyci/ci-agents/api/handlers/grpc"
 	authconsts "github.com/tinyci/ci-agents/api/services/grpc/auth"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/auth"
-	"github.com/tinyci/ci-agents/model"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 	"golang.org/x/oauth2"
@@ -68,12 +69,16 @@ func (as *AuthServer) OAuthChallenge(ctx context.Context, ocr *auth.OAuthChallen
 
 	user, eErr := as.H.Clients.Data.GetUser(ctx, u.GetLogin())
 	if eErr != nil {
-		user = &model.User{
+		user = &types.User{
 			Username: u.GetLogin(),
 		}
 	}
 
-	user.Token = &topTypes.OAuthToken{Token: tok.AccessToken, Scopes: scopes, Username: u.GetLogin()}
+	user.TokenJSON, err = json.Marshal(&topTypes.OAuthToken{Token: tok.AccessToken, Scopes: scopes, Username: u.GetLogin()})
+	if err != nil {
+		return nil, err
+	}
+
 	if eErr != nil { // same check as above; to determine whether to add or patch
 		user, eErr = as.H.Clients.Data.PutUser(ctx, user)
 		if eErr != nil {

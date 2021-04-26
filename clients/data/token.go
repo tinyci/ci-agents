@@ -5,7 +5,6 @@ import (
 
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/model"
 	"google.golang.org/grpc"
 )
 
@@ -32,11 +31,11 @@ func (c *Client) DeleteToken(ctx context.Context, username string) error {
 }
 
 // ValidateToken validates the token and returns error if it is not valid somehow.
-func (c *Client) ValidateToken(ctx context.Context, token string) (*model.User, error) {
+func (c *Client) ValidateToken(ctx context.Context, token string) (*types.User, error) {
 	user, err := c.client.ValidateToken(ctx, &types.StringID{ID: token}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, err
 	}
 
-	return model.NewUserFromProto(user)
+	return user, nil
 }

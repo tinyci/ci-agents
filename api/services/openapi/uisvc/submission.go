@@ -35,7 +35,7 @@ func (h *H) GetSubmissionIdRuns(ctx echo.Context, id int64, params uisvc.GetSubm
 		return err
 	}
 
-	return ctx.JSON(200, runs)
+	return ctx.JSON(200, sanitizeRuns(runs.List))
 }
 
 // GetSubmissionIdTasks retrieves a submission's task from the submission id
@@ -55,7 +55,7 @@ func (h *H) GetSubmissionIdTasks(ctx echo.Context, id int64, params uisvc.GetSub
 		return err
 	}
 
-	return ctx.JSON(200, tasks)
+	return ctx.JSON(200, sanitizeTasks(tasks.Tasks))
 }
 
 // GetSubmissions lists the submissions with optional repository/sha filtering and pagination.
@@ -70,7 +70,7 @@ func (h *H) GetSubmissions(ctx echo.Context, params uisvc.GetSubmissionsParams) 
 		return err
 	}
 
-	return ctx.JSON(200, list)
+	return ctx.JSON(200, sanitizeSubmissions(list.Submissions))
 }
 
 // GetSubmissionsCount counts the submissions with optional repository/sha filtering.

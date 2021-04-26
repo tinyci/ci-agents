@@ -2,6 +2,7 @@ package queuesvc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/queue"
 	gtypes "github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/log"
-	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -70,14 +70,18 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 		err := errors.New("No owner for repository for queued run; skipping")
 		qs.H.Clients.Log.WithFields(log.FieldMap{
 			"repository": qi.Run.Task.Submission.BaseRef.Repository.Name,
-			"run_id":     fmt.Sprintf("%d", qi.Run.ID),
+			"run_id":     fmt.Sprintf("%d", qi.Run.Id),
 			"ran_on":     qr.RunningOn,
 		}).Error(ctx, err)
 
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
-	token := qi.Run.Task.Submission.BaseRef.Repository.Owner.Token
+	var token types.OAuthToken
+
+	if err := json.Unmarshal(qi.Run.Task.Submission.BaseRef.Repository.Owner.TokenJSON, &token); err != nil {
+		return nil, err
+	}
 
 	github := qs.H.OAuth.GithubClient(token.Username, token.Token)
 	parts := strings.SplitN(qi.Run.Task.Submission.BaseRef.Repository.Name, "/", 2)
@@ -86,15 +90,15 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 	}
 
 	go func() {
-		if err := github.StartedStatus(ctx, parts[0], parts[1], qi.Run.Name, qi.Run.Task.Submission.HeadRef.SHA, fmt.Sprintf("%s/log/%d", qs.H.URL, qi.Run.ID)); err != nil {
+		if err := github.StartedStatus(ctx, parts[0], parts[1], qi.Run.Name, qi.Run.Task.Submission.HeadRef.Sha, fmt.Sprintf("%s/typeslog/%d", qs.H.URL, qi.Run.Id)); err != nil {
 			fmt.Println(err)
 		}
 	}()
 
-	return qi.ToProto(), nil
+	return qi, nil
 }
 
-func doSubmit(ctx context.Context, h *grpcHandler.H, qis []*model.QueueItem) (retErr error) {
+func doSubmit(ctx context.Context, h *grpcHandler.H, qis []*gtypes.QueueItem) (retErr error) {
 	since := time.Now()
 	defer func() {
 		if retErr == nil {
@@ -147,7 +151,7 @@ func (qs *QueueServer) Submit(ctx context.Context, sub *queue.Submission) (*empt
 	submissionLogger.Infof(ctx, "Putting %d queue items from submissions", len(qis))
 	if err := doSubmit(ctx, qs.H, qis); err != nil {
 		for _, qi := range qis {
-			if err := qs.H.Clients.Data.PutStatus(ctx, qi.Run.ID, false, fmt.Sprintf("Canceled due to error: %v", err)); err != nil {
+			if err := qs.H.Clients.Data.PutStatus(ctx, qi.Run.Id, false, fmt.Sprintf("Canceled due to error: %v", err)); err != nil {
 				submissionLogger.Errorf(ctx, "While canceling runs: %v", err)
 			}
 		}

@@ -2,6 +2,7 @@ package datasvc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path"
 	"sort"
@@ -10,11 +11,12 @@ import (
 
 	check "github.com/erikh/check"
 	"github.com/golang/mock/gomock"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/mocks/github"
-	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/testutil"
-	"github.com/tinyci/ci-agents/types"
+	topTypes "github.com/tinyci/ci-agents/types"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var ctx = context.Background()
@@ -23,34 +25,41 @@ func (ds *datasvcSuite) TestBasicUser(c *check.C) {
 	username := testutil.RandString(8)
 	resp, err := ds.client.MakeUser(username)
 	c.Assert(err, check.IsNil)
-	c.Assert(resp.ID, check.Not(check.Equals), int64(0))
+	c.Assert(resp.Id, check.Not(check.Equals), int64(0))
 	c.Assert(resp.Username, check.Equals, username)
 
 	user, err := ds.client.Client().GetUser(ctx, username)
 	c.Assert(err, check.IsNil)
-	c.Assert(resp, check.DeepEquals, user)
+	c.Assert(resp.ProtoReflect(), check.DeepEquals, user.ProtoReflect())
 
-	user.Token = &types.OAuthToken{Token: "this is in this test"}
+	user.TokenJSON, err = json.Marshal(&topTypes.OAuthToken{Token: "this is in this test"})
+	c.Assert(err, check.IsNil)
 	c.Assert(ds.client.Client().PatchUser(ctx, user), check.IsNil)
 	user, err = ds.client.Client().GetUser(ctx, username)
 	c.Assert(err, check.IsNil)
-	c.Assert(user.Token, check.NotNil)
-	c.Assert(user.Token.Token, check.Equals, "this is in this test")
+	c.Assert(user.TokenJSON, check.NotNil)
 
-	user.Token = testutil.DummyToken
+	var token topTypes.OAuthToken
+
+	c.Assert(json.Unmarshal(user.TokenJSON, &token), check.IsNil)
+
+	c.Assert(token.Token, check.Equals, "this is in this test")
+
+	user.TokenJSON, err = json.Marshal(testutil.DummyToken)
+	c.Assert(err, check.IsNil)
 	c.Assert(ds.client.Client().PatchUser(ctx, user), check.IsNil)
 
-	now := time.Now() // should not be able to update this field.
-	user.LastScannedRepos = &now
+	now := timestamppb.Now()
+	user.LastScannedRepos = now
 	c.Assert(ds.client.Client().PatchUser(ctx, user), check.IsNil)
 	user, err = ds.client.Client().GetUser(ctx, username)
 	c.Assert(err, check.IsNil)
-	c.Assert(user.LastScannedRepos, check.Not(check.Equals), &now)
+	c.Assert(user.LastScannedRepos.AsTime(), check.Not(check.DeepEquals), now.AsTime())
 
 	user.Username = "notcool"
 	c.Assert(ds.client.Client().PatchUser(ctx, user), check.NotNil)
 
-	users := map[string]*model.User{ // preseed with already written record
+	users := map[string]*types.User{ // preseed with already written record
 		username: resp,
 	}
 
@@ -64,10 +73,10 @@ func (ds *datasvcSuite) TestBasicUser(c *check.C) {
 	usersResp, err := ds.client.Client().ListUsers(ctx)
 	c.Assert(err, check.IsNil)
 
-	for _, item := range usersResp {
+	for _, item := range usersResp.Users {
 		m, ok := users[item.Username]
 		c.Assert(ok, check.Equals, true, check.Commentf("%s", item.Username))
-		c.Assert(m, check.DeepEquals, item, check.Commentf("%s", item.Username))
+		c.Assert(m.ProtoReflect(), check.DeepEquals, item.ProtoReflect(), check.Commentf("%s", item.Username))
 	}
 }
 
@@ -75,7 +84,7 @@ func (ds *datasvcSuite) TestUserLoginToken(c *check.C) {
 	username := testutil.RandString(8)
 	resp, err := ds.client.MakeUser(username)
 	c.Assert(err, check.IsNil)
-	c.Assert(resp.ID, check.Not(check.Equals), int64(0))
+	c.Assert(resp.Id, check.Not(check.Equals), int64(0))
 	c.Assert(resp.Username, check.Equals, username)
 
 	_, err = ds.client.Client().GetToken(ctx, "quux")
@@ -119,10 +128,10 @@ func (ds *datasvcSuite) TestUserErrors(c *check.C) {
 
 	resp, err := ds.client.Client().GetErrors(ctx, username)
 	c.Assert(err, check.IsNil)
-	c.Assert(len(resp), check.Equals, 10)
+	c.Assert(len(resp.Errors), check.Equals, 10)
 	respStr := []string{}
 
-	for _, item := range resp {
+	for _, item := range resp.Errors {
 		respStr = append(respStr, string(item.Error))
 	}
 
@@ -148,27 +157,27 @@ func (ds *datasvcSuite) TestRepositories(c *check.C) {
 
 	all, err := ds.client.Client().AllRepositories(ctx, username, nil)
 	c.Assert(err, check.IsNil)
-	c.Assert(len(all), check.Equals, 10)
+	c.Assert(len(all.List), check.Equals, 10)
 
 	all, err = ds.client.Client().AllRepositories(ctx, username, stringp("_2"))
 	c.Assert(err, check.IsNil)
-	c.Assert(len(all), check.Equals, 1)
+	c.Assert(len(all.List), check.Equals, 1)
 
 	private, err := ds.client.Client().PrivateRepositories(ctx, username, "")
 	c.Assert(err, check.IsNil)
-	c.Assert(len(private), check.Equals, 5)
+	c.Assert(len(private.List), check.Equals, 5)
 
 	private, err = ds.client.Client().PrivateRepositories(ctx, username, "_2")
 	c.Assert(err, check.IsNil)
-	c.Assert(len(private), check.Equals, 1)
+	c.Assert(len(private.List), check.Equals, 1)
 
 	public, err := ds.client.Client().PublicRepositories(ctx, "")
 	c.Assert(err, check.IsNil)
-	c.Assert(len(public), check.Equals, 5)
+	c.Assert(len(public.List), check.Equals, 5)
 
 	public, err = ds.client.Client().PublicRepositories(ctx, "_3")
 	c.Assert(err, check.IsNil)
-	c.Assert(len(public), check.Equals, 1)
+	c.Assert(len(public.List), check.Equals, 1)
 
 	repo, err := ds.client.Client().GetRepository(ctx, repos[0])
 	c.Assert(err, check.IsNil)
@@ -216,11 +225,11 @@ func (ds *datasvcSuite) TestSubscriptions(c *check.C) {
 
 	subs, err := ds.client.Client().ListSubscriptions(ctx, username2, "")
 	c.Assert(err, check.IsNil)
-	c.Assert(len(subs), check.Equals, 10)
+	c.Assert(len(subs.List), check.Equals, 10)
 
 	subs, err = ds.client.Client().ListSubscriptions(ctx, username2, "_1")
 	c.Assert(err, check.IsNil)
-	c.Assert(len(subs), check.Equals, 1)
+	c.Assert(len(subs.List), check.Equals, 1)
 
 	c.Assert(ds.client.MakeRepo("erikh/private", username, true, ""), check.IsNil)
 	c.Assert(
@@ -232,7 +241,7 @@ func (ds *datasvcSuite) TestSubscriptions(c *check.C) {
 func (ds *datasvcSuite) TestRuns(c *check.C) {
 	config.SetDefaultGithubClient(github.NewMockClient(gomock.NewController(c)), "")
 	now := time.Now()
-	qis := []*model.QueueItem{}
+	qis := []*types.QueueItem{}
 	for i := 0; i < 1000; i++ {
 		qi, err := ds.client.MakeQueueItem()
 		c.Assert(err, check.IsNil)
@@ -253,19 +262,19 @@ func (ds *datasvcSuite) TestRuns(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(count, check.Equals, int64(0))
 
-	count, err = ds.client.Client().RunCount(ctx, qis[0].Run.Task.Submission.BaseRef.Repository.Name, qis[0].Run.Task.Submission.BaseRef.SHA)
+	count, err = ds.client.Client().RunCount(ctx, qis[0].Run.Task.Submission.BaseRef.Repository.Name, qis[0].Run.Task.Submission.BaseRef.Sha)
 	c.Assert(err, check.IsNil)
 	c.Assert(count, check.Equals, int64(1))
 
 	for i := 0; i < 10; i++ {
 		runs, err := ds.client.Client().ListRuns(ctx, "", "", int64(i), 100)
 		c.Assert(err, check.IsNil)
-		c.Assert(len(runs), check.Equals, 100, check.Commentf("Loop: %d", i))
+		c.Assert(len(runs.List), check.Equals, 100, check.Commentf("Loop: %d", i))
 	}
 
 	runs, err := ds.client.Client().ListRuns(ctx, "", "", 10, 100)
 	c.Assert(err, check.IsNil)
-	c.Assert(len(runs), check.Equals, 0)
+	c.Assert(len(runs.List), check.Equals, 0)
 
 	_, err = ds.client.Client().ListRuns(ctx, "", "", -1, 100)
 	c.Assert(err, check.NotNil)
@@ -274,8 +283,24 @@ func (ds *datasvcSuite) TestRuns(c *check.C) {
 func (ds *datasvcSuite) TestQueue(c *check.C) {
 	config.SetDefaultGithubClient(github.NewMockClient(gomock.NewController(c)), "")
 	now := time.Now()
-	for i := 0; i < 1000; i++ {
-		_, err := ds.client.MakeQueueItem()
+
+	count := 100
+	goroutines := 10
+	total := count * goroutines
+
+	errChan := make(chan error, total)
+
+	for i := 0; i < goroutines; i++ {
+		go func() {
+			for x := 0; x < count; x++ {
+				_, err := ds.client.MakeQueueItem()
+				errChan <- err
+			}
+		}()
+	}
+
+	for i := 0; i < total; i++ {
+		err := <-errChan
 		c.Assert(err, check.IsNil)
 	}
 
@@ -285,10 +310,9 @@ func (ds *datasvcSuite) TestQueue(c *check.C) {
 		qi, err := ds.client.Client().NextQueueItem(ctx, "default", "hi")
 		c.Assert(err, check.IsNil)
 		c.Assert(qi.Running, check.Equals, true)
-		c.Assert(qi.RunningOn, check.NotNil)
-		c.Assert(*qi.RunningOn, check.Equals, "hi")
-		c.Assert(qi.StartedAt, check.NotNil)
-		c.Assert(qi.Run.StartedAt, check.NotNil)
+		c.Assert(qi.RunningOn, check.Equals, "hi")
+		c.Assert(qi.StartedAt.IsValid(), check.Equals, true)
+		c.Assert(qi.Run.StartedAt.IsValid(), check.Equals, true)
 	}
 
 	_, err := ds.client.Client().NextQueueItem(ctx, "default", "hi")
@@ -316,17 +340,17 @@ func (ds *datasvcSuite) TestRef(c *check.C) {
 	repo, err := ds.client.Client().GetRepository(ctx, path.Join(ownerName, repoName))
 	c.Assert(err, check.IsNil)
 
-	id, err := ds.client.Client().PutRef(ctx, &model.Ref{
+	id, err := ds.client.Client().PutRef(ctx, &types.Ref{
 		Repository: repo,
 		RefName:    "heads/hi",
-		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		Sha:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	})
 	c.Assert(err, check.IsNil)
 	c.Assert(id, check.Not(check.Equals), int64(0))
 
 	ref, err := ds.client.Client().GetRefByNameAndSHA(ctx, path.Join(ownerName, repoName), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 	c.Assert(err, check.IsNil)
-	c.Assert(ref.ID, check.Equals, id)
+	c.Assert(ref.Id, check.Equals, id)
 
 	_, err = ds.client.Client().GetRefByNameAndSHA(ctx, path.Join(ownerName, repoName), "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 	c.Assert(err, check.NotNil)
@@ -341,7 +365,12 @@ func (ds *datasvcSuite) TestRef(c *check.C) {
 func (ds *datasvcSuite) TestSubmissions(c *check.C) {
 	var lastRepo string
 
-	for i := 0; i < 25; i++ {
+	submissions := 25
+	count := 100
+	goroutines := 10
+	total := count * goroutines
+
+	for i := 0; i < submissions; i++ {
 		username := testutil.RandString(8)
 		user, err := ds.client.MakeUser(username)
 		c.Assert(err, check.IsNil)
@@ -355,102 +384,122 @@ func (ds *datasvcSuite) TestSubmissions(c *check.C) {
 		repo, err := ds.client.Client().GetRepository(ctx, path.Join(ownerName, repoName))
 		c.Assert(err, check.IsNil)
 
-		id, err := ds.client.Client().PutRef(ctx, &model.Ref{
+		id, err := ds.client.Client().PutRef(ctx, &types.Ref{
 			Repository: repo,
 			RefName:    "heads/hi",
-			SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			Sha:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 		})
 		c.Assert(err, check.IsNil)
 		c.Assert(id, check.Not(check.Equals), int64(0))
 
 		ref, err := ds.client.Client().GetRefByNameAndSHA(ctx, path.Join(ownerName, repoName), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 		c.Assert(err, check.IsNil)
-		c.Assert(ref.ID, check.Equals, id)
+		c.Assert(ref.Id, check.Equals, id)
 
-		s, err := ds.client.Client().PutSubmission(ctx, &model.Submission{BaseRef: ref, HeadRef: ref, User: user})
+		s, err := ds.client.Client().PutSubmission(ctx, &types.Submission{BaseRef: ref, HeadRef: ref, User: user})
 		c.Assert(err, check.IsNil)
-		c.Assert(s.ID, check.Not(check.Equals), int64(0))
+		c.Assert(s.Id, check.Not(check.Equals), int64(0))
 
-		tasks := []*model.Task{}
+		errChan := make(chan error, goroutines)
+		taskChan := make(chan *types.Task, total)
 
-		for i := int64(0); i < 1000; i++ {
-			runName := testutil.RandString(8)
+		for i := 0; i < goroutines; i++ {
+			go func() {
+				for x := 0; x < count; x++ {
+					runName := testutil.RandString(8)
 
-			ts := &types.TaskSettings{
-				WorkDir:    "/tmp",
-				Mountpoint: "/tmp",
-				Runs: map[string]*types.RunSettings{
-					runName: {
-						Image:   "foo",
-						Command: []string{"run", "me"},
-						Queue:   "default",
-					},
-				},
-			}
+					ts := &types.TaskSettings{
+						Workdir:    "/tmp",
+						Mountpoint: "/tmp",
+						Runs: map[string]*types.RunSettings{
+							runName: {
+								Image:   "foo",
+								Command: []string{"run", "me"},
+								Queue:   "default",
+							},
+						},
+					}
 
-			task := &model.Task{
-				TaskSettings: ts,
-				Submission:   s,
-			}
+					task := &types.Task{
+						Settings:   ts,
+						Submission: s,
+					}
 
-			t, err := ds.client.Client().PutTask(ctx, task)
-			c.Assert(err, check.IsNil)
+					t, err := ds.client.Client().PutTask(ctx, task)
+					if err != nil {
+						fmt.Println(err)
+						errChan <- err
+						return
+					}
 
-			tasks = append([]*model.Task{t}, tasks...)
+					taskChan <- t
+				}
+			}()
 		}
 
-		s2, err := ds.client.Client().GetSubmissionByID(ctx, s.ID)
+		tasks := []*types.Task{}
+		for i := 0; i < total; i++ {
+			select {
+			case err := <-errChan:
+				c.Assert(err, check.IsNil)
+			case task := <-taskChan:
+				tasks = append(tasks, task)
+			}
+		}
+
+		sort.SliceStable(tasks, func(i, j int) bool { return tasks[i].Id < tasks[j].Id })
+
+		s2, err := ds.client.Client().GetSubmissionByID(ctx, s.Id)
 		c.Assert(err, check.IsNil)
-		c.Assert(s2.ID, check.Equals, s.ID)
+		c.Assert(s2.Id, check.Equals, s.Id)
 		c.Assert(s2.TasksCount, check.Equals, int64(1000))
-		c.Assert(s2.CreatedAt.IsZero(), check.Equals, false)
+		c.Assert(s2.CreatedAt.IsValid(), check.Equals, true)
 
 		for x := int64(0); x < 10; x++ {
 			tasks2, err := ds.client.Client().GetTasksForSubmission(ctx, s, x, 100)
 			c.Assert(err, check.IsNil)
 
-			for _, task := range tasks2 {
-				c.Assert(task.Submission.CreatedAt.IsZero(), check.Equals, false)
+			for _, task := range tasks2.Tasks {
+				c.Assert(task.Submission.CreatedAt.IsValid(), check.Equals, true)
 			}
 
 			sliceTasks := tasks[x*100 : (x+1)*100]
 
 			for i := 0; i < 100; i++ {
-				c.Assert(tasks2[i].ID, check.Equals, sliceTasks[i].ID)
+				c.Assert(tasks2.Tasks[i].Id, check.Equals, sliceTasks[i].Id)
 			}
 		}
 	}
 
 	list, err := ds.client.Client().ListSubmissions(ctx, 0, 100, "", "")
 	c.Assert(err, check.IsNil)
-	c.Assert(len(list), check.Equals, 25)
+	c.Assert(len(list.Submissions), check.Equals, 25)
 
 	list, err = ds.client.Client().ListSubmissions(ctx, 0, 100, lastRepo, "")
 	c.Assert(err, check.IsNil)
-	c.Assert(len(list), check.Equals, 1)
+	c.Assert(len(list.Submissions), check.Equals, 1)
 
 	list, err = ds.client.Client().ListSubmissions(ctx, 0, 100, lastRepo, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 	c.Assert(err, check.IsNil)
-	c.Assert(len(list), check.Equals, 1)
+	c.Assert(len(list.Submissions), check.Equals, 1)
 
-	list, err = ds.client.Client().ListSubmissions(ctx, 0, 100, lastRepo, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab")
+	_, err = ds.client.Client().ListSubmissions(ctx, 0, 100, lastRepo, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab")
 	c.Assert(err, check.NotNil)
-	c.Assert(len(list), check.Equals, 0)
 
 	_, err = ds.client.Client().ListSubmissions(ctx, 0, 100, "a/b", "")
 	c.Assert(err, check.NotNil)
 
-	count, err := ds.client.Client().CountSubmissions(ctx, "", "")
+	subCount, err := ds.client.Client().CountSubmissions(ctx, "", "")
 	c.Assert(err, check.IsNil)
-	c.Assert(count, check.Equals, int64(25))
+	c.Assert(subCount, check.Equals, int64(25))
 
-	count, err = ds.client.Client().CountSubmissions(ctx, lastRepo, "")
+	subCount, err = ds.client.Client().CountSubmissions(ctx, lastRepo, "")
 	c.Assert(err, check.IsNil)
-	c.Assert(count, check.Equals, int64(1))
+	c.Assert(subCount, check.Equals, int64(1))
 
-	count, err = ds.client.Client().CountSubmissions(ctx, lastRepo, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	subCount, err = ds.client.Client().CountSubmissions(ctx, lastRepo, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 	c.Assert(err, check.IsNil)
-	c.Assert(count, check.Equals, int64(1))
+	c.Assert(subCount, check.Equals, int64(1))
 
 	_, err = ds.client.Client().CountSubmissions(ctx, lastRepo, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab")
 	c.Assert(err, check.NotNil)

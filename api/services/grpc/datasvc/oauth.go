@@ -13,7 +13,7 @@ import (
 // used to validate the other side of the handshake when github redirects back
 // to us.
 func (ds *DataServer) OAuthRegisterState(ctx context.Context, oas *data.OAuthState) (*empty.Empty, error) {
-	if err := ds.H.Model.OAuthRegisterState(oas.State, oas.Scopes); err != nil {
+	if err := ds.H.Model.OAuthRegisterState(ctx, oas.State, oas.Scopes); err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
@@ -24,10 +24,12 @@ func (ds *DataServer) OAuthRegisterState(ctx context.Context, oas *data.OAuthSta
 // used to validate the other side of the handshake when github redirects back
 // to us.
 func (ds *DataServer) OAuthValidateState(ctx context.Context, oas *data.OAuthState) (*data.OAuthState, error) {
-	o, err := ds.H.Model.OAuthValidateState(oas.State)
+	o, err := ds.H.Model.OAuthValidateState(ctx, oas.State)
 	if err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
-	return o.ToProto(), nil
+	oas.Scopes = o
+
+	return oas, err
 }

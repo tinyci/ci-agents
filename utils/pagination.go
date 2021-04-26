@@ -17,7 +17,8 @@ func intp(p int64) *int64 {
 
 // ScopePaginationInt applies constraints to pagination; it sets a maximum and a
 // default if not supplied to perPage. Integer-only version.
-func ScopePaginationInt(page, perPage *int64) (int64, int64, error) {
+func ScopePaginationInt(page, perPage *int64) (int, int, error) {
+	// FIXME make this int32 everywhere
 	if page == nil {
 		page = intp(0)
 	}
@@ -42,12 +43,12 @@ func ScopePaginationInt(page, perPage *int64) (int64, int64, error) {
 		return 0, 0, errors.New("invalid per page")
 	}
 
-	return *page, *perPage, nil
+	return int(*page), int(*perPage), nil
 }
 
 // ScopePagination applies constraints to pagination; it sets a maximum and a
 // default if not supplied to perPage. String version.
-func ScopePagination(pg, ppg string) (int64, int64, error) {
+func ScopePagination(pg, ppg string) (int, int, error) {
 	var (
 		page, perPage int64
 	)

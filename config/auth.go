@@ -7,7 +7,6 @@ import (
 	"errors"
 
 	transport "github.com/erikh/go-transport"
-	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/types"
 )
 
@@ -16,6 +15,9 @@ const SessionErrorsKey = "errors"
 
 // SessionKey is the name of the cookie where the session will be stored.
 const SessionKey = "tinyci"
+
+// TokenCryptKey is the crypt key for user tokens
+var TokenCryptKey = []byte{}
 
 // AuthConfig is the configuration for auth and secrets in the case auth isn't
 // used.
@@ -94,7 +96,7 @@ func (ac *AuthConfig) ParseTokenKey() error {
 		return err
 	}
 
-	model.TokenCryptKey = ac.tokenCryptKey
+	TokenCryptKey = ac.tokenCryptKey
 	return nil
 }
 

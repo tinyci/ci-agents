@@ -2,17 +2,18 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
 	"errors"
 
 	transport "github.com/erikh/go-transport"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/data"
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/model"
-	"github.com/tinyci/ci-agents/types"
+	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 	"github.com/urfave/cli/v2"
 )
@@ -87,9 +88,14 @@ func run(ctx *cli.Context) error {
 
 	fmt.Printf("+++ Creating user %s\n", tokenStruct.Username)
 
-	u := &model.User{
-		Username: tokenStruct.Username,
-		Token:    tokenStruct,
+	content, err := json.Marshal(tokenStruct)
+	if err != nil {
+		return err
+	}
+
+	u := &types.User{
+		Username:  tokenStruct.Username,
+		TokenJSON: content,
 	}
 
 	if _, err := client.PutUser(context.Background(), u); err != nil {
@@ -107,7 +113,7 @@ func run(ctx *cli.Context) error {
 	return nil
 }
 
-func inspect(token string) (*types.OAuthToken, error) {
+func inspect(token string) (*topTypes.OAuthToken, error) {
 	c := github.NewClientFromAccessToken(token)
 
 	login, err := c.MyLogin(context.Background())
@@ -115,7 +121,7 @@ func inspect(token string) (*types.OAuthToken, error) {
 		return nil, err
 	}
 
-	return &types.OAuthToken{
+	return &topTypes.OAuthToken{
 		Token:    token,
 		Scopes:   []string{"repo"},
 		Username: login,

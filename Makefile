@@ -99,10 +99,8 @@ demo-sql-shell:
 	docker exec -it $(DEMO_DOCKER_IMAGE) psql tinyci
 
 do-build:
-	GOPATH=$$(mktemp -d /tmp/gopath.XXXXX) go install -v github.com/erikh/migrator
 	GO111MODULE=on go install -v -ldflags "-X main.TinyCIVersion=$(VERSION)" ./cmd/... ./api/...
 	cp .config/services.yaml.example $${GOBIN:-${GOPATH}/bin}
-	cp -Rfp migrations $${GOBIN:-${GOPATH}/bin}
 
 build: distclean
 	mkdir -p build
@@ -176,8 +174,11 @@ bin/golangci-lint:
 golangci-lint: bin/golangci-lint
 	bin/golangci-lint run -v
 
-gen: mockgen
+gen: mockgen build-image
 	cd ci-gen && make gen	
+	go generate -v ./db/migrations
+	$(TEST_DOCKER_RUN) bash -c "go generate ./..."
+
 
 mockgen:
 	GO111MODULE=off go get github.com/golang/mock/...

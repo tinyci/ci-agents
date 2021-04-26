@@ -20,11 +20,11 @@ func (h *H) GetErrors(ctx echo.Context) error {
 		return err
 	}
 
-	for _, err := range errs {
-		if err := h.clients.Data.DeleteError(context.Background(), err.ID, user.ID); err != nil && err != utils.ErrNotFound {
+	for _, err := range errs.Errors {
+		if err := h.clients.Data.DeleteError(context.Background(), err.Id, user.Id); err != nil && err != utils.ErrNotFound {
 			return err
 		}
 	}
 
-	return ctx.JSON(200, errs)
+	return ctx.JSON(200, errs.Errors)
 }

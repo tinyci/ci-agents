@@ -16,6 +16,7 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/repository"
 	"github.com/tinyci/ci-agents/cmdlib"
 	"github.com/tinyci/ci-agents/config"
+	"github.com/tinyci/ci-agents/db/protoconv"
 	"google.golang.org/grpc"
 )
 
@@ -45,7 +46,7 @@ var servers = []*cmdlib.GRPCServer{
 		UseSessions:    true,
 		DefaultService: config.DefaultServices.Data,
 		RegisterService: func(s *grpc.Server, h *grpcHandler.H) error {
-			data.RegisterDataServer(s, &datasvc.DataServer{H: h})
+			data.RegisterDataServer(s, &datasvc.DataServer{H: h, C: protoconv.New(h.Model.GetDB())})
 			return nil
 		},
 	},

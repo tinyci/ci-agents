@@ -172,9 +172,9 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 
 	for _, task := range tasks {
 		c.Assert(task.Submission.BaseRef.Repository.HookSecret, check.Equals, "")
-		runs, err := tc.RunsForTask(ctx, task.ID, nil, nil)
+		runs, err := tc.RunsForTask(ctx, task.Id, nil, nil)
 		c.Assert(err, check.IsNil)
-		count, err := tc.RunsForTaskCount(ctx, task.ID)
+		count, err := tc.RunsForTaskCount(ctx, task.Id)
 		c.Assert(err, check.IsNil)
 		c.Assert(len(runs), check.Equals, int(count))
 	}
@@ -191,7 +191,7 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 		c.Assert(run.Task.Submission.BaseRef.Repository.HookSecret, check.Equals, "")
 	}
 
-	runs, err = tc.RunsForTask(ctx, runs[0].Task.ID, nil, nil)
+	runs, err = tc.RunsForTask(ctx, runs[0].Task.Id, nil, nil)
 	c.Assert(err, check.IsNil)
 
 	for _, run := range runs {
@@ -210,8 +210,8 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 	}
 
 	c.Assert(runs[0].Task.Canceled, check.Equals, false)
-	c.Assert(tc.CancelRun(ctx, runs[0].ID), check.IsNil)
-	run, err := tc.GetRun(ctx, runs[0].ID)
+	c.Assert(tc.CancelRun(ctx, runs[0].Id), check.IsNil)
+	run, err := tc.GetRun(ctx, runs[0].Id)
 	c.Assert(err, check.IsNil)
 	c.Assert(run.Task.Canceled, check.Equals, true)
 }

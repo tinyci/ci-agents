@@ -11,12 +11,12 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/google/uuid"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/data"
 	"github.com/tinyci/ci-agents/clients/log"
 	"github.com/tinyci/ci-agents/clients/queue"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/model"
-	"github.com/tinyci/ci-agents/types"
+	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 )
 
@@ -49,9 +49,9 @@ type HandlerConfig struct {
 }
 
 type (
-	dispatchFunc  map[string]func(interface{}) (*types.Submission, error)
+	dispatchFunc  map[string]func(interface{}) (*topTypes.Submission, error)
 	converterFunc map[string]func([]byte) (interface{}, error)
-	getRepoFunc   map[string]func(interface{}) (*model.Repository, error)
+	getRepoFunc   map[string]func(interface{}) (*types.Repository, error)
 )
 
 // Handler is the hooksvc handler.
@@ -110,13 +110,13 @@ func (h *Handler) Init() error {
 	return nil
 }
 
-func (h *Handler) pushDispatch(obj interface{}) (*types.Submission, error) {
+func (h *Handler) pushDispatch(obj interface{}) (*topTypes.Submission, error) {
 	push, ok := obj.(*github.PushEvent)
 	if !ok {
 		return nil, errors.New("cast failed")
 	}
 
-	return &types.Submission{
+	return &topTypes.Submission{
 		Parent:  push.GetRepo().GetFullName(),
 		Fork:    push.GetRepo().GetFullName(),
 		HeadSHA: push.GetAfter(),
@@ -124,7 +124,7 @@ func (h *Handler) pushDispatch(obj interface{}) (*types.Submission, error) {
 	}, nil
 }
 
-func (h *Handler) prDispatch(obj interface{}) (*types.Submission, error) {
+func (h *Handler) prDispatch(obj interface{}) (*topTypes.Submission, error) {
 	pr, ok := obj.(*github.PullRequestEvent)
 	if !ok {
 		return nil, errors.New("cast failed")
@@ -134,7 +134,7 @@ func (h *Handler) prDispatch(obj interface{}) (*types.Submission, error) {
 
 	switch action {
 	case actionOpened, actionSynchronize:
-		return &types.Submission{
+		return &topTypes.Submission{
 			Parent:   pr.PullRequest.Base.Repo.GetFullName(),
 			Fork:     pr.PullRequest.Head.Repo.GetFullName(),
 			HeadSHA:  pr.PullRequest.Head.GetSHA(),
@@ -158,7 +158,7 @@ func (h *Handler) prConvert(data []byte) (interface{}, error) {
 	return obj, json.Unmarshal(data, obj)
 }
 
-func (h *Handler) pushGetRepo(obj interface{}) (*model.Repository, error) {
+func (h *Handler) pushGetRepo(obj interface{}) (*types.Repository, error) {
 	push, ok := obj.(*github.PushEvent)
 	if !ok {
 		return nil, errors.New("cast failed")
@@ -177,7 +177,7 @@ func (h *Handler) pushGetRepo(obj interface{}) (*model.Repository, error) {
 	return repo, nil
 }
 
-func (h *Handler) prGetRepo(obj interface{}) (*model.Repository, error) {
+func (h *Handler) prGetRepo(obj interface{}) (*types.Repository, error) {
 	pr, ok := obj.(*github.PullRequestEvent)
 	if !ok {
 		return nil, errors.New("cast failed")

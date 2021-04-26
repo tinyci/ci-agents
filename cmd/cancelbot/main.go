@@ -95,15 +95,15 @@ func run(ctx *cli.Context) error {
 			return err
 		}
 
-		for _, run := range runs {
-			if run.Status == nil && time.Since(run.CreatedAt) > ctx.Duration("timeout") {
+		for _, run := range runs.List {
+			if run.Status && time.Since(run.CreatedAt.AsTime()) > ctx.Duration("timeout") {
 				if ctx.Bool("dry-run") {
-					logrus.Infof("Would cancel run %d, repository %v, ref %v, name %v -- %v old", run.ID, run.Task.Submission.BaseRef.Repository.Name, run.Task.Submission.HeadRef.RefName, run.Name, time.Since(run.CreatedAt))
+					logrus.Infof("Would cancel run %d, repository %v, ref %v, name %v -- %v old", run.Id, run.Task.Submission.BaseRef.Repository.Name, run.Task.Submission.HeadRef.RefName, run.Name, time.Since(run.CreatedAt.AsTime()))
 				} else {
-					if err := client.SetCancel(ct, run.ID); err != nil {
+					if err := client.SetCancel(ct, run.Id); err != nil {
 						return err
 					}
-					logrus.Infof("Canceled run %d, repository %v, ref %v, name %v -- %v old", run.ID, run.Task.Submission.BaseRef.Repository.Name, run.Task.Submission.HeadRef.RefName, run.Name, time.Since(run.CreatedAt))
+					logrus.Infof("Canceled run %d, repository %v, ref %v, name %v -- %v old", run.Id, run.Task.Submission.BaseRef.Repository.Name, run.Task.Submission.HeadRef.RefName, run.Name, time.Since(run.CreatedAt.AsTime()))
 				}
 			}
 		}

@@ -3,7 +3,7 @@ env:
   - TESTING=1
   - GIN_MODE=release
 mountpoint: "/go/src/github.com/tinyci/ci-agents"
-default_image: tinyci/ci-agents:04.21.2021
+default_image: tinyci/ci-agents:05.16.2021
 runs:
   gen-clean:
     command: [ "bash", "-c", "bash ci-gen/gen.sh && git diff --stat --exit-code" ]

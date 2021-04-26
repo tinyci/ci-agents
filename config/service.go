@@ -12,7 +12,6 @@ import (
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/clients/log"
 	"github.com/tinyci/ci-agents/clients/queue"
-	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/utils"
 )
 
@@ -64,8 +63,7 @@ type Service struct {
 
 	Clients *Clients `yaml:"-"`
 
-	Model *model.Model `yaml:"-"`
-	Name  string       `yaml:"-"`
+	Name string `yaml:"-"`
 }
 
 // Clients is a struct that encapsulates the various internal clients we use.

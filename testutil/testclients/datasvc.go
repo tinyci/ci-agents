@@ -2,14 +2,15 @@ package testclients
 
 import (
 	"context"
+	"encoding/json"
 	"path"
 
 	"github.com/google/go-github/github"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/data"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/testutil"
-	"github.com/tinyci/ci-agents/types"
+	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 )
 
@@ -30,10 +31,15 @@ func (dc *DataClient) Client() *data.Client {
 }
 
 // MakeUser makes a new user with the name provided. It is given a dummy access token.
-func (dc *DataClient) MakeUser(username string) (*model.User, error) {
-	return dc.client.PutUser(context.Background(), &model.User{
-		Username: username,
-		Token:    testutil.DummyToken,
+func (dc *DataClient) MakeUser(username string) (*types.User, error) {
+	token, err := json.Marshal(topTypes.OAuthToken{Token: "abcdef"})
+	if err != nil {
+		return nil, err
+	}
+
+	return dc.client.PutUser(context.Background(), &types.User{
+		Username:  username,
+		TokenJSON: token,
 	})
 }
 
@@ -60,7 +66,7 @@ func (dc *DataClient) MakeRepo(fullRepo, owner string, private bool, forkOf stri
 }
 
 // MakeQueueItem returns a queueitem that has already been stored
-func (dc *DataClient) MakeQueueItem() (*model.QueueItem, error) {
+func (dc *DataClient) MakeQueueItem() (*types.QueueItem, error) {
 	username := testutil.RandString(8)
 	_, err := dc.MakeUser(username)
 	if err != nil {
@@ -89,10 +95,10 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, error) {
 		return nil, err
 	}
 
-	baseref := &model.Ref{
+	baseref := &types.Ref{
 		Repository: parent,
 		RefName:    testutil.RandString(8),
-		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		Sha:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
 	id, err := dc.client.PutRef(context.Background(), baseref)
@@ -100,12 +106,12 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, error) {
 		return nil, err
 	}
 
-	baseref.ID = id
+	baseref.Id = id
 
-	headref := &model.Ref{
+	headref := &types.Ref{
 		Repository: fork,
 		RefName:    testutil.RandString(8),
-		SHA:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		Sha:        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 
 	id, err = dc.client.PutRef(context.Background(), headref)
@@ -113,9 +119,9 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, error) {
 		return nil, err
 	}
 
-	headref.ID = id
+	headref.Id = id
 
-	sub := &model.Submission{BaseRef: baseref, HeadRef: headref}
+	sub := &types.Submission{BaseRef: baseref, HeadRef: headref}
 	sub, err = dc.client.PutSubmission(context.Background(), sub)
 	if err != nil {
 		return nil, err
@@ -124,7 +130,7 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, error) {
 	runName := testutil.RandString(8)
 
 	ts := &types.TaskSettings{
-		WorkDir:    "/tmp",
+		Workdir:    "/tmp",
 		Mountpoint: "/tmp",
 		Runs: map[string]*types.RunSettings{
 			runName: {
@@ -135,9 +141,9 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, error) {
 		},
 	}
 
-	task := &model.Task{
-		TaskSettings: ts,
-		Submission:   sub,
+	task := &types.Task{
+		Settings:   ts,
+		Submission: sub,
 	}
 
 	t, err := dc.client.PutTask(context.Background(), task)
@@ -145,18 +151,18 @@ func (dc *DataClient) MakeQueueItem() (*model.QueueItem, error) {
 		return nil, err
 	}
 
-	task.ID = t.ID
+	task.Id = t.Id
 
-	qi := &model.QueueItem{
+	qi := &types.QueueItem{
 		QueueName: "default",
-		Run: &model.Run{
-			Name:        runName,
-			RunSettings: ts.Runs[runName],
-			Task:        t,
+		Run: &types.Run{
+			Name:     runName,
+			Settings: ts.Runs[runName],
+			Task:     t,
 		},
 	}
 
-	qis, err := dc.client.PutQueue(context.Background(), []*model.QueueItem{qi})
+	qis, err := dc.client.PutQueue(context.Background(), []*types.QueueItem{qi})
 	if err != nil {
 		return nil, err
 	}

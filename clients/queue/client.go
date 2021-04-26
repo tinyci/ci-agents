@@ -7,7 +7,6 @@ import (
 	transport "github.com/erikh/go-transport"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/queue"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc"
 )
@@ -71,13 +70,8 @@ func (c *Client) SetCancel(ctx context.Context, id int64) error {
 }
 
 // NextQueueItem returns the next item in the queue.
-func (c *Client) NextQueueItem(ctx context.Context, queueName, hostname string) (*model.QueueItem, error) {
-	qi, err := c.client.NextQueueItem(ctx, &types.QueueRequest{QueueName: queueName, RunningOn: hostname}, grpc.WaitForReady(false))
-	if err != nil {
-		return nil, err
-	}
-
-	return model.NewQueueItemFromProto(qi)
+func (c *Client) NextQueueItem(ctx context.Context, queueName, hostname string) (*types.QueueItem, error) {
+	return c.client.NextQueueItem(ctx, &types.QueueRequest{QueueName: queueName, RunningOn: hostname}, grpc.WaitForReady(false))
 }
 
 // SetStatus completes the run by returning its status back to the system.

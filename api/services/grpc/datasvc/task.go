@@ -6,7 +6,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/model"
+	"github.com/tinyci/ci-agents/db/models"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -14,7 +14,7 @@ import (
 
 // CancelTask cancels a task by ID.
 func (ds *DataServer) CancelTask(ctx context.Context, id *types.IntID) (*empty.Empty, error) {
-	if err := ds.H.Model.CancelTaskByID(id.ID, ds.H.UserConfig.URL, nil); err != nil {
+	if err := ds.H.Model.CancelTask(ctx, id.ID); err != nil {
 		return nil, utils.WrapError(err, "could not cancel runs for for task_id %d", id.ID)
 	}
 
@@ -23,7 +23,7 @@ func (ds *DataServer) CancelTask(ctx context.Context, id *types.IntID) (*empty.E
 
 // CancelTasksByPR cancels multiple tasks by Pull Request ID.
 func (ds *DataServer) CancelTasksByPR(ctx context.Context, prq *types.CancelPRRequest) (*empty.Empty, error) {
-	if err := ds.H.Model.CancelTasksForPR(prq.Repository, prq.Id, ds.H.URL); err != nil {
+	if err := ds.H.Model.CancelTaskForPR(ctx, prq.Repository, prq.Id); err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "Could not cancel tasks for repo %q, PR #%d: %v", prq.Repository, prq.Id, err)
 	}
 	return &empty.Empty{}, nil
@@ -31,21 +31,26 @@ func (ds *DataServer) CancelTasksByPR(ctx context.Context, prq *types.CancelPRRe
 
 // PutTask creates a new task for use. Returns the ID of the created task.
 func (ds *DataServer) PutTask(ctx context.Context, task *types.Task) (*types.Task, error) {
-	t, err := model.NewTaskFromProto(task)
+	t, err := ds.C.FromProto(ctx, task)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := ds.H.Model.Create(t).Error; err != nil {
-		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
+	if err := ds.H.Model.PutTask(ctx, t.(*models.Task)); err != nil {
+		return nil, err
 	}
 
-	return t.ToProto(), nil
+	task2, err := ds.C.ToProto(ctx, t)
+	if err != nil {
+		return nil, err
+	}
+
+	return task2.(*types.Task), nil
 }
 
 // ListTasks returns a list of tasks based on the query.
 func (ds *DataServer) ListTasks(ctx context.Context, req *data.TaskListRequest) (*types.TaskList, error) {
-	tasks, err := ds.H.Model.ListTasks(req.Repository, req.Sha, req.Page, req.PerPage)
+	tasks, err := ds.H.Model.ListTasks(ctx, req.Repository, req.Sha, req.Page, req.PerPage)
 	if err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
@@ -53,7 +58,11 @@ func (ds *DataServer) ListTasks(ctx context.Context, req *data.TaskListRequest) 
 	retTasks := &types.TaskList{}
 
 	for _, task := range tasks {
-		retTasks.Tasks = append(retTasks.Tasks, task.ToProto())
+		t, err := ds.C.ToProto(ctx, task)
+		if err != nil {
+			return nil, err
+		}
+		retTasks.Tasks = append(retTasks.Tasks, t.(*types.Task))
 	}
 
 	return retTasks, nil
@@ -61,7 +70,7 @@ func (ds *DataServer) ListTasks(ctx context.Context, req *data.TaskListRequest) 
 
 // CountTasks counts the number of tasks that would be found by the query
 func (ds *DataServer) CountTasks(ctx context.Context, req *data.TaskListRequest) (*data.Count, error) {
-	count, err := ds.H.Model.CountTasks(req.Repository, req.Sha)
+	count, err := ds.H.Model.CountTasks(ctx, req.Repository, req.Sha)
 	if err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
@@ -71,7 +80,7 @@ func (ds *DataServer) CountTasks(ctx context.Context, req *data.TaskListRequest)
 
 // RunsForTask retrieves all the runs for the task, with optional pagination.
 func (ds *DataServer) RunsForTask(ctx context.Context, req *data.RunsForTaskRequest) (*types.RunList, error) {
-	runs, err := ds.H.Model.GetRunsForTask(req.Id, req.Page, req.PerPage)
+	runs, err := ds.H.Model.GetRunsForTask(ctx, req.Id, req.Page, req.PerPage)
 	if err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
@@ -79,7 +88,11 @@ func (ds *DataServer) RunsForTask(ctx context.Context, req *data.RunsForTaskRequ
 	rl := &types.RunList{}
 
 	for _, run := range runs {
-		rl.List = append(rl.List, run.ToProto())
+		r, err := ds.C.ToProto(ctx, run)
+		if err != nil {
+			return nil, err
+		}
+		rl.List = append(rl.List, r.(*types.Run))
 	}
 
 	return rl, nil
@@ -87,25 +100,10 @@ func (ds *DataServer) RunsForTask(ctx context.Context, req *data.RunsForTaskRequ
 
 // CountRunsForTask counts all the runs for a given task.
 func (ds *DataServer) CountRunsForTask(ctx context.Context, id *types.IntID) (*data.Count, error) {
-	count, err := ds.H.Model.CountRunsForTask(id.ID)
+	count, err := ds.H.Model.CountRunsForTask(ctx, id.ID)
 	if err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
 	return &data.Count{Count: count}, nil
-}
-
-// ListSubscribedTasksForUser mirrors the model call by the same name.
-func (ds *DataServer) ListSubscribedTasksForUser(ctx context.Context, lstr *data.ListSubscribedTasksRequest) (*types.TaskList, error) {
-	tasks, err := ds.H.Model.ListSubscribedTasksForUser(lstr.Id, lstr.Page, lstr.PerPage)
-	if err != nil {
-		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
-	}
-	grpcTask := &types.TaskList{}
-
-	for _, task := range tasks {
-		grpcTask.Tasks = append(grpcTask.Tasks, task.ToProto())
-	}
-
-	return grpcTask, nil
 }

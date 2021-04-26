@@ -73,23 +73,23 @@ func (us *utilsSuite) TestScopePagination(c *check.C) {
 
 	pg, ppg, err := ScopePaginationInt(intp(0), intp(0))
 	c.Assert(err, check.IsNil)
-	c.Assert(pg, check.Equals, int64(0))
-	c.Assert(ppg, check.Equals, defaultPerPage)
+	c.Assert(pg, check.Equals, 0)
+	c.Assert(ppg, check.Equals, int(defaultPerPage))
 
 	pg, ppg, err = ScopePaginationInt(nil, nil)
 	c.Assert(err, check.IsNil)
-	c.Assert(pg, check.Equals, int64(0))
-	c.Assert(ppg, check.Equals, defaultPerPage)
+	c.Assert(pg, check.Equals, 0)
+	c.Assert(ppg, check.Equals, int(defaultPerPage))
 
 	pg, ppg, err = ScopePaginationInt(intp(0), intp(MaxPerPage*2))
 	c.Assert(err, check.IsNil)
-	c.Assert(pg, check.Equals, int64(0))
-	c.Assert(ppg, check.Equals, MaxPerPage)
+	c.Assert(pg, check.Equals, 0)
+	c.Assert(ppg, check.Equals, int(MaxPerPage))
 
 	pg, ppg, err = ScopePagination("", "")
 	c.Assert(err, check.IsNil)
-	c.Assert(pg, check.Equals, int64(0))
-	c.Assert(ppg, check.Equals, defaultPerPage)
+	c.Assert(pg, check.Equals, 0)
+	c.Assert(ppg, check.Equals, int(defaultPerPage))
 
 	for _, failure := range []string{"asdf", "-1", "d34dbeef"} {
 		_, _, err := ScopePagination(failure, "")

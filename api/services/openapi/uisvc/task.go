@@ -20,7 +20,7 @@ func (h *H) GetTasks(ctx echo.Context, params uisvc.GetTasksParams) error {
 		return err
 	}
 
-	return ctx.JSON(200, tasks)
+	return ctx.JSON(200, sanitizeTasks(tasks.Tasks))
 }
 
 // GetTasksCount counts the task list with the supplied repo/sha filtering.
@@ -45,7 +45,7 @@ func (h *H) GetTasksRunsId(ctx echo.Context, id int64, params uisvc.GetTasksRuns
 		return err
 	}
 
-	return ctx.JSON(200, runs)
+	return ctx.JSON(200, sanitizeRuns(runs.List))
 }
 
 // GetTasksRunsIdCount counts all the runs by task ID.
@@ -60,22 +60,7 @@ func (h *H) GetTasksRunsIdCount(ctx echo.Context, id int64) error {
 
 // GetTasksSubscribed lists only the tasks for the repositories the user is subscribed to.
 func (h *H) GetTasksSubscribed(ctx echo.Context, params uisvc.GetTasksSubscribedParams) error {
-	page, perPage, err := utils.ScopePaginationInt(params.Page, params.PerPage)
-	if err != nil {
-		return err
-	}
-
-	u, ok := h.getUser(ctx)
-	if !ok {
-		return utils.ErrInvalidAuth
-	}
-
-	tasks, err := h.clients.Data.ListSubscribedTasksForUser(ctx.Request().Context(), u.ID, int64(page), int64(perPage))
-	if err != nil {
-		return err
-	}
-
-	return ctx.JSON(200, tasks)
+	return ctx.JSON(200, []interface{}{}) // FIXME remove this method
 }
 
 // PostTasksCancelId cancels a task by ID.

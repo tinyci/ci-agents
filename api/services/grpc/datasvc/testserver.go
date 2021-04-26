@@ -5,6 +5,8 @@ import (
 	grpcHandler "github.com/tinyci/ci-agents/api/handlers/grpc"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/config"
+	"github.com/tinyci/ci-agents/db"
+	"github.com/tinyci/ci-agents/db/protoconv"
 	"github.com/tinyci/ci-agents/testutil"
 	"google.golang.org/grpc"
 )
@@ -34,7 +36,13 @@ func MakeDataServer() (*grpcHandler.H, chan struct{}, error) {
 	}
 
 	srv := grpc.NewServer()
-	data.RegisterDataServer(srv, &DataServer{H: h})
+
+	db, err := db.NewConn(h.UserConfig.DSN)
+	if err != nil {
+		return h, nil, err
+	}
+
+	data.RegisterDataServer(srv, &DataServer{H: h, C: protoconv.New(db)})
 
 	doneChan, err := h.Boot(t, srv, make(chan struct{}))
 	return h, doneChan, err

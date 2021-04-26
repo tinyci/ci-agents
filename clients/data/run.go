@@ -5,7 +5,6 @@ import (
 
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/model"
 	"google.golang.org/grpc"
 )
 
@@ -20,42 +19,16 @@ func (c *Client) RunCount(ctx context.Context, repoName, sha string) (int64, err
 }
 
 // ListRuns lists runs by repository name and sha
-func (c *Client) ListRuns(ctx context.Context, repoName, sha string, page, perPage int64) ([]*model.Run, error) {
-	list, err := c.client.RunList(ctx, &data.RunListRequest{Repository: repoName, Sha: sha, Page: page, PerPage: perPage}, grpc.WaitForReady(true))
-	if err != nil {
-		return nil, err
-	}
-
-	runList := []*model.Run{}
-
-	for _, run := range list.List {
-		pr, err := model.NewRunFromProto(run)
-		if err != nil {
-			return nil, err
-		}
-
-		runList = append(runList, pr)
-	}
-
-	return runList, nil
+func (c *Client) ListRuns(ctx context.Context, repoName, sha string, page, perPage int64) (*types.RunList, error) {
+	return c.client.RunList(ctx, &data.RunListRequest{Repository: repoName, Sha: sha, Page: page, PerPage: perPage}, grpc.WaitForReady(true))
 }
 
 // GetRun retrieves a run by id.
-func (c *Client) GetRun(ctx context.Context, id int64) (*model.Run, error) {
-	run, err := c.client.GetRun(ctx, &types.IntID{ID: id}, grpc.WaitForReady(true))
-	if err != nil {
-		return nil, err
-	}
-
-	return model.NewRunFromProto(run)
+func (c *Client) GetRun(ctx context.Context, id int64) (*types.Run, error) {
+	return c.client.GetRun(ctx, &types.IntID{ID: id}, grpc.WaitForReady(true))
 }
 
 // GetRunUI retrieves a run by id.
-func (c *Client) GetRunUI(ctx context.Context, id int64) (*model.Run, error) {
-	run, err := c.client.GetRunUI(ctx, &types.IntID{ID: id}, grpc.WaitForReady(true))
-	if err != nil {
-		return nil, err
-	}
-
-	return model.NewRunFromProto(run)
+func (c *Client) GetRunUI(ctx context.Context, id int64) (*types.Run, error) {
+	return c.client.GetRunUI(ctx, &types.IntID{ID: id}, grpc.WaitForReady(true))
 }
