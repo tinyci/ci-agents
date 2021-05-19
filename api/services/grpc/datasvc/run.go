@@ -2,10 +2,11 @@ package datasvc
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,27 +18,43 @@ func (ds *DataServer) RunCount(ctx context.Context, rp *data.RefPair) (*data.Cou
 		res int64
 	)
 
+	// we don't want to return an error upon finding zero runs. We want to return 0.
+	// this comes up in a few places in this routine.
+	dead := &data.Count{Count: 0}
+
 	if rp.RepoName != "" {
-		repo, err := ds.H.Model.GetRepositoryByName(rp.RepoName)
+		repo, err := ds.H.Model.GetRepositoryByName(ctx, rp.RepoName)
 		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return dead, nil
+			}
 			return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 		}
 
 		if rp.Sha != "" {
-			res, err = ds.H.Model.RunTotalCountForRepositoryAndSHA(repo, rp.Sha)
+			res, err = ds.H.Model.RunTotalCountForRepositoryAndSHA(ctx, repo, rp.Sha)
 			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return dead, nil
+				}
 				return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 			}
 		} else {
-			res, err = ds.H.Model.RunTotalCountForRepository(repo)
+			res, err = ds.H.Model.RunTotalCountForRepository(ctx, repo)
 			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return dead, nil
+				}
 				return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 			}
 		}
 	} else {
 		var err error
-		res, err = ds.H.Model.RunTotalCount()
+		res, err = ds.H.Model.RunTotalCount(ctx)
 		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return dead, nil
+			}
 			return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 		}
 	}
@@ -47,12 +64,12 @@ func (ds *DataServer) RunCount(ctx context.Context, rp *data.RefPair) (*data.Cou
 
 // RunList lists the runs with pagination
 func (ds *DataServer) RunList(ctx context.Context, rq *data.RunListRequest) (*types.RunList, error) {
-	page, perPage, err := utils.ScopePaginationInt(&rq.Page, &rq.PerPage)
+	pg, ppg, err := utils.ScopePaginationInt(&rq.Page, &rq.PerPage)
 	if err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
-	list, err := ds.H.Model.RunList(page, perPage, rq.Repository, rq.Sha)
+	list, err := ds.H.Model.RunList(ctx, int64(pg), int64(ppg), rq.Repository, rq.Sha)
 	if err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
@@ -60,7 +77,12 @@ func (ds *DataServer) RunList(ctx context.Context, rq *data.RunListRequest) (*ty
 	ret := &types.RunList{}
 
 	for _, run := range list {
-		ret.List = append(ret.List, run.ToProto())
+		r, err := ds.C.ToProto(ctx, run)
+		if err != nil {
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		}
+
+		ret.List = append(ret.List, r.(*types.Run))
 	}
 
 	return ret, nil
@@ -68,22 +90,20 @@ func (ds *DataServer) RunList(ctx context.Context, rq *data.RunListRequest) (*ty
 
 // GetRun retrieves a run by id.
 func (ds *DataServer) GetRun(ctx context.Context, id *types.IntID) (*types.Run, error) {
-	run := &model.Run{}
-
-	if err := ds.H.Model.Preload("Task.Parent").Where("id = ?", id.ID).First(run).Error; err != nil {
-		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
+	run, err := ds.H.Model.GetRun(ctx, id.ID)
+	if err != nil {
+		return nil, status.Error(codes.FailedPrecondition, err.Error())
 	}
 
-	return run.ToProto(), nil
+	ret, err := ds.C.ToProto(ctx, run)
+	if err != nil {
+		return nil, status.Error(codes.FailedPrecondition, err.Error())
+	}
+
+	return ret.(*types.Run), nil
 }
 
 // GetRunUI retrieves a run by id.
 func (ds *DataServer) GetRunUI(ctx context.Context, id *types.IntID) (*types.Run, error) {
-	run := &model.Run{}
-
-	if err := ds.H.Model.Where("id = ?", id.ID).First(run).Error; err != nil {
-		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
-	}
-
-	return run.ToProto(), nil
+	return ds.GetRun(ctx, id)
 }

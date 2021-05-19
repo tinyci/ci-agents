@@ -2,16 +2,17 @@ package queuesvc
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
 
 	gh "github.com/google/go-github/github"
 	grpcHandler "github.com/tinyci/ci-agents/api/handlers/grpc"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/clients/log"
-	"github.com/tinyci/ci-agents/model"
-	"github.com/tinyci/ci-agents/types"
+	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,12 +28,12 @@ const (
 type repoInfo struct {
 	ghParent   *gh.Repository
 	ghFork     *gh.Repository
-	parent     *model.Repository
-	fork       *model.Repository
-	parentRef  *model.Ref
-	forkRef    *model.Ref
-	user       *model.User
-	repoConfig *types.RepoConfig
+	parent     *types.Repository
+	fork       *types.Repository
+	parentRef  *types.Ref
+	forkRef    *types.Ref
+	user       *types.User
+	repoConfig *topTypes.RepoConfig
 	ticketID   int64
 }
 
@@ -42,7 +43,7 @@ type submissionProcessor struct {
 	repoInfo *repoInfo
 }
 
-func getLogger(sub *types.Submission, h *grpcHandler.H) *log.SubLogger {
+func getLogger(sub *topTypes.Submission, h *grpcHandler.H) *log.SubLogger {
 	if sub != nil {
 		return h.Clients.Log.WithFields(log.FieldMap{
 			"parent":       sub.Parent,
@@ -61,7 +62,7 @@ func (qs *QueueServer) newSubmissionProcessor() *submissionProcessor {
 	return &submissionProcessor{repoInfo: &repoInfo{}, handler: qs.H}
 }
 
-func (sp *submissionProcessor) process(ctx context.Context, sub *types.Submission) ([]*model.QueueItem, error) {
+func (sp *submissionProcessor) process(ctx context.Context, sub *topTypes.Submission) ([]*types.QueueItem, error) {
 	sp.logger = getLogger(sub, sp.handler)
 	if err := sp.configureRepositories(ctx, sub); err != nil {
 		return nil, utils.WrapError(err, "configuring repositories for submission")
@@ -82,7 +83,7 @@ func (sp *submissionProcessor) process(ctx context.Context, sub *types.Submissio
 	return tp.pick(ctx, sub, sp.repoInfo)
 }
 
-func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *types.Submission) error {
+func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *topTypes.Submission) error {
 	if err := sub.Validate(); err != nil {
 		return utils.WrapError(err, "validating submission")
 	}
@@ -172,7 +173,7 @@ func (sp *submissionProcessor) configureRepositories(ctx context.Context, sub *t
 	return nil
 }
 
-func (sp *submissionProcessor) manageRefs(ctx context.Context, client github.Client, repo *model.Repository, sha string) (*model.Ref, error) {
+func (sp *submissionProcessor) manageRefs(ctx context.Context, client github.Client, repo *types.Repository, sha string) (*types.Ref, error) {
 	refs, err := client.GetRefs(ctx, repo.Name, sha)
 	if err != nil {
 		return nil, err
@@ -187,21 +188,21 @@ func (sp *submissionProcessor) manageRefs(ctx context.Context, client github.Cli
 		refName = sha
 	}
 
-	if _, _, err := repo.OwnerRepo(); err != nil {
+	if _, _, err := utils.OwnerRepo(repo.Name); err != nil {
 		return nil, err
 	}
 
 	ref, err := sp.handler.Clients.Data.GetRefByNameAndSHA(ctx, repo.Name, sha)
 	if err != nil {
 		if stat, ok := status.FromError(err); ok && stat.Code() == codes.NotFound {
-			ref = &model.Ref{Repository: repo, RefName: refName, SHA: sha}
+			ref = &types.Ref{Repository: repo, RefName: refName, Sha: sha}
 
 			id, err := sp.handler.Clients.Data.PutRef(ctx, ref)
 			if err != nil {
 				return nil, err
 			}
 
-			ref.ID = id
+			ref.Id = id
 		} else {
 			return nil, err
 		}
@@ -210,7 +211,7 @@ func (sp *submissionProcessor) manageRefs(ctx context.Context, client github.Cli
 	return ref, nil
 }
 
-func (sp *submissionProcessor) makeFork(ctx context.Context, client github.Client, parent *model.Repository, fork string) (*model.Repository, error) {
+func (sp *submissionProcessor) makeFork(ctx context.Context, client github.Client, parent *types.Repository, fork string) (*types.Repository, error) {
 	var err error
 	sp.repoInfo.ghFork, err = client.GetRepository(ctx, fork)
 	if err != nil {
@@ -243,10 +244,16 @@ func (ri *repoInfo) client(h *grpcHandler.H) (github.Client, error) {
 		return nil, errors.New("No owner for target repository")
 	}
 
-	return h.OAuth.GithubClient(repoOwner.Token.Username, repoOwner.Token.Token), nil
+	var token topTypes.OAuthToken
+
+	if err := json.Unmarshal(repoOwner.TokenJSON, &token); err != nil {
+		return nil, err
+	}
+
+	return h.OAuth.GithubClient(token.Username, token.Token), nil
 }
 
-func (sp *submissionProcessor) getSubmittedUserClient(ctx context.Context, submittedBy string) (*model.User, github.Client, error) {
+func (sp *submissionProcessor) getSubmittedUserClient(ctx context.Context, submittedBy string) (*types.User, github.Client, error) {
 	if submittedBy == "" {
 		return nil, nil, errors.New("invalid submission -- no `submitted by` field supplied")
 	}
@@ -256,12 +263,18 @@ func (sp *submissionProcessor) getSubmittedUserClient(ctx context.Context, submi
 		return nil, nil, utils.WrapError(err, "obtaining user information for submitter")
 	}
 
-	client := sp.handler.OAuth.GithubClient(user.Token.Username, user.Token.Token)
+	var token topTypes.OAuthToken
+
+	if err := json.Unmarshal(user.TokenJSON, &token); err != nil {
+		return nil, nil, err
+	}
+
+	client := sp.handler.OAuth.GithubClient(token.Username, token.Token)
 
 	return user, client, nil
 }
 
-func (sp *submissionProcessor) parentRepository(ctx context.Context, parent string) (*model.Repository, error) {
+func (sp *submissionProcessor) parentRepository(ctx context.Context, parent string) (*types.Repository, error) {
 	var err error
 	if sp.repoInfo.parent == nil {
 		sp.repoInfo.parent, err = sp.handler.Clients.Data.GetRepository(ctx, parent)
@@ -270,7 +283,7 @@ func (sp *submissionProcessor) parentRepository(ctx context.Context, parent stri
 	return sp.repoInfo.parent, err
 }
 
-func (sp *submissionProcessor) forkRepository(ctx context.Context, fork string) (*model.Repository, error) {
+func (sp *submissionProcessor) forkRepository(ctx context.Context, fork string) (*types.Repository, error) {
 	var err error
 	if sp.repoInfo.fork == nil {
 		sp.repoInfo.fork, err = sp.handler.Clients.Data.GetRepository(ctx, fork)
@@ -312,13 +325,13 @@ func (ri *repoInfo) mainBranch() string {
 	return defaultBranch
 }
 
-func (sp *submissionProcessor) getRepoConfig(ctx context.Context, client github.Client) (*types.RepoConfig, error) {
+func (sp *submissionProcessor) getRepoConfig(ctx context.Context, client github.Client) (*topTypes.RepoConfig, error) {
 	content, err := client.GetFile(ctx, sp.repoInfo.parent.Name, fmt.Sprintf("refs/%s", sp.repoInfo.mainBranch()), repoConfigFilename)
 	if err != nil {
 		return nil, err
 	}
 
-	rc, err := types.NewRepoConfig(content)
+	rc, err := topTypes.NewRepoConfig(content)
 	if err != nil {
 		return nil, err
 	}

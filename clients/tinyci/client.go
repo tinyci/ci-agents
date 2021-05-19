@@ -9,13 +9,13 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	transport "github.com/erikh/go-transport"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/ci-gen/openapi/services/uisvc"
 	"github.com/tinyci/ci-agents/clients/jsonbuffer"
-	"github.com/tinyci/ci-agents/model"
+	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 	"golang.org/x/net/websocket"
 )
@@ -98,16 +98,16 @@ func (c *Client) DeleteToken(ctx context.Context) error {
 }
 
 // Errors gets the user errors logged into the system.
-func (c *Client) Errors(ctx context.Context) ([]*model.UserError, error) {
+func (c *Client) Errors(ctx context.Context) ([]*types.UserError, error) {
 	resp, err := c.client.GetErrors(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	ue := []*model.UserError{}
+	ue := []*types.UserError{}
 
-	return ue, json.NewDecoder(io.TeeReader(resp.Body, os.Stdout)).Decode(&ue)
+	return ue, json.NewDecoder(resp.Body).Decode(&ue)
 }
 
 // Submit submits a request to test a repository to tinyCI.
@@ -141,7 +141,7 @@ func (c *Client) LogAttach(ctx context.Context, id int64, w io.WriteCloser) erro
 }
 
 // LoadRepositories loads your repos from github and returns the objects tinyci recorded.
-func (c *Client) LoadRepositories(ctx context.Context, search *string) ([]*model.Repository, error) {
+func (c *Client) LoadRepositories(ctx context.Context, search *string) ([]*types.Repository, error) {
 	resp, err := c.client.GetRepositoriesScan(ctx)
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func (c *Client) LoadRepositories(ctx context.Context, search *string) ([]*model
 	}
 	defer resp.Body.Close()
 
-	ret := []*model.Repository{}
+	ret := []*types.Repository{}
 
 	return ret, json.NewDecoder(resp.Body).Decode(&ret)
 }
@@ -189,26 +189,26 @@ func (c *Client) DeleteFromCI(ctx context.Context, repository string) error {
 }
 
 // Subscribed lists all subscribed repositories.
-func (c *Client) Subscribed(ctx context.Context, search *string) ([]*model.Repository, error) {
+func (c *Client) Subscribed(ctx context.Context, search *string) ([]*types.Repository, error) {
 	resp, err := c.client.GetRepositoriesSubscribed(ctx, &uisvc.GetRepositoriesSubscribedParams{Search: search})
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	ret := []*model.Repository{}
+	ret := []*types.Repository{}
 	return ret, json.NewDecoder(resp.Body).Decode(&ret)
 }
 
 // Visible lists all visible repositories.
-func (c *Client) Visible(ctx context.Context, search *string) ([]*model.Repository, error) {
+func (c *Client) Visible(ctx context.Context, search *string) ([]*types.Repository, error) {
 	resp, err := c.client.GetRepositoriesVisible(ctx, &uisvc.GetRepositoriesVisibleParams{Search: search})
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	ret := []*model.Repository{}
+	ret := []*types.Repository{}
 	return ret, json.NewDecoder(resp.Body).Decode(&ret)
 }
 
@@ -241,14 +241,14 @@ func (c *Client) Unsubscribe(ctx context.Context, repository string) error {
 }
 
 // Tasks returns the tasks with pagination and optional filtering. (Just pass empty values for no filters)
-func (c *Client) Tasks(ctx context.Context, repository, sha *string, page, perPage *int64) ([]*model.Task, error) {
+func (c *Client) Tasks(ctx context.Context, repository, sha *string, page, perPage *int64) ([]*types.Task, error) {
 	resp, err := c.client.GetTasks(ctx, &uisvc.GetTasksParams{Page: page, PerPage: perPage, Repository: repository, Sha: sha})
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	ret := []*model.Task{}
+	ret := []*types.Task{}
 
 	return ret, json.NewDecoder(resp.Body).Decode(&ret)
 }
@@ -266,14 +266,14 @@ func (c *Client) TaskCount(ctx context.Context, repository, sha *string) (int64,
 }
 
 // RunsForTask returns the runs for the provided task id.
-func (c *Client) RunsForTask(ctx context.Context, taskID int64, page, perPage *int64) ([]*model.Run, error) {
+func (c *Client) RunsForTask(ctx context.Context, taskID int64, page, perPage *int64) ([]*types.Run, error) {
 	resp, err := c.client.GetTasksRunsId(ctx, taskID, &uisvc.GetTasksRunsIdParams{Page: page, PerPage: perPage})
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	ret := []*model.Run{}
+	ret := []*types.Run{}
 	return ret, json.NewDecoder(resp.Body).Decode(&ret)
 }
 
@@ -290,14 +290,14 @@ func (c *Client) RunsForTaskCount(ctx context.Context, taskID int64) (int64, err
 }
 
 // Runs returns all the runs matching the filter set with pagination.
-func (c *Client) Runs(ctx context.Context, repository, sha *string, page, perPage *int64) ([]*model.Run, error) {
+func (c *Client) Runs(ctx context.Context, repository, sha *string, page, perPage *int64) ([]*types.Run, error) {
 	resp, err := c.client.GetRuns(ctx, &uisvc.GetRunsParams{Page: page, PerPage: perPage, Repository: repository, Sha: sha})
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	ret := []*model.Run{}
+	ret := []*types.Run{}
 	return ret, json.NewDecoder(resp.Body).Decode(&ret)
 }
 
@@ -314,14 +314,14 @@ func (c *Client) RunsCount(ctx context.Context, repository, sha *string) (int64,
 }
 
 // GetRun retrieves a run by id.
-func (c *Client) GetRun(ctx context.Context, id int64) (*model.Run, error) {
+func (c *Client) GetRun(ctx context.Context, id int64) (*types.Run, error) {
 	resp, err := c.client.GetRunRunId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	ret := &model.Run{}
+	ret := &types.Run{}
 	return ret, json.NewDecoder(resp.Body).Decode(&ret)
 }
 
@@ -336,7 +336,7 @@ func (c *Client) CancelRun(ctx context.Context, id int64) error {
 }
 
 // AddCapability adds a capability for a user. Must have the modify:user capability to interact.
-func (c *Client) AddCapability(ctx context.Context, username string, capability model.Capability) error {
+func (c *Client) AddCapability(ctx context.Context, username string, capability topTypes.Capability) error {
 	resp, err := c.client.PostCapabilitiesUsernameCapability(ctx, string(capability), username)
 	if err != nil {
 		return err
@@ -345,7 +345,7 @@ func (c *Client) AddCapability(ctx context.Context, username string, capability 
 }
 
 // RemoveCapability removes a capability from a user. Must have the modify:user capability to interact.
-func (c *Client) RemoveCapability(ctx context.Context, username string, capability model.Capability) error {
+func (c *Client) RemoveCapability(ctx context.Context, username string, capability topTypes.Capability) error {
 	resp, err := c.client.DeleteCapabilitiesUsernameCapability(ctx, string(capability), username)
 	if err != nil {
 		return err
@@ -367,43 +367,43 @@ func (c *Client) GetUserProperties(ctx context.Context) (map[string]interface{},
 }
 
 // VisibleRepos retrieves the visible repositories to the user, a search may also be provided to limit scope.
-func (c *Client) VisibleRepos(ctx context.Context, search *string) ([]*model.Repository, error) {
+func (c *Client) VisibleRepos(ctx context.Context, search *string) (*types.RepositoryList, error) {
 	resp, err := c.client.GetRepositoriesVisible(ctx, &uisvc.GetRepositoriesVisibleParams{Search: search})
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	newRepos := model.RepositoryList{}
-	return newRepos, json.NewDecoder(resp.Body).Decode(&newRepos)
+	newRepos := &types.RepositoryList{}
+	return newRepos, json.NewDecoder(resp.Body).Decode(newRepos)
 }
 
 // Submissions returns a list of submissions, paginated and optionally filtered by repository and SHA.
-func (c *Client) Submissions(ctx context.Context, repository, sha *string, page, perPage *int64) ([]*model.Submission, error) {
+func (c *Client) Submissions(ctx context.Context, repository, sha *string, page, perPage *int64) ([]*types.Submission, error) {
 	resp, err := c.client.GetSubmissions(ctx, &uisvc.GetSubmissionsParams{Page: page, PerPage: perPage, Repository: repository, Sha: sha})
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	newSubs := []*model.Submission{}
+	newSubs := []*types.Submission{}
 	return newSubs, json.NewDecoder(resp.Body).Decode(&newSubs)
 }
 
 // TasksForSubmission returns the tasks for the given submission.
-func (c *Client) TasksForSubmission(ctx context.Context, sub *model.Submission) ([]*model.Task, error) {
+func (c *Client) TasksForSubmission(ctx context.Context, sub *types.Submission) ([]*types.Task, error) {
 	perPage := utils.MaxPerPage
 	page := int64(0)
 
-	totalTasks := []*model.Task{}
+	totalTasks := []*types.Task{}
 
 	for {
-		resp, err := c.client.GetSubmissionIdTasks(ctx, sub.ID, &uisvc.GetSubmissionIdTasksParams{Page: &page, PerPage: &perPage})
+		resp, err := c.client.GetSubmissionIdTasks(ctx, sub.Id, &uisvc.GetSubmissionIdTasksParams{Page: &page, PerPage: &perPage})
 		if err != nil {
 			return nil, err
 		}
 
-		jsonTasks := []*model.Task{}
+		jsonTasks := []*types.Task{}
 		if err := json.NewDecoder(resp.Body).Decode(&jsonTasks); err != nil {
 			resp.Body.Close()
 			return nil, err
@@ -424,25 +424,25 @@ func (c *Client) TasksForSubmission(ctx context.Context, sub *model.Submission) 
 }
 
 // GetSubmission retrieves a full submission by ID
-func (c *Client) GetSubmission(ctx context.Context, id int64) (*model.Submission, error) {
+func (c *Client) GetSubmission(ctx context.Context, id int64) (*types.Submission, error) {
 	resp, err := c.client.GetSubmissionId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	sub := &model.Submission{}
+	sub := &types.Submission{}
 	return sub, json.NewDecoder(resp.Body).Decode(sub)
 }
 
 // RunsForSubmission retrieves all the runs for a submission, by id.
-func (c *Client) RunsForSubmission(ctx context.Context, id int64, page, perPage int64) ([]*model.Run, error) {
+func (c *Client) RunsForSubmission(ctx context.Context, id int64, page, perPage int64) ([]*types.Run, error) {
 	resp, err := c.client.GetSubmissionIdRuns(ctx, id, &uisvc.GetSubmissionIdRunsParams{Page: &page, PerPage: &perPage})
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	runs := []*model.Run{}
+	runs := []*types.Run{}
 	return runs, json.NewDecoder(resp.Body).Decode(&runs)
 }

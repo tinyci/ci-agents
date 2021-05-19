@@ -1,13 +1,12 @@
 package testutil
 
 import (
+	"database/sql"
 	"fmt"
 	"math/rand"
 	"strings"
 	"time"
 
-	check "github.com/erikh/check"
-	"github.com/jinzhu/gorm"
 	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 )
@@ -18,33 +17,54 @@ var (
 
 	// DummyToken is a fake oauth2 token.
 	DummyToken = &types.OAuthToken{Token: "123456"}
+
+	// WipeTables is a list of tables to be wiped by WipeDB. The order is
+	// important, basically it's the root, forward looking, from a perspective of
+	// foreign key relationships. This list is cleared in /reverse order/.
+	WipeTables = []string{
+		"o_auths",
+		"sessions",
+		"users",
+		"repositories",
+		"refs",
+		"submissions",
+		"tasks",
+		"runs",
+		"queue_items",
+		"subscriptions",
+		"user_capabilities",
+		"user_errors",
+	}
 )
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-// WipeDB wipes all tables with `truncate table`.
-func WipeDB(c *check.C) {
-	m, err := gorm.Open("postgres", TestDBConfig)
-	c.Assert(err, check.IsNil)
+// WipeDB wipes all tables with `delete from`.
+func WipeDB() error {
+	m, err := sql.Open("postgres", TestDBConfig)
+	if err != nil {
+		return err
+	}
 	defer m.Close()
 
-	rows, err := m.Raw("select tablename from pg_catalog.pg_tables where schemaname='public'").Rows()
-	c.Assert(err, check.IsNil)
+	m.SetMaxOpenConns(1)
 
-	tables := []string{}
-
-	for rows.Next() {
-		var tableName string
-		c.Assert(rows.Scan(&tableName), check.IsNil)
-		tables = append(tables, tableName)
+	tx, err := m.Begin()
+	if err != nil {
+		return err
 	}
-	rows.Close()
+	defer tx.Rollback()
 
-	for _, table := range tables {
-		c.Assert(m.Exec(fmt.Sprintf("truncate table %q", table)).Error, check.IsNil)
+	for i := len(WipeTables) - 1; i >= 0; i-- {
+		_, err := tx.Exec(fmt.Sprintf("delete from %q", WipeTables[i]))
+		if err != nil {
+			return err
+		}
 	}
+
+	return tx.Commit()
 }
 
 var hexChars = strings.Split("0123456789abcdef", "")

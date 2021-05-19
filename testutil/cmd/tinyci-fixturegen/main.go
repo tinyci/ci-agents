@@ -11,12 +11,12 @@ import (
 	"errors"
 
 	"github.com/google/go-github/github"
-	"github.com/tinyci/ci-agents/model"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/testutil/testclients"
-	"github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 	"github.com/urfave/cli/v2"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var dummyRun = &types.RunSettings{
@@ -108,8 +108,8 @@ func (c *cmd) getString() string {
 	return testutil.RandString(rand.Intn(c.max-c.min) + c.min)
 }
 
-func (c *cmd) mkUsers() ([]*model.User, error) {
-	users := []*model.User{}
+func (c *cmd) mkUsers() ([]*types.User, error) {
+	users := []*types.User{}
 
 	for i := rand.Intn(int(c.ctx.Uint("owners"))) + 1; i >= 0; i-- {
 		u, err := c.dc.MakeUser(c.getString())
@@ -123,39 +123,39 @@ func (c *cmd) mkUsers() ([]*model.User, error) {
 	return users, nil
 }
 
-func (c *cmd) mkParents(ctx context.Context, users []*model.User) (model.RepositoryList, error) {
-	parents := model.RepositoryList{}
+func (c *cmd) mkParents(ctx context.Context, users []*types.User) (*types.RepositoryList, error) {
+	parents := &types.RepositoryList{}
 
 	for i := rand.Intn(int(c.ctx.Uint("repositories"))) + 1; i >= 0; i-- {
 		ou := users[rand.Intn(len(users))]
 		name := strings.Join([]string{c.getString(), c.getString()}, "/")
 		if err := c.dc.MakeRepo(name, ou.Username, c.ctx.Bool("private"), ""); err != nil {
-			return nil, err
+			return parents, err
 		}
 
 		if !c.ctx.Bool("disable") {
 			if err := c.dc.Client().EnableRepository(ctx, ou.Username, name); err != nil {
-				return nil, err
+				return parents, err
 			}
 		}
 
 		r, err := c.dc.Client().GetRepository(ctx, name)
 		if err != nil {
-			return nil, err
+			return parents, err
 		}
 
-		parents = append(parents, r)
+		parents.List = append(parents.List, r)
 	}
 
 	return parents, nil
 }
 
-func (c *cmd) mkForks(ctx context.Context, users []*model.User, parents model.RepositoryList) (map[string]*model.Repository, error) {
-	forkParents := map[string]*model.Repository{}
+func (c *cmd) mkForks(ctx context.Context, users []*types.User, parents *types.RepositoryList) (map[string]*types.Repository, error) {
+	forkParents := map[string]*types.Repository{}
 
 	for i := rand.Intn(int(c.ctx.Uint("forks"))) + 1; i >= 0; i-- {
 		ou := users[rand.Intn(len(users))]
-		pr := parents[rand.Intn(len(parents))]
+		pr := parents.List[rand.Intn(len(parents.List))]
 		name := strings.Join([]string{c.getString(), c.getString()}, "/")
 
 		repos := []interface{}{map[string]interface{}{
@@ -189,9 +189,9 @@ func (c *cmd) mkForks(ctx context.Context, users []*model.User, parents model.Re
 	return forkParents, nil
 }
 
-func (c *cmd) mkRefs(ctx context.Context, forkParents map[string]*model.Repository) ([]*model.Ref, []*model.Ref, error) {
-	headrefs := []*model.Ref{}
-	baserefs := []*model.Ref{}
+func (c *cmd) mkRefs(ctx context.Context, forkParents map[string]*types.Repository) ([]*types.Ref, []*types.Ref, error) {
+	headrefs := []*types.Ref{}
+	baserefs := []*types.Ref{}
 
 	for fork, parent := range forkParents {
 		for refC := rand.Intn(int(c.ctx.Uint("refs"))) + 1; refC >= 0; refC-- {
@@ -208,13 +208,13 @@ func (c *cmd) mkRefs(ctx context.Context, forkParents map[string]*model.Reposito
 					return nil, nil, err
 				}
 
-				ref := &model.Ref{
+				ref := &types.Ref{
 					Repository: f,
 					RefName:    refName,
-					SHA:        sha,
+					Sha:        sha,
 				}
 
-				ref.ID, err = c.dc.Client().PutRef(ctx, ref)
+				ref.Id, err = c.dc.Client().PutRef(ctx, ref)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -225,13 +225,13 @@ func (c *cmd) mkRefs(ctx context.Context, forkParents map[string]*model.Reposito
 					sha += fmt.Sprintf("%x", rune(rand.Intn(16)))
 				}
 
-				ref = &model.Ref{
+				ref = &types.Ref{
 					Repository: parent,
 					RefName:    "heads/master",
-					SHA:        sha,
+					Sha:        sha,
 				}
 
-				ref.ID, err = c.dc.Client().PutRef(ctx, ref)
+				ref.Id, err = c.dc.Client().PutRef(ctx, ref)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -244,7 +244,7 @@ func (c *cmd) mkRefs(ctx context.Context, forkParents map[string]*model.Reposito
 	return headrefs, baserefs, nil
 }
 
-func (c *cmd) mkTask(ctx context.Context, sub *model.Submission) (*model.Task, error) {
+func (c *cmd) mkTask(ctx context.Context, sub *types.Submission) (*types.Task, error) {
 	started := rand.Intn(2) == 0
 	finished := started && rand.Intn(2) == 0
 
@@ -268,24 +268,39 @@ func (c *cmd) mkTask(ctx context.Context, sub *model.Submission) (*model.Task, e
 		Mountpoint: "/",
 		Runs:       map[string]*types.RunSettings{"dummy": dummyRun},
 	}
-	if err := ts.Validate(true); err != nil {
-		return nil, err
+
+	var finishedTs *timestamppb.Timestamp
+
+	if finishedAt != nil {
+		finishedTs = timestamppb.New(*finishedAt)
 	}
 
-	task := &model.Task{
-		Path:         c.getString(),
-		CreatedAt:    createdAt,
-		FinishedAt:   finishedAt,
-		StartedAt:    startedAt,
-		Status:       status,
-		TaskSettings: ts,
-		Submission:   sub,
+	var startedTs *timestamppb.Timestamp
+
+	if startedAt != nil {
+		startedTs = timestamppb.New(*startedAt)
+	}
+
+	var sbool bool
+	if status != nil {
+		sbool = *status
+	}
+
+	task := &types.Task{
+		Path:       c.getString(),
+		CreatedAt:  timestamppb.New(createdAt),
+		FinishedAt: finishedTs,
+		StartedAt:  startedTs,
+		StatusSet:  status != nil,
+		Status:     sbool,
+		Settings:   ts,
+		Submission: sub,
 	}
 
 	return c.dc.Client().PutTask(ctx, task)
 }
 
-func (c *cmd) mkTasks(ctx context.Context, subs []*model.Submission) error {
+func (c *cmd) mkTasks(ctx context.Context, subs []*types.Submission) error {
 	for _, sub := range subs {
 		for taskC := rand.Intn(int(c.ctx.Uint("tasks"))) + 1; taskC >= 0; taskC-- {
 			task, err := c.mkTask(ctx, sub)
@@ -293,15 +308,15 @@ func (c *cmd) mkTasks(ctx context.Context, subs []*model.Submission) error {
 				return err
 			}
 
-			qis := []*model.QueueItem{}
+			qis := []*types.QueueItem{}
 			for runC := rand.Intn(int(c.ctx.Uint("runs"))) + 1; runC >= 0; runC-- {
-				run := &model.Run{
-					RunSettings: dummyRun,
-					CreatedAt:   task.CreatedAt,
-					Task:        task,
-					Name:        c.getString(),
+				run := &types.Run{
+					Settings:  dummyRun,
+					CreatedAt: task.CreatedAt,
+					Task:      task,
+					Name:      c.getString(),
 				}
-				qis = append(qis, &model.QueueItem{
+				qis = append(qis, &types.QueueItem{
 					Run:       run,
 					QueueName: "default",
 				})
@@ -316,15 +331,15 @@ func (c *cmd) mkTasks(ctx context.Context, subs []*model.Submission) error {
 	return nil
 }
 
-func (c *cmd) mkSubmissions(ctx context.Context, u *model.User, baserefs []*model.Ref, headrefs []*model.Ref) ([]*model.Submission, error) {
+func (c *cmd) mkSubmissions(ctx context.Context, u *types.User, baserefs []*types.Ref, headrefs []*types.Ref) ([]*types.Submission, error) {
 	if len(headrefs) != len(baserefs) {
 		return nil, errors.New("refs count is not equal")
 	}
 
-	subs := []*model.Submission{}
+	subs := []*types.Submission{}
 
 	for i := 0; i < len(baserefs); i++ {
-		sub := &model.Submission{
+		sub := &types.Submission{
 			HeadRef: headrefs[i],
 			BaseRef: baserefs[i],
 			User:    u,

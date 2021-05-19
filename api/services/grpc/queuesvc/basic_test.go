@@ -10,11 +10,11 @@ import (
 	check "github.com/erikh/check"
 	"github.com/golang/mock/gomock"
 	gh "github.com/google/go-github/github"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/mocks/github"
-	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/testutil"
-	"github.com/tinyci/ci-agents/types"
+	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 )
 
@@ -33,7 +33,7 @@ func (qs *queuesvcSuite) TestBadYAML(c *check.C) {
 	_, err := qs.datasvcClient.MakeUser("erikh")
 	c.Assert(err, check.IsNil)
 
-	sub := &types.Submission{
+	sub := &topTypes.Submission{
 		Parent:   "erikh/foobar",
 		Fork:     "erikh/foobar2",
 		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
@@ -74,7 +74,7 @@ func (qs *queuesvcSuite) TestBadYAML(c *check.C) {
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.NotNil)
 	runs, err := qs.datasvcClient.Client().ListRuns(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
-	c.Assert(len(runs), check.Equals, 0)
+	c.Assert(len(runs.List), check.Equals, 0)
 }
 
 func (qs *queuesvcSuite) TestManualSubmissionOfAddedFork(c *check.C) {
@@ -85,7 +85,7 @@ func (qs *queuesvcSuite) TestManualSubmissionOfAddedFork(c *check.C) {
 	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar2", "erikh", false, "erikh/foobar"), check.IsNil)
 	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar3", "erikh", false, "erikh/foobar"), check.IsNil)
 
-	sub := &types.Submission{
+	sub := &topTypes.Submission{
 		Fork:        "erikh/foobar2",
 		HeadSHA:     "heads/master",
 		All:         true,
@@ -100,10 +100,10 @@ func (qs *queuesvcSuite) TestManualSubmissionOfAddedFork(c *check.C) {
 
 	runs, err := qs.datasvcClient.Client().ListRuns(ctx, "erikh/foobar2", "", 0, 100)
 	c.Assert(err, check.IsNil)
-	c.Assert(len(runs), check.Equals, 15)
+	c.Assert(len(runs.List), check.Equals, 15)
 
 	// not added
-	sub = &types.Submission{
+	sub = &topTypes.Submission{
 		Fork:        "erikh/foobar3",
 		HeadSHA:     "heads/master",
 		All:         true,
@@ -122,7 +122,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	qs.mkGithubClient(client)
 	config.SetDefaultGithubClient(github.NewMockClient(gomock.NewController(c)), "erikh")
 
-	sub := &types.Submission{
+	sub := &topTypes.Submission{
 		Parent:   "erikh/foobar",
 		Fork:     "erikh/foobar2",
 		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
@@ -130,7 +130,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 		TicketID: 10,
 	}
 
-	msub := &types.Submission{
+	msub := &topTypes.Submission{
 		Fork:        "erikh/foobar2",
 		HeadSHA:     "master",
 		SubmittedBy: "erikh",
@@ -150,29 +150,29 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 
 	qis, err := qs.datasvcClient.Client().ListRuns(ctx, sub.Fork, sub.HeadSHA, 0, 100)
 	c.Assert(err, check.IsNil)
-	c.Assert(len(qis), check.Equals, 10)
-	for i := len(qis) - 1; i >= 0; i-- {
+	c.Assert(len(qis.List), check.Equals, 10)
+	for i := len(qis.List) - 1; i >= 0; i-- {
 		// original sha from first run
 		qs.getMock().
 			ErrorStatus(
 				gomock.Any(),
 				"erikh",
 				"foobar",
-				qis[i].Name,
+				qis.List[i].Name,
 				sub.HeadSHA,
-				fmt.Sprintf("url/log/%d", qis[i].ID),
+				fmt.Sprintf("url/log/%d", qis.List[i].Id),
 				utils.ErrRunCanceled,
 			).Return(nil)
 	}
 
-	msub = &types.Submission{
+	msub = &topTypes.Submission{
 		Fork:        "erikh/foobar2",
 		HeadSHA:     "foobar",
 		SubmittedBy: "erikh",
 		Manual:      true,
 	}
 
-	sub = &types.Submission{
+	sub = &topTypes.Submission{
 		Parent:   "erikh/foobar",
 		Fork:     "erikh/foobar2",
 		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396942", // note the different sha is a disambiguator here.
@@ -186,7 +186,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 
 	qis, err = qs.datasvcClient.Client().ListRuns(ctx, sub.Fork, "be3d26c478991039e951097f2c99f56b55396942", 0, 100)
 	c.Assert(err, check.IsNil)
-	c.Assert(len(qis), check.Equals, 10)
+	c.Assert(len(qis.List), check.Equals, 10)
 
 	// cancellation tests
 
@@ -195,16 +195,16 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	qs.getMock().GetSHA(gomock.Any(), sub.Fork, "heads/foobar").Return("be3d26c478991039e951097f2c99f56b55396942", nil) // also here
 	qs.getMock().GetSHA(gomock.Any(), sub.Parent, "heads/master").Return("be3d26c478991039e951097f2c99f56b55396941", nil)
 
-	for i := len(qis) - 1; i >= 0; i-- {
+	for i := len(qis.List) - 1; i >= 0; i-- {
 		// original sha from first run
 		qs.getMock().
 			ErrorStatus(
 				gomock.Any(),
 				"erikh",
 				"foobar",
-				qis[i].Name,
+				qis.List[i].Name,
 				"be3d26c478991039e951097f2c99f56b55396942",
-				fmt.Sprintf("url/log/%d", qis[i].ID),
+				fmt.Sprintf("url/log/%d", qis.List[i].Id),
 				utils.ErrRunCanceled,
 			).Return(nil)
 	}
@@ -215,9 +215,9 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 
 	qis, err = qs.datasvcClient.Client().ListRuns(ctx, sub.Fork, "be3d26c478991039e951097f2c99f56b55396942", 0, 100)
 	c.Assert(err, check.IsNil)
-	qis2 := []*model.Run{}
+	qis2 := []*types.Run{}
 
-	for _, qi := range qis {
+	for _, qi := range qis.List {
 		if !qi.Task.Canceled {
 			qis2 = append(qis2, qi)
 		}
@@ -228,7 +228,7 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
 
-	sub := &types.Submission{
+	sub := &topTypes.Submission{
 		Parent:   "erikh/foobar",
 		Fork:     "erikh/foobar2",
 		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
@@ -243,9 +243,9 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
 	runs, err := qs.datasvcClient.Client().ListRuns(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
-	c.Assert(len(runs), check.Equals, 10)
+	c.Assert(len(runs.List), check.Equals, 10)
 
-	sub = &types.Submission{
+	sub = &topTypes.Submission{
 		Parent:   path.Join(testutil.RandString(8), testutil.RandString(8)),
 		Fork:     path.Join(testutil.RandString(8), testutil.RandString(8)),
 		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
@@ -260,14 +260,14 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
 	runs, err = qs.datasvcClient.Client().ListRuns(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
-	c.Assert(len(runs), check.Equals, 20)
+	c.Assert(len(runs.List), check.Equals, 20)
 }
 
 func (qs *queuesvcSuite) TestSubmission(c *check.C) {
 	_, err := qs.datasvcClient.MakeUser("erikh")
 	c.Assert(err, check.IsNil)
 
-	sub := &types.Submission{
+	sub := &topTypes.Submission{
 		Parent:   "erikh/foobar",
 		Fork:     "erikh/foobar2",
 		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
@@ -312,16 +312,16 @@ func (qs *queuesvcSuite) TestSubmission(c *check.C) {
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
 	runs, err := qs.datasvcClient.Client().ListRuns(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
-	c.Assert(len(runs), check.Equals, 10)
+	c.Assert(len(runs.List), check.Equals, 10)
 
 	tasks, err := qs.datasvcClient.Client().ListTasks(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
-	c.Assert(tasks[0].Runs, check.Not(check.Equals), int64(0))
-	c.Assert(tasks[1].Runs, check.Not(check.Equals), int64(0))
+	c.Assert(tasks.Tasks[0].Runs, check.Not(check.Equals), int64(0))
+	c.Assert(tasks.Tasks[1].Runs, check.Not(check.Equals), int64(0))
 
 	dirs := map[string]struct{}{}
 
-	for _, task := range tasks {
+	for _, task := range tasks.Tasks {
 		dirs[task.Path] = struct{}{}
 	}
 
@@ -336,7 +336,7 @@ func (qs *queuesvcSuite) TestDependencies(c *check.C) {
 	_, err := qs.datasvcClient.MakeUser("erikh")
 	c.Assert(err, check.IsNil)
 
-	sub := &types.Submission{
+	sub := &topTypes.Submission{
 		Parent:   "erikh/foobar",
 		Fork:     "erikh/foobar2",
 		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
@@ -387,11 +387,11 @@ func (qs *queuesvcSuite) TestDependencies(c *check.C) {
 	c.Assert(qs.queuesvcClient.Client().Submit(context.Background(), sub), check.IsNil)
 	runs, err := qs.datasvcClient.Client().ListRuns(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
-	c.Assert(len(runs), check.Equals, 6)
+	c.Assert(len(runs.List), check.Equals, 6)
 
 	tasks, err := qs.datasvcClient.Client().ListTasks(ctx, "", "", 0, 100)
 	c.Assert(err, check.IsNil)
-	c.Assert(len(tasks), check.Equals, 2)
-	c.Assert(tasks[0].Runs, check.Not(check.Equals), int64(0))
-	c.Assert(tasks[1].Runs, check.Not(check.Equals), int64(0))
+	c.Assert(len(tasks.Tasks), check.Equals, 2)
+	c.Assert(tasks.Tasks[0].Runs, check.Not(check.Equals), int64(0))
+	c.Assert(tasks.Tasks[1].Runs, check.Not(check.Equals), int64(0))
 }

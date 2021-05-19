@@ -2,6 +2,7 @@ package uisvc
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -11,15 +12,15 @@ import (
 	"github.com/tinyci/ci-agents/api/services/grpc/datasvc"
 	"github.com/tinyci/ci-agents/api/services/grpc/logsvc"
 	"github.com/tinyci/ci-agents/api/services/grpc/queuesvc"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/asset"
 	"github.com/tinyci/ci-agents/clients/data"
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/clients/tinyci"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/testutil/testclients"
-	"github.com/tinyci/ci-agents/types"
+	topTypes "github.com/tinyci/ci-agents/types"
 )
 
 type uisvcSuite struct {
@@ -46,7 +47,7 @@ func TestUISvc(t *testing.T) {
 }
 
 func (us *uisvcSuite) SetUpTest(c *check.C) {
-	testutil.WipeDB(c)
+	testutil.WipeDB()
 
 	var err error
 	us.dataHandler, us.dataDoneChan, err = datasvc.MakeDataServer()
@@ -125,12 +126,17 @@ func MakeUIServer(client github.Client) (*H, chan struct{}, *tinyci.Client, *tin
 		return nil, nil, nil, nil, err
 	}
 
-	u, err := d.PutUser(context.Background(), &model.User{Username: "erikh", Token: &types.OAuthToken{Username: "erikh", Token: "dummy", Scopes: []string{"repo"}}})
+	content, err := json.Marshal(&topTypes.OAuthToken{Username: "erikh", Token: "dummy", Scopes: []string{"repo"}})
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
-	for _, cap := range model.AllCapabilities {
+	u, err := d.PutUser(context.Background(), &types.User{Username: "erikh", TokenJSON: content})
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	for _, cap := range topTypes.AllCapabilities {
 		if err := d.AddCapability(context.Background(), u, cap); err != nil {
 			return nil, nil, nil, nil, err
 		}
@@ -150,7 +156,12 @@ func MakeUIServer(client github.Client) (*H, chan struct{}, *tinyci.Client, *tin
 		return nil, nil, nil, nil, err
 	}
 
-	_, err = d.PutUser(context.Background(), &model.User{Username: "erikh2", Token: &types.OAuthToken{Token: "dummy"}})
+	content, err = json.Marshal(&topTypes.OAuthToken{Token: "dummy"})
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	_, err = d.PutUser(context.Background(), &types.User{Username: "erikh2", TokenJSON: content})
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

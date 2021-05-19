@@ -1,0 +1,11 @@
+output  = "models"
+pkgname = "models"
+wipe    = true
+
+[psql]
+dbname    = "tinyci"
+host      = "localhost"
+port      = 5432
+user      = "tinyci"
+pass      = "tinyci"
+blacklist = ["gorp_migrations"]

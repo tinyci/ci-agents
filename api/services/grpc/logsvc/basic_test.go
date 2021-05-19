@@ -6,8 +6,8 @@ import (
 	"net/url"
 
 	check "github.com/erikh/check"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/log"
-	"github.com/tinyci/ci-agents/model"
 )
 
 func (ls *logsvcSuite) Test01Journal(c *check.C) {
@@ -191,7 +191,7 @@ func (ls *logsvcSuite) TestUser(c *check.C) {
 	l := log.New()
 	ctx := context.Background()
 
-	user := &model.User{ID: 1, Username: "erikh"}
+	user := &types.User{Id: 1, Username: "erikh"}
 	wu := l.WithUser(user)
 
 	wu.Info(ctx, "test")

@@ -2,7 +2,6 @@ package datasvc
 
 import (
 	"context"
-
 	"errors"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -14,14 +13,25 @@ import (
 
 // GetErrors retrieves the errors for the provided user.
 func (ds *DataServer) GetErrors(ctx context.Context, name *data.Name) (*types.UserErrors, error) {
-	u, err := ds.H.Model.FindUserByName(name.Name)
+	u, err := ds.H.Model.FindUserByName(ctx, name.Name)
 	if err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
+	errs, err := ds.H.Model.GetErrors(ctx, u)
+	if err != nil {
+		return nil, status.Error(codes.FailedPrecondition, err.Error())
+	}
+
 	errors := &types.UserErrors{}
-	for _, err := range u.Errors {
-		errors.Errors = append(errors.Errors, err.ToProto())
+
+	for _, err := range errs {
+		e, err := ds.C.ToProto(ctx, err)
+		if err != nil {
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		}
+
+		errors.Errors = append(errors.Errors, e.(*types.UserError))
 	}
 
 	return errors, nil
@@ -29,15 +39,13 @@ func (ds *DataServer) GetErrors(ctx context.Context, name *data.Name) (*types.Us
 
 // AddError adds an error to the user's error stack.
 func (ds *DataServer) AddError(ctx context.Context, ue *types.UserError) (*empty.Empty, error) {
-	u, err := ds.H.Model.FindUserByID(ue.UserID)
+	u, err := ds.H.Model.FindUserByID(ctx, ue.UserID)
 	if err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
-	u.AddError(errors.New(ue.Error))
-
-	if err := ds.H.Model.Save(u).Error; err != nil {
-		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
+	if err := ds.H.Model.AddError(ctx, u, errors.New(ue.Error)); err != nil {
+		return nil, status.Error(codes.FailedPrecondition, err.Error())
 	}
 
 	return &empty.Empty{}, nil
@@ -45,12 +53,12 @@ func (ds *DataServer) AddError(ctx context.Context, ue *types.UserError) (*empty
 
 // DeleteError removes an error from errors list. The error string does not need to be provided.
 func (ds *DataServer) DeleteError(ctx context.Context, ue *types.UserError) (*empty.Empty, error) {
-	u, err := ds.H.Model.FindUserByID(ue.UserID)
+	u, err := ds.H.Model.FindUserByID(ctx, ue.UserID)
 	if err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
-	if err := ds.H.Model.DeleteError(u, ue.Id); err != nil {
+	if err := ds.H.Model.DeleteError(ctx, u, ue.Id); err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 

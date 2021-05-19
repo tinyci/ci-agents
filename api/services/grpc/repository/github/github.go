@@ -2,11 +2,12 @@ package github
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/google/go-github/github"
 	grpcHandler "github.com/tinyci/ci-agents/api/handlers/grpc"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/model"
+	topTypes "github.com/tinyci/ci-agents/types"
 	"golang.org/x/oauth2"
 )
 
@@ -21,23 +22,20 @@ func (rs *RepositoryServer) getClientForRepo(ctx context.Context, repoName strin
 		return nil, err
 	}
 
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: repo.Owner.Token.Token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-
-	return github.NewClient(tc), nil
+	return rs.getClientForUser(ctx, repo.Owner)
 }
 
 func (rs *RepositoryServer) getClientForUser(ctx context.Context, u *types.User) (*github.Client, error) {
-	user, err := model.NewUserFromProto(u)
-	if err != nil {
+	var token topTypes.OAuthToken
+
+	if err := json.Unmarshal(u.TokenJSON, &token); err != nil {
 		return nil, err
 	}
 
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: user.Token.Token},
+		&oauth2.Token{AccessToken: token.Token},
 	)
+
 	tc := oauth2.NewClient(ctx, ts)
 
 	return github.NewClient(tc), nil

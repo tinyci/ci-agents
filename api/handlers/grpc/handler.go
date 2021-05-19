@@ -8,7 +8,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/model"
+	"github.com/tinyci/ci-agents/db"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc"
 )
@@ -17,6 +17,7 @@ import (
 type H struct {
 	config.UserConfig `yaml:",inline"`
 	config.Service    `yaml:",inline"`
+	Model             *db.Model
 }
 
 // CreateServer creates the grpc server
@@ -41,7 +42,7 @@ func (h *H) CreateServer() (*grpc.Server, io.Closer, error) {
 func (h *H) Boot(t net.Listener, s *grpc.Server, finished chan struct{}) (chan struct{}, error) {
 	if h.Service.UseDB {
 		var err error
-		h.Model, err = model.New(h.UserConfig.DSN)
+		h.Model, err = db.Open(&h.UserConfig)
 		if err != nil {
 			return nil, err
 		}

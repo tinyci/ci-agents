@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tinyci/ci-agents/clients/github"
 	"github.com/tinyci/ci-agents/config"
-	"github.com/tinyci/ci-agents/model"
+	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 
 	"github.com/erikh/go-transport"
@@ -20,6 +20,7 @@ import (
 	gsessions "github.com/gorilla/sessions"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/tinyci/ci-agents/api/sessions"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/ci-gen/openapi/services/uisvc"
 	"github.com/tinyci/ci-agents/clients/log"
 )
@@ -239,7 +240,12 @@ func (h *H) echoOAuthScopes() echo.MiddlewareFunc {
 			scope, ok := ctx.Get("openapiExt.x-token-scope").(string)
 			if ok {
 				if u, ok := h.getUser(ctx); ok {
-					for _, s := range u.Token.Scopes {
+					var token topTypes.OAuthToken
+					if err := json.Unmarshal(u.TokenJSON, &token); err != nil {
+						return err
+					}
+
+					for _, s := range token.Scopes {
 						if s == scope {
 							return next(ctx)
 						}
@@ -303,8 +309,8 @@ func (h *H) oauthRedirect(ctx echo.Context, scopes []string) error {
 }
 
 // getUser retreives the user from the context, and returns true if it exists.
-func (h *H) getUser(ctx echo.Context) (*model.User, bool) {
-	u, ok := ctx.Get("tinyci.User").(*model.User)
+func (h *H) getUser(ctx echo.Context) (*types.User, bool) {
+	u, ok := ctx.Get("tinyci.User").(*types.User)
 	return u, ok
 }
 
@@ -320,8 +326,8 @@ func (h *H) getSession(ctx echo.Context) (*gsessions.Session, bool) {
 }
 
 // findUser retrieves the user based on information in the gin context.
-func (h *H) findUser(ctx echo.Context) (*model.User, error) {
-	var u *model.User
+func (h *H) findUser(ctx echo.Context) (*types.User, error) {
+	var u *types.User
 
 	req := ctx.Request()
 	reqCtx := req.Context()
@@ -363,11 +369,16 @@ func (h *H) getClient(ctx echo.Context) (github.Client, error) {
 		return nil, err
 	}
 
-	return h.Config.OAuth.GithubClient(user.Token.Username, user.Token.Token), nil
+	var token topTypes.OAuthToken
+	if err := json.Unmarshal(user.TokenJSON, &token); err != nil {
+		return nil, err
+	}
+
+	return h.Config.OAuth.GithubClient(token.Username, token.Token), nil
 }
 
 // GetGithub gets the github user from the session and loads it.
-func (h *H) getGithub(ctx echo.Context) (u *model.User, outErr error) {
+func (h *H) getGithub(ctx echo.Context) (u *types.User, outErr error) {
 	sess, ok := h.getSession(ctx)
 	if !ok {
 		return nil, utils.ErrInvalidAuth

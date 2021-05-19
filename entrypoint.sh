@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
-POSTGRES_VERSION=11
+POSTGRES_VERSION=12
 
 cat welcome.ans
 
@@ -18,15 +18,17 @@ then
   [ -f /var/ca/localhost-server.pem ] || mkcert --ecdsa --cert-file /var/ca/localhost-server.pem --key-file /var/ca/localhost-server.key localhost 127.0.0.1 ::1
   [ -f /var/ca/localhost-client.pem ] || mkcert --client --ecdsa --cert-file /var/ca/localhost-client.pem --key-file /var/ca/localhost-client.key localhost 127.0.0.1 ::1
 
+  config=/etc/postgresql/${POSTGRES_VERSION}/main/postgresql.conf
+
+  grep -iv shared_buffers ${config} >${config}.tmp && mv ${config}.tmp ${config}
+  echo shared_buffers=2GB >> ${config}
+
   if [[ ! -d /var/lib/postgresql/${POSTGRES_VERSION}/main ]] || [[ ! -z "${CREATE_DB}" ]]
   then
     rm -rf /var/lib/postgresql/${POSTGRES_VERSION}/main
     mkdir -p /var/lib/postgresql/${POSTGRES_VERSION}/main
     chown postgres:postgres /var/lib/postgresql/${POSTGRES_VERSION}/main
     su postgres -c "/usr/lib/postgresql/${POSTGRES_VERSION}/bin/initdb -D /var/lib/postgresql/${POSTGRES_VERSION}/main"
-
-    echo shared_buffers=1GB >> /etc/postgresql/${POSTGRES_VERSION}/main/postgresql.conf
-    echo max_connections=200 >> /etc/postgresql/${POSTGRES_VERSION}/main/postgresql.conf
 
     service postgresql start
 
@@ -37,21 +39,24 @@ then
     service postgresql start
   fi
 
-  while ! bash -c '/go/bin/migrator -q -u tinyci -p tinyci migrations/tinyci'
-  do
-    sleep 1
-    i=$(($i + 1));
-    if [ "$i" -gt 10 ]
-    then
-      echo >&2 Timed out
-      exit 1
-    fi
-  done
-
   if [ -z "${TESTING}" ]
   then
+    if go install -v ./... 
+    then
+      tinyci migrate
+    else
+      echo >&2 "Code didn't compile, not migrating!"
+    fi
+
     caddy start -config /Caddyfile -watch
+  else
+    if go install -v ./... 
+    then
+      tinyci --config .config/services.yaml.example migrate
+    else
+      echo >&2 "Code didn't compile, not migrating!"
+    fi
   fi
 fi
 
-"$@"
+exec "$@"

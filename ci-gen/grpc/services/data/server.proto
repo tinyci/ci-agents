@@ -115,8 +115,6 @@ service Data {
   rpc PutTask(types.Task)                                     returns (types.Task)            {}; 
   // List Tasks
   rpc ListTasks(TaskListRequest)                              returns (types.TaskList)        {}; 
-  // List tasks only in the user's subscription list.
-  rpc ListSubscribedTasksForUser(ListSubscribedTasksRequest)  returns (types.TaskList)        {}; 
   // Count Tasks
   rpc CountTasks(TaskListRequest)                             returns (Count)                 {};
   // cancel a task by pull request ID

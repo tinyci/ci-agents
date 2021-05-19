@@ -5,24 +5,12 @@ import (
 
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/model"
 	"google.golang.org/grpc"
 )
 
 // GetErrors retrieves all the errors for the user.
-func (c *Client) GetErrors(ctx context.Context, name string) ([]*model.UserError, error) {
-	errs, err := c.client.GetErrors(ctx, &data.Name{Name: name}, grpc.WaitForReady(true))
-	if err != nil {
-		return nil, err
-	}
-
-	errList := []*model.UserError{}
-
-	for _, e := range errs.Errors {
-		errList = append(errList, model.NewUserErrorFromProto(e))
-	}
-
-	return errList, nil
+func (c *Client) GetErrors(ctx context.Context, name string) (*types.UserErrors, error) {
+	return c.client.GetErrors(ctx, &data.Name{Name: name}, grpc.WaitForReady(true))
 }
 
 // AddError adds an error.

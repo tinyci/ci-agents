@@ -7,13 +7,13 @@ import (
 	check "github.com/erikh/check"
 	grpcHandler "github.com/tinyci/ci-agents/api/handlers/grpc"
 	"github.com/tinyci/ci-agents/api/services/grpc/logsvc"
-	"github.com/tinyci/ci-agents/model"
+	"github.com/tinyci/ci-agents/db"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/testutil/testclients"
 )
 
 type datasvcSuite struct {
-	model        *model.Model
+	model        *db.Model
 	dataDoneChan chan struct{}
 	dataServer   *grpcHandler.H
 	logDoneChan  chan struct{}
@@ -28,14 +28,13 @@ func TestDataSvc(t *testing.T) {
 }
 
 func (ds *datasvcSuite) SetUpTest(c *check.C) {
-	testutil.WipeDB(c)
+	testutil.WipeDB()
 
 	var err error
-	ds.model, err = model.New(testutil.TestDBConfig)
-	c.Assert(err, check.IsNil)
-
 	ds.dataServer, ds.dataDoneChan, err = MakeDataServer()
 	c.Assert(err, check.IsNil)
+
+	ds.model = ds.dataServer.Model
 
 	ds.logServer, ds.logDoneChan, _, err = logsvc.MakeLogServer()
 	c.Assert(err, check.IsNil)

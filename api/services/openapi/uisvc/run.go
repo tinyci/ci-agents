@@ -25,12 +25,12 @@ func (h *H) GetRuns(ctx echo.Context, params uisvc.GetRunsParams) error {
 		return err
 	}
 
-	list, err := h.clients.Data.ListRuns(ctx.Request().Context(), stringDeref(params.Repository), stringDeref(params.Sha), page, perPage)
+	list, err := h.clients.Data.ListRuns(ctx.Request().Context(), stringDeref(params.Repository), stringDeref(params.Sha), int64(page), int64(perPage))
 	if err != nil {
 		return err
 	}
 
-	return ctx.JSON(200, list)
+	return ctx.JSON(200, sanitizeRuns(list.List))
 }
 
 // GetRunRunId retrieves a run by id.

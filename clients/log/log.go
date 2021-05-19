@@ -18,7 +18,7 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/sirupsen/logrus"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/log"
-	"github.com/tinyci/ci-agents/model"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc"
 )
@@ -207,10 +207,10 @@ func (sub *SubLogger) WithRequest(req *http.Request) *SubLogger {
 }
 
 // WithUser includes user information
-func (sub *SubLogger) WithUser(user *model.User) *SubLogger {
+func (sub *SubLogger) WithUser(user *types.User) *SubLogger {
 	fm := FieldMap{
 		"username": user.Username,
-		"user_id":  fmt.Sprintf("%v", user.ID),
+		"user_id":  fmt.Sprintf("%v", user.Id),
 	}
 
 	return sub.WithFields(fm)

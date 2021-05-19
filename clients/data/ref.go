@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
-	"github.com/tinyci/ci-agents/model"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"google.golang.org/grpc"
 )
 
 // PutRef adds a ref to the database.
-func (c *Client) PutRef(ctx context.Context, ref *model.Ref) (int64, error) {
-	id, err := c.client.PutRef(ctx, ref.ToProto(), grpc.WaitForReady(true))
+func (c *Client) PutRef(ctx context.Context, ref *types.Ref) (int64, error) {
+	id, err := c.client.PutRef(ctx, ref, grpc.WaitForReady(true))
 	if err != nil {
 		return 0, err
 	}
@@ -25,11 +25,6 @@ func (c *Client) CancelRefByName(ctx context.Context, repoID int64, ref string) 
 }
 
 // GetRefByNameAndSHA retrieves a ref by it's repo name and SHA
-func (c *Client) GetRefByNameAndSHA(ctx context.Context, repoName, sha string) (*model.Ref, error) {
-	ref, err := c.client.GetRefByNameAndSHA(ctx, &data.RefPair{RepoName: repoName, Sha: sha}, grpc.WaitForReady(true))
-	if err != nil {
-		return nil, err
-	}
-
-	return model.NewRefFromProto(ref)
+func (c *Client) GetRefByNameAndSHA(ctx context.Context, repoName, sha string) (*types.Ref, error) {
+	return c.client.GetRefByNameAndSHA(ctx, &data.RefPair{RepoName: repoName, Sha: sha}, grpc.WaitForReady(true))
 }

@@ -16,8 +16,9 @@ import (
 	"github.com/erikh/colorwriter"
 	transport "github.com/erikh/go-transport"
 	"github.com/fatih/color"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/tinyci"
-	"github.com/tinyci/ci-agents/model"
+	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/term"
@@ -405,12 +406,12 @@ func submit(ctx *cli.Context) error {
 	return nil
 }
 
-func mkTaskStatus(task *model.Task) string {
+func mkTaskStatus(task *types.Task) string {
 	statusStr := "queued"
 	if task.Canceled {
 		statusStr = "canceled"
-	} else if task.Status != nil {
-		if *task.Status {
+	} else if task.StatusSet {
+		if task.Status {
 			statusStr = "success"
 		} else {
 			statusStr = "failure"
@@ -422,14 +423,14 @@ func mkTaskStatus(task *model.Task) string {
 	return statusStr
 }
 
-func mkSubRunCounts(ctx context.Context, client *tinyci.Client, sub *model.Submission) (int64, int64, int64, error) {
+func mkSubRunCounts(ctx context.Context, client *tinyci.Client, sub *types.Submission) (int64, int64, int64, error) {
 	var (
 		page = int64(0)
-		runs = []*model.Run{}
+		runs = []*types.Run{}
 	)
 
 	for {
-		tmp, err := client.RunsForSubmission(ctx, sub.ID, page, utils.MaxPerPage)
+		tmp, err := client.RunsForSubmission(ctx, sub.Id, page, utils.MaxPerPage)
 		if err != nil || len(tmp) == 0 {
 			break
 		}
@@ -453,12 +454,12 @@ func mkSubRunCounts(ctx context.Context, client *tinyci.Client, sub *model.Submi
 	return runningCount, finishedCount, totalCount, nil
 }
 
-func mkTaskRunCounts(ctx context.Context, client *tinyci.Client, task *model.Task) (int64, int64, int64, error) {
-	runs := []*model.Run{}
+func mkTaskRunCounts(ctx context.Context, client *tinyci.Client, task *types.Task) (int64, int64, int64, error) {
+	runs := []*types.Run{}
 
 	var i int64
 	for {
-		tmp, err := client.RunsForTask(ctx, task.ID, &i, int64p(utils.MaxPerPage))
+		tmp, err := client.RunsForTask(ctx, task.Id, &i, int64p(utils.MaxPerPage))
 		if err != nil || len(tmp) == 0 {
 			break
 		}
@@ -513,10 +514,10 @@ func submissions(ctx *cli.Context) error {
 		}
 
 		status := "created"
-		duration := time.Since(sub.CreatedAt)
+		duration := time.Since(sub.CreatedAt.AsTime())
 
-		if sub.Status != nil {
-			if *sub.Status {
+		if sub.StatusSet {
+			if sub.Status {
 				status = "success"
 			} else {
 				status = "failed"
@@ -525,19 +526,19 @@ func submissions(ctx *cli.Context) error {
 			if sub.FinishedAt == nil || sub.StartedAt == nil {
 				duration = 0
 			} else {
-				duration = (*sub.FinishedAt).Sub(*sub.StartedAt)
+				duration = (sub.FinishedAt.AsTime()).Sub(sub.StartedAt.AsTime())
 			}
 		} else if sub.StartedAt != nil {
 			status = "started"
-			duration = time.Since(*sub.StartedAt)
+			duration = time.Since(sub.StartedAt.AsTime())
 		}
 
 		_, eErr := fmt.Fprintf(w,
 			getRowColorFunc(i)("%d\t%s\t%s\t%s\t%d/%d/%d\t%v\t%v\n"),
-			sub.ID,
+			sub.Id,
 			sub.HeadRef.Repository.Name,
 			strings.TrimPrefix(sub.HeadRef.RefName, "heads/"),
-			sub.HeadRef.SHA[:12],
+			sub.HeadRef.Sha[:12],
 			running, finished, total,
 			status,
 			duration,
@@ -574,14 +575,14 @@ func tasks(ctx *cli.Context) error {
 		duration := ""
 
 		if task.StartedAt != nil && task.FinishedAt != nil {
-			d := task.FinishedAt.Sub(*task.StartedAt)
+			d := task.FinishedAt.AsTime().Sub(task.StartedAt.AsTime())
 			duration = d.Round(time.Millisecond).String()
-		} else if task.StartedAt != nil {
-			duration = time.Since(*task.StartedAt).Round(time.Millisecond).String()
+		} else if task.StartedAt.IsValid() {
+			duration = time.Since(task.StartedAt.AsTime()).Round(time.Millisecond).String()
 		}
 
 		refName := task.Submission.HeadRef.RefName
-		sha := task.Submission.HeadRef.SHA[:12]
+		sha := task.Submission.HeadRef.Sha[:12]
 
 		runningCount, finishedCount, totalCount, err := mkTaskRunCounts(ct, client, task)
 		if err != nil {
@@ -593,7 +594,7 @@ func tasks(ctx *cli.Context) error {
 			path = "*root*"
 		}
 
-		if _, err := w.Write([]byte(getRowColorFunc(i)(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d/%d/%d\t%s\t%s\n", task.ID, task.Submission.HeadRef.Repository.Name, refName, sha, path, runningCount, finishedCount, totalCount, statusStr, duration)))); err != nil {
+		if _, err := w.Write([]byte(getRowColorFunc(i)(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d/%d/%d\t%s\t%s\n", task.Id, task.Submission.HeadRef.Repository.Name, refName, sha, path, runningCount, finishedCount, totalCount, statusStr, duration)))); err != nil {
 			return err
 		}
 	}
@@ -621,8 +622,8 @@ func runs(ctx *cli.Context) error {
 		statusStr := "queued"
 		if run.Task.Canceled {
 			statusStr = "canceled"
-		} else if run.Status != nil {
-			if *run.Status {
+		} else if run.StatusSet {
+			if run.Status {
 				statusStr = "success"
 			} else {
 				statusStr = "failure"
@@ -634,14 +635,14 @@ func runs(ctx *cli.Context) error {
 		duration := ""
 
 		if run.StartedAt != nil && run.FinishedAt != nil {
-			d := run.FinishedAt.Sub(*run.StartedAt).Round(time.Millisecond)
+			d := run.FinishedAt.AsTime().Sub(run.StartedAt.AsTime()).Round(time.Millisecond)
 			duration = d.String()
 		}
 
 		refName := run.Task.Submission.HeadRef.RefName
-		sha := run.Task.Submission.HeadRef.SHA[:12]
+		sha := run.Task.Submission.HeadRef.Sha[:12]
 
-		if _, err := w.Write([]byte(getRowColorFunc(i)(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d\t%s\t%s\n", run.ID, run.Task.Submission.HeadRef.Repository.Name, refName, sha, run.Name, run.Task.ID, statusStr, duration)))); err != nil {
+		if _, err := w.Write([]byte(getRowColorFunc(i)(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d\t%s\t%s\n", run.Id, run.Task.Submission.HeadRef.Repository.Name, refName, sha, run.Name, run.Task.Id, statusStr, duration)))); err != nil {
 			return err
 		}
 	}
@@ -678,7 +679,7 @@ func addCapability(ctx *cli.Context) error {
 		return err
 	}
 
-	err = client.AddCapability(context.Background(), ctx.Args().Get(0), model.Capability(ctx.Args().Get(1)))
+	err = client.AddCapability(context.Background(), ctx.Args().Get(0), topTypes.Capability(ctx.Args().Get(1)))
 	if err != nil {
 		return err
 	}
@@ -696,7 +697,7 @@ func removeCapability(ctx *cli.Context) error {
 		return err
 	}
 
-	err = client.RemoveCapability(context.Background(), ctx.Args().Get(0), model.Capability(ctx.Args().Get(1)))
+	err = client.RemoveCapability(context.Background(), ctx.Args().Get(0), topTypes.Capability(ctx.Args().Get(1)))
 	if err != nil {
 		return err
 	}

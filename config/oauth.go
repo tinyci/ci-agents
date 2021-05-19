@@ -3,6 +3,7 @@ package config
 import (
 	"net/url"
 	"strings"
+	"time"
 
 	"errors"
 
@@ -23,13 +24,14 @@ var DefaultEndpoint = ghoauth.Endpoint
 // OAuthConfig configures the oauth end of the uiservice handler, specifically
 // focusing around the application credentials and login process.
 type OAuthConfig struct {
-	ClientID     string `yaml:"client_id"`
-	ClientSecret string `yaml:"client_secret"`
-	RedirectURL  string `yaml:"redirect_url"`
+	ClientID     string        `yaml:"client_id"`
+	ClientSecret string        `yaml:"client_secret"`
+	RedirectURL  string        `yaml:"redirect_url"`
+	StateTimeout time.Duration `yaml:"state_timeout"`
 }
 
 // Validate validates the oauth configuration
-func (oc OAuthConfig) Validate() error {
+func (oc *OAuthConfig) Validate() error {
 	if strings.TrimSpace(oc.ClientID) == "" {
 		return errors.New("oauth2 client_id was missing")
 	}

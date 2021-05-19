@@ -1,0 +1,12 @@
+---
+env:
+  - CREATE_DB=1
+mountpoint: "/go/src/github.com/tinyci/ci-agents"
+default_image: tinyci/ci-agents:05.16.2021
+dependencies:
+  - api/services/grpc/queuesvc
+  - api/services/grpc/datasvc
+  - types
+runs:
+  all:
+    command: [ "sh", "-c", "go test -v ./db -timeout 30m" ]

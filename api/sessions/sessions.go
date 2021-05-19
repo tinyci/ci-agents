@@ -11,8 +11,9 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/pkg/errors"
+	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/data"
-	"github.com/tinyci/ci-agents/model"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Session corresponds to the `sessions` table and encapsulates a web session.
@@ -87,7 +88,7 @@ func (sm *SessionManager) LoadSession(ctx context.Context, session *sessions.Ses
 		session.Options = &sessions.Options{Path: "/"}
 	}
 
-	session.Options.MaxAge = int(time.Until(time.Time(s.ExpiresOn)).Seconds())
+	session.Options.MaxAge = int(time.Until(s.ExpiresOn.AsTime()).Seconds())
 	if session.Options.MaxAge < 1 {
 		session.Options.MaxAge = -1
 		return errors.New("cookie expired")
@@ -148,10 +149,10 @@ func (sm *SessionManager) SaveSession(s *sessions.Session) (string, error) {
 		return "", err
 	}
 
-	session := &model.Session{
+	session := &types.Session{
 		Key:       s.ID,
 		Values:    values,
-		ExpiresOn: time.Now().Add(time.Duration(s.Options.MaxAge) * time.Second),
+		ExpiresOn: timestamppb.New(time.Now().Add(time.Duration(s.Options.MaxAge) * time.Second)),
 	}
 
 	if err := sm.datasvc.PutSession(context.Background(), session); err != nil {

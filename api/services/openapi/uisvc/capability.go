@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
-	"github.com/tinyci/ci-agents/model"
+	"github.com/tinyci/ci-agents/types"
 )
 
 // PostCapabilitiesUsernameCapability adds a capability for a user.
@@ -17,7 +17,7 @@ func (h *H) PostCapabilitiesUsernameCapability(ctx echo.Context, capability, use
 		return err
 	}
 
-	return h.clients.Data.AddCapability(context.Background(), u, model.Capability(capability))
+	return h.clients.Data.AddCapability(context.Background(), u, types.Capability(capability))
 }
 
 // DeleteCapabilitiesUsernameCapability removes a capability from a user.
@@ -27,5 +27,5 @@ func (h *H) DeleteCapabilitiesUsernameCapability(ctx echo.Context, capability, u
 		return err
 	}
 
-	return h.clients.Data.RemoveCapability(context.Background(), u, model.Capability(capability))
+	return h.clients.Data.RemoveCapability(context.Background(), u, types.Capability(capability))
 }

@@ -12,6 +12,8 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/openapi/services/uisvc"
 	"github.com/tinyci/ci-agents/cmdlib"
 	"github.com/tinyci/ci-agents/config"
+	"github.com/tinyci/ci-agents/db"
+	"github.com/tinyci/ci-agents/db/migrations"
 	"github.com/tinyci/ci-agents/utils"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/sys/unix"
@@ -50,6 +52,12 @@ func main() {
 
 	app.Commands = []*cli.Command{
 		{
+			Name:        "migrate",
+			Usage:       "Migrate the database to the latest version of tinyCI; should be done once when upgrading",
+			Description: "Migrate the database to the latest version of tinyCI; should be done once when upgrading",
+			Action:      migrate,
+		},
+		{
 			Name:        "service",
 			Aliases:     []string{"s"},
 			Usage:       "Launch services that power tinyCI",
@@ -77,6 +85,22 @@ func mapServers(commands []*cli.Command) []*cli.Command {
 	}
 
 	return commands
+}
+
+func migrate(ctx *cli.Context) error {
+	configFile := ctx.String("config")
+	conf := config.UserConfig{}
+
+	if err := config.Parse(configFile, &conf); err != nil {
+		return err
+	}
+
+	sqlDB, err := db.NewConn(conf.DSN)
+	if err != nil {
+		return err
+	}
+
+	return migrations.Migrate(sqlDB)
 }
 
 func launch(ctx *cli.Context) error {

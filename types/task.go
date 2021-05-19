@@ -20,15 +20,6 @@ var (
 	ErrTaskValidation = errors.New("validation error")
 )
 
-func mkMap(s *_struct.Struct) map[string]interface{} {
-	m := map[string]interface{}{}
-	for k, v := range s.Fields {
-		m[k] = v.GetStringValue()
-	}
-
-	return m
-}
-
 func mkStruct(m map[string]interface{}) *_struct.Struct {
 	s := &_struct.Struct{Fields: map[string]*_struct.Value{}}
 
@@ -64,17 +55,16 @@ func NewTaskSettingsFromProto(ts *types.TaskSettings) *TaskSettings {
 	}
 
 	return &TaskSettings{
-		Mountpoint:       ts.Mountpoint,
-		Env:              ts.Env,
-		WorkDir:          ts.Workdir,
-		Runs:             runs,
-		Dependencies:     ts.Dependencies,
-		DefaultTimeout:   time.Duration(ts.DefaultTimeout),
-		DefaultQueue:     ts.DefaultQueue,
-		DefaultImage:     ts.DefaultImage,
-		Metadata:         mkMap(ts.Metadata),
-		DefaultResources: newResources(ts.Resources),
-		Config:           NewRepoConfigFromProto(ts.Config),
+		Mountpoint:     ts.Mountpoint,
+		Env:            ts.Env,
+		WorkDir:        ts.Workdir,
+		Runs:           runs,
+		Dependencies:   ts.Dependencies,
+		DefaultTimeout: time.Duration(ts.DefaultTimeout),
+		DefaultQueue:   ts.DefaultQueue,
+		DefaultImage:   ts.DefaultImage,
+		Metadata:       ts.Metadata.AsMap(),
+		Config:         NewRepoConfigFromProto(ts.Config),
 	}
 }
 
@@ -217,7 +207,7 @@ func (t *TaskSettings) Validate(requireRuns bool) error {
 		}
 
 		for _, run := range t.Runs {
-			if err := run.Validate(t); err != nil {
+			if err := run.Validate(); err != nil {
 				return err
 			}
 		}
@@ -272,6 +262,7 @@ func (r Resources) copy(r2 *Resources) {
 	r2.IOPS = r.IOPS
 }
 
+/* saving for later
 func newResources(rs *types.Resources) Resources {
 	return Resources{
 		CPU:    rs.Cpu,
@@ -280,6 +271,7 @@ func newResources(rs *types.Resources) Resources {
 		IOPS:   rs.Iops,
 	}
 }
+*/
 
 // NewRunSettingsFromProto creates a runsettings from a proto representation.
 func NewRunSettingsFromProto(rs *types.RunSettings) *RunSettings {
@@ -288,10 +280,9 @@ func NewRunSettingsFromProto(rs *types.RunSettings) *RunSettings {
 		Command:    rs.Command,
 		Image:      rs.Image,
 		Queue:      rs.Queue,
-		Metadata:   mkMap(rs.Metadata),
+		Metadata:   rs.Metadata.AsMap(),
 		Name:       rs.Name,
 		Timeout:    time.Duration(rs.Timeout),
-		Resources:  newResources(rs.Resources),
 		Env:        rs.Env,
 	}
 }
@@ -306,13 +297,12 @@ func (rs *RunSettings) ToProto() *types.RunSettings {
 		Metadata:   mkStruct(rs.Metadata),
 		Name:       rs.Name,
 		Timeout:    rs.Timeout.Nanoseconds(),
-		Resources:  rs.Resources.toProto(),
 		Env:        rs.Env,
 	}
 }
 
 // Validate validates the run settings, returning errors on any found.
-func (rs *RunSettings) Validate(t *TaskSettings) error {
+func (rs *RunSettings) Validate() error {
 	if len(rs.Command) == 0 {
 		return errors.New("command was empty")
 	}
@@ -323,10 +313,6 @@ func (rs *RunSettings) Validate(t *TaskSettings) error {
 
 	if rs.Queue == "" {
 		return errors.New("queue name was empty")
-	}
-
-	if reflect.DeepEqual(rs.Resources, Resources{}) {
-		t.DefaultResources.copy(&rs.Resources)
 	}
 
 	return nil
@@ -406,7 +392,6 @@ func NewRepoConfigFromProto(rs *types.RepoConfig) RepoConfig {
 		Metadata:         metadata,
 		OverrideMetadata: rs.OverrideMetadata,
 		DefaultImage:     rs.DefaultImage,
-		DefaultResources: newResources(rs.DefaultResources),
 		Merge:            NewRepoConfigMergeOptionsFromProto(rs.MergeOptions),
 	}
 }
@@ -433,7 +418,6 @@ func (r *RepoConfig) ToProto() *types.RepoConfig {
 		Metadata:          metadata,
 		OverrideMetadata:  r.OverrideMetadata,
 		DefaultImage:      r.DefaultImage,
-		DefaultResources:  r.DefaultResources.toProto(),
 		MergeOptions:      r.Merge.ToProto(),
 	}
 }

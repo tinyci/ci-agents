@@ -9,8 +9,8 @@ import (
 	"github.com/tinyci/ci-agents/api/services/grpc/datasvc"
 	"github.com/tinyci/ci-agents/api/services/grpc/logsvc"
 	"github.com/tinyci/ci-agents/config"
+	"github.com/tinyci/ci-agents/db"
 	"github.com/tinyci/ci-agents/mocks/github"
-	"github.com/tinyci/ci-agents/model"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/testutil/testclients"
 )
@@ -21,7 +21,7 @@ type queuesvcSuite struct {
 	queueDoneChan  chan struct{}
 	dataDoneChan   chan struct{}
 	logDoneChan    chan struct{}
-	model          *model.Model
+	model          *db.Model
 	dataHandler    *grpcHandler.H
 	logHandler     *grpcHandler.H
 	queueHandler   *grpcHandler.H
@@ -34,10 +34,10 @@ func TestQueueSvc(t *testing.T) {
 }
 
 func (qs *queuesvcSuite) SetUpTest(c *check.C) {
-	testutil.WipeDB(c)
+	testutil.WipeDB()
 
 	var err error
-	qs.model, err = model.New(testutil.TestDBConfig)
+	qs.model, err = db.Open(&config.UserConfig{DSN: testutil.TestDBConfig})
 	c.Assert(err, check.IsNil)
 
 	qs.dataHandler, qs.dataDoneChan, err = datasvc.MakeDataServer()
