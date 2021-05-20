@@ -33,9 +33,9 @@ func (ds *DataServer) GetSubmissionRuns(ctx context.Context, sub *data.Submissio
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
-	protoSub := ps.(*types.Submission)
+	protoSub := ps.(*models.Submission)
 
-	runs, err := ds.H.Model.RunsForSubmission(ctx, protoSub.Id, sub.Page, sub.PerPage)
+	runs, err := ds.H.Model.RunsForSubmission(ctx, protoSub.ID, sub.Page, sub.PerPage)
 	if err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
@@ -100,7 +100,7 @@ func (ds *DataServer) ListSubmissions(ctx context.Context, req *data.RepositoryF
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
-	newList := &types.SubmissionList{}
+	newList := &types.SubmissionList{Submissions: []*types.Submission{}}
 
 	for _, sub := range list {
 		s, err := ds.C.ToProto(ctx, sub)

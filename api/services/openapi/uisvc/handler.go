@@ -19,6 +19,7 @@ import (
 	"github.com/getkin/kin-openapi/routers/legacy"
 	gsessions "github.com/gorilla/sessions"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
+	"github.com/tinyci/ci-agents/api/protoconv"
 	"github.com/tinyci/ci-agents/api/sessions"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/ci-gen/openapi/services/uisvc"
@@ -42,10 +43,13 @@ type H struct {
 	UseTLS      bool
 	Swagger     *openapi3.Swagger
 	Port        uint16
+	C           *protoconv.APIConverter
 }
 
 // Boot boots the service
 func (h *H) Boot(finished chan struct{}) (chan struct{}, error) {
+	h.C = protoconv.New()
+
 	t, err := h.createTransport()
 	if err != nil {
 		return nil, err

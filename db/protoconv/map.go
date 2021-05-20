@@ -48,7 +48,8 @@ func New(db *sql.DB) *Converter {
 	c.registerConversion(toProto, &models.Run{}, runToProto)
 	c.registerConversion(fromProto, &types.UserError{}, userErrorFromProto)
 	c.registerConversion(toProto, &models.UserError{}, userErrorToProto)
-
+	c.registerConversion(fromProto, &types.Session{}, sessionFromProto)
+	c.registerConversion(toProto, &models.Session{}, sessionToProto)
 	return c
 }
 

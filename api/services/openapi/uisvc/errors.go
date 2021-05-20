@@ -26,5 +26,10 @@ func (h *H) GetErrors(ctx echo.Context) error {
 		}
 	}
 
-	return ctx.JSON(200, errs.Errors)
+	ret, err := h.convertUserErrors(ctx, errs)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, ret)
 }

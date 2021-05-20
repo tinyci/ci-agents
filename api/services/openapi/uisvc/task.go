@@ -20,7 +20,12 @@ func (h *H) GetTasks(ctx echo.Context, params uisvc.GetTasksParams) error {
 		return err
 	}
 
-	return ctx.JSON(200, sanitizeTasks(tasks.Tasks))
+	t, err := h.convertTasks(ctx, tasks)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, t)
 }
 
 // GetTasksCount counts the task list with the supplied repo/sha filtering.
@@ -45,7 +50,12 @@ func (h *H) GetTasksRunsId(ctx echo.Context, id int64, params uisvc.GetTasksRuns
 		return err
 	}
 
-	return ctx.JSON(200, sanitizeRuns(runs.List))
+	r, err := h.convertRuns(ctx, runs)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, r)
 }
 
 // GetTasksRunsIdCount counts all the runs by task ID.

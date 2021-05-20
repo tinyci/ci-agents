@@ -28,7 +28,12 @@ func (h *H) GetRepositoriesSubscribed(ctx echo.Context, params uisvc.GetReposito
 		return err
 	}
 
-	return ctx.JSON(200, sanitizeRepositories(repos.List))
+	r, err := h.convertRepositories(ctx, repos)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, r)
 }
 
 // GetRepositoriesScan scans for owned and managed repositories for Add-to-CI operations.
@@ -81,7 +86,12 @@ func (h *H) GetRepositoriesMy(ctx echo.Context, params uisvc.GetRepositoriesMyPa
 		return err
 	}
 
-	return ctx.JSON(200, sanitizeRepositories(repos.List))
+	r, err := h.convertRepositories(ctx, repos)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, r)
 }
 
 // GetRepositoriesVisible returns all the repos the user can see.
@@ -96,7 +106,12 @@ func (h *H) GetRepositoriesVisible(ctx echo.Context, params uisvc.GetRepositorie
 		return err
 	}
 
-	return ctx.JSON(200, sanitizeRepositories(repos.List))
+	r, err := h.convertRepositories(ctx, repos)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, r)
 }
 
 // GetRepositoriesCiDelOwnerRepo removes the repository from CI. that's it.
@@ -174,7 +189,12 @@ func (h *H) GetRepositoriesCiAddOwnerRepo(ctx echo.Context, owner string, reposi
 		return err
 	}
 
-	return ctx.JSON(200, sanitizeRepository(postRepo))
+	r, err := h.C.FromProto(ctx.Request().Context(), postRepo)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, r)
 }
 
 // GetRepositoriesSubAddOwnerRepo adds a subscription for the user to the repo

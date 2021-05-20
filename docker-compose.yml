@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.3'
 services:
   jaeger:
     network_mode: "bridge"
@@ -11,7 +11,6 @@ services:
     network_mode: "bridge"
     image: tinyci-agents
     command: make start-services
-    init: true
     working_dir: "/go/src/github.com/tinyci/ci-agents"
     ports:
       - 3000:3000
