@@ -24,6 +24,7 @@ services:
       - "JAEGER_AGENT_HOST=jaeger"
       - "USE_JAEGER=1"
       - "DEBUG=1"
+      - "CREATE_DB="
     volumes:
       - ".:/go/src/github.com/tinyci/ci-agents"
       - "./.ca:/var/ca"
