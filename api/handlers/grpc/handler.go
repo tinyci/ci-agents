@@ -138,10 +138,10 @@ func (h *H) Boot(t net.Listener, s *grpc.Server, finished chan struct{}) (chan s
 	go func(t net.Listener, s *grpc.Server) {
 		<-started
 		<-doneChan
+		h.Service.Clients.CloseClients()
 		s.GracefulStop()
 		t.Close()
 		close(finished)
-		h.Service.Clients.CloseClients()
 	}(t, s)
 
 	<-started
