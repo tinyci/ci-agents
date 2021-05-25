@@ -108,9 +108,9 @@ func (m *Model) CancelTask(ctx context.Context, taskID int64) error {
 	}
 
 	for _, thisRun := range runs {
-		if thisRun.Status.Valid {
-			if err := m.SetRunStatus(ctx, thisRun.ID, false, true); err != nil {
-				return utils.WrapError(err, "setting run state for ID %d", thisRun.ID)
+		if !thisRun.Status.Valid {
+			if err := m.SetRunStatus(ctx, thisRun.ID, false); err != nil {
+				fmt.Println(err)
 			}
 		}
 	}

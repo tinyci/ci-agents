@@ -143,7 +143,7 @@ func (ds *DataServer) PutStatus(ctx context.Context, s *types.Status) (*empty.Em
 		return nil, err
 	}
 
-	if err := ds.H.Model.SetRunStatus(ctx, s.Id, s.Status, false); err != nil {
+	if err := ds.H.Model.SetRunStatus(ctx, s.Id, s.Status); err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 

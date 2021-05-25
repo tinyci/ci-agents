@@ -65,14 +65,10 @@ func (m *Model) GetOwnerForRun(ctx context.Context, runID int64) (*models.User, 
 }
 
 // SetRunStatus sets the status for the run; fails if it is already set.
-func (m *Model) SetRunStatus(ctx context.Context, runID int64, status, canceled bool) error {
+func (m *Model) SetRunStatus(ctx context.Context, runID int64, status bool) error {
 	run, err := models.Runs(models.RunWhere.ID.EQ(runID)).One(ctx, m.db)
 	if err != nil {
 		return err
-	}
-
-	if run.Status.Valid && run.FinishedAt.Valid {
-		return fmt.Errorf("status already set for run %d", runID)
 	}
 
 	qi, err := models.QueueItems(models.QueueItemWhere.RunID.EQ(runID)).One(ctx, m.db)
@@ -82,6 +78,10 @@ func (m *Model) SetRunStatus(ctx context.Context, runID int64, status, canceled 
 
 	if _, err := qi.Delete(ctx, m.db); err != nil {
 		return err
+	}
+
+	if run.Status.Valid && run.FinishedAt.Valid {
+		return fmt.Errorf("status already set for run %d", runID)
 	}
 
 	run.Status = null.BoolFrom(status)
