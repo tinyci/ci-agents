@@ -64,6 +64,7 @@ var servers = []*cmdlib.GRPCServer{
 			log.RegisterLogServer(s, logsvc.New(nil))
 			return nil
 		},
+		NoLogging: true,
 	},
 	{
 		Name:           "queuesvc",

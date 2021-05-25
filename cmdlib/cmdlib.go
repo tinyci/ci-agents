@@ -37,6 +37,7 @@ type GRPCServer struct {
 	RegisterService func(*grpc.Server, *grpcHandler.H) error
 	UseDB           bool
 	UseSessions     bool
+	NoLogging       bool
 }
 
 // Make makes a command-line server out of the provided parameters
@@ -73,7 +74,7 @@ func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, error) {
 		return nil, transportErr
 	}
 
-	grpc, closer, err := h.CreateServer()
+	grpc, closer, err := h.CreateServer(!s.NoLogging)
 	if err != nil {
 		return nil, err
 	}

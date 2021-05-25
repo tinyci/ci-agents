@@ -11,7 +11,6 @@ import (
 
 	"github.com/tinyci/ci-agents/db/models"
 	"github.com/tinyci/ci-agents/types"
-	topTypes "github.com/tinyci/ci-agents/types"
 )
 
 func userReadValidateHook(ctx context.Context, db boil.ContextExecutor, u *models.User) error {
@@ -45,7 +44,7 @@ func userWriteValidateHook(ctx context.Context, db boil.ContextExecutor, u *mode
 }
 
 // CreateUser initializes a user struct and writes it to the db.
-func (m *Model) CreateUser(ctx context.Context, username string, token *topTypes.OAuthToken) (*models.User, error) {
+func (m *Model) CreateUser(ctx context.Context, username string, token *types.OAuthToken) (*models.User, error) {
 	content, err := json.Marshal(token)
 	if err != nil {
 		return nil, err
