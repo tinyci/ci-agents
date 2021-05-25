@@ -51,22 +51,31 @@ func (h *H) logUnaryInterceptor(ctx context.Context, req interface{}, info *grpc
 	if h.Service.Clients.Log != nil {
 		u := uuid.New()
 		started := time.Now()
-		h.Service.Clients.Log.WithFields(log.FieldMap{
+		go h.Service.Clients.Log.WithFields(log.FieldMap{
 			"method":    path.Base(info.FullMethod),
 			"service":   h.Service.Name,
 			"uuid":      u.String(),
 			"startedAt": fmt.Sprintf("%v", started),
-		}).Info(ctx, "")
+		}).Debug(ctx, "")
 
 		res, err := handler(ctx, req)
-
-		h.Service.Clients.Log.WithFields(log.FieldMap{
-			"method":     path.Base(info.FullMethod),
-			"service":    h.Service.Name,
-			"uuid":       u.String(),
-			"finishedAt": fmt.Sprintf("%v", time.Now()),
-			"duration":   fmt.Sprintf("%v", time.Since(started)),
-		}).Info(ctx, "")
+		if err != nil {
+			go h.Service.Clients.Log.WithFields(log.FieldMap{
+				"method":     path.Base(info.FullMethod),
+				"service":    h.Service.Name,
+				"uuid":       u.String(),
+				"finishedAt": fmt.Sprintf("%v", time.Now()),
+				"duration":   fmt.Sprintf("%v", time.Since(started)),
+			}).Error(ctx, err)
+		} else {
+			go h.Service.Clients.Log.WithFields(log.FieldMap{
+				"method":     path.Base(info.FullMethod),
+				"service":    h.Service.Name,
+				"uuid":       u.String(),
+				"finishedAt": fmt.Sprintf("%v", time.Now()),
+				"duration":   fmt.Sprintf("%v", time.Since(started)),
+			}).Info(ctx, "")
+		}
 
 		return res, err
 	}
