@@ -2,11 +2,16 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
+	"path"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/tinyci/ci-agents/clients/log"
 	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/db"
 	"github.com/tinyci/ci-agents/utils"
@@ -21,7 +26,7 @@ type H struct {
 }
 
 // CreateServer creates the grpc server
-func (h *H) CreateServer() (*grpc.Server, io.Closer, error) {
+func (h *H) CreateServer(installLogger bool) (*grpc.Server, io.Closer, error) {
 	if h.EnableTracing {
 		closer, err := utils.CreateTracer(h.Name)
 		if err != nil {
@@ -35,7 +40,65 @@ func (h *H) CreateServer() (*grpc.Server, io.Closer, error) {
 		return s, closer, nil
 	}
 
+	if installLogger {
+		return grpc.NewServer(grpc.StreamInterceptor(h.logStreamInterceptor), grpc.UnaryInterceptor(h.logUnaryInterceptor)), nil, nil
+	}
+
 	return grpc.NewServer(), nil, nil
+}
+
+func (h *H) logUnaryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	if h.Service.Clients.Log != nil {
+		u := uuid.New()
+		started := time.Now()
+		h.Service.Clients.Log.WithFields(log.FieldMap{
+			"method":    path.Base(info.FullMethod),
+			"service":   h.Service.Name,
+			"uuid":      u.String(),
+			"startedAt": fmt.Sprintf("%v", started),
+		}).Info(ctx, "")
+
+		res, err := handler(ctx, req)
+
+		h.Service.Clients.Log.WithFields(log.FieldMap{
+			"method":     path.Base(info.FullMethod),
+			"service":    h.Service.Name,
+			"uuid":       u.String(),
+			"finishedAt": fmt.Sprintf("%v", time.Now()),
+			"duration":   fmt.Sprintf("%v", time.Since(started)),
+		}).Info(ctx, "")
+
+		return res, err
+	}
+
+	return handler(ctx, req)
+}
+
+func (h *H) logStreamInterceptor(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	if h.Service.Clients.Log != nil {
+		u := uuid.New()
+		started := time.Now()
+		h.Service.Clients.Log.WithFields(log.FieldMap{
+			"method":    path.Base(info.FullMethod),
+			"service":   h.Service.Name,
+			"uuid":      u.String(),
+			"startedAt": fmt.Sprintf("%v", started),
+		}).Info(ss.Context(), "")
+
+		err := handler(srv, ss)
+
+		h.Service.Clients.Log.WithFields(log.FieldMap{
+			"method":     path.Base(info.FullMethod),
+			"service":    h.Service.Name,
+			"uuid":       u.String(),
+			"finishedAt": fmt.Sprintf("%v", time.Now()),
+			"duration":   fmt.Sprintf("%v", time.Since(started)),
+		}).Info(ss.Context(), "")
+
+		return err
+	}
+
+	return handler(srv, ss)
 }
 
 // Boot boots the service. It returns a done channel for closing and any errors.
@@ -57,7 +120,7 @@ func (h *H) Boot(t net.Listener, s *grpc.Server, finished chan struct{}) (chan s
 	}
 
 	var err error
-	h.Clients, err = h.UserConfig.ClientConfig.CreateClients(h.UserConfig, h.Name)
+	h.Service.Clients, err = h.UserConfig.ClientConfig.CreateClients(h.UserConfig, h.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +141,7 @@ func (h *H) Boot(t net.Listener, s *grpc.Server, finished chan struct{}) (chan s
 		s.GracefulStop()
 		t.Close()
 		close(finished)
-		h.Clients.CloseClients()
+		h.Service.Clients.CloseClients()
 	}(t, s)
 
 	<-started
