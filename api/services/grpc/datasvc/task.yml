@@ -6,11 +6,5 @@ env:
 mountpoint: "/go/src/github.com/tinyci/ci-agents"
 default_image: tinyci/ci-agents:05.16.2021
 runs:
-  queue:
-    command: [ "go", "test", "-v", "-race", "./api/services/grpc/datasvc", "-check.v", "-check.f", "^TestQueue$" ]
-  runs:
-    command: [ "go", "test", "-v", "-race", "./api/services/grpc/datasvc", "-check.v", "-check.f", "^TestRuns$" ]
-  submission:
-    command: [ "go", "test", "-v", "-race", "./api/services/grpc/datasvc", "-check.v", "-check.f", "^TestSubmissions$" ]
   main:
-    command: [ "bash", "-c", "set -e; for i in $((go test -v ./api/services/grpc/datasvc -check.v -check.testlist || exit 1) | grep -vE 'Runs|Queue|Submissions' | tail -n +2 | head -n -1); do go test -race -v ./api/services/grpc/datasvc -check.v -check.f ^$i\\$; done"]
+    command: [ "go", "test", "-v", "-race", "-timeout", "20m", "./api/services/grpc/datasvc", "-check.v" ] 

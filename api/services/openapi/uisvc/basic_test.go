@@ -171,10 +171,9 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 	c.Assert(int(count), check.Equals, len(tasks))
 
 	for _, task := range tasks {
-		c.Assert(task.Submission.BaseRef.Repository.HookSecret, check.Equals, "")
-		runs, err := tc.RunsForTask(ctx, task.Id, nil, nil)
+		runs, err := tc.RunsForTask(ctx, *task.Id, nil, nil)
 		c.Assert(err, check.IsNil)
-		count, err := tc.RunsForTaskCount(ctx, task.Id)
+		count, err := tc.RunsForTaskCount(ctx, *task.Id)
 		c.Assert(err, check.IsNil)
 		c.Assert(len(runs), check.Equals, int(count))
 	}
@@ -187,16 +186,8 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs), check.Equals, int(count))
 
-	for _, run := range runs {
-		c.Assert(run.Task.Submission.BaseRef.Repository.HookSecret, check.Equals, "")
-	}
-
-	runs, err = tc.RunsForTask(ctx, runs[0].Task.Id, nil, nil)
+	runs, err = tc.RunsForTask(ctx, *runs[0].Task.Id, nil, nil)
 	c.Assert(err, check.IsNil)
-
-	for _, run := range runs {
-		c.Assert(run.Task.Submission.BaseRef.Repository.HookSecret, check.Equals, "")
-	}
 
 	for i := 0; i < len(runs); i++ {
 		client.EXPECT().ErrorStatus(
@@ -209,11 +200,11 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 			gomock.Any()).Return(nil)
 	}
 
-	c.Assert(runs[0].Task.Canceled, check.Equals, false)
-	c.Assert(tc.CancelRun(ctx, runs[0].Id), check.IsNil)
-	run, err := tc.GetRun(ctx, runs[0].Id)
+	c.Assert(*runs[0].Task.Canceled, check.Equals, false)
+	c.Assert(tc.CancelRun(ctx, *runs[0].Id), check.IsNil)
+	run, err := tc.GetRun(ctx, *runs[0].Id)
 	c.Assert(err, check.IsNil)
-	c.Assert(run.Task.Canceled, check.Equals, true)
+	c.Assert(*run.Task.Canceled, check.Equals, true)
 }
 
 func (us *uisvcSuite) TestAddDeleteCI(c *check.C) {
@@ -231,10 +222,6 @@ func (us *uisvcSuite) TestAddDeleteCI(c *check.C) {
 	repos, err := tc.LoadRepositories(ctx, nil)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(repos), check.Not(check.Equals), 0)
-
-	for _, repo := range repos {
-		c.Assert(repo.HookSecret, check.Equals, "")
-	}
 
 	c.Assert(tc.AddToCI(ctx, "erikh/not-real"), check.NotNil) // not saved
 
@@ -258,11 +245,6 @@ func (us *uisvcSuite) TestAddDeleteCI(c *check.C) {
 	visible, err := tc.Visible(ctx, stringp("erikh/test"))
 	c.Assert(err, check.IsNil)
 	c.Assert(len(visible), check.Equals, 1)
-
-	for _, repo := range visible {
-		c.Assert(repo.HookSecret, check.Equals, "")
-	}
-
 	c.Assert(tc.DeleteFromCI(ctx, "erikh/not-real"), check.NotNil)
 
 	client.EXPECT().TeardownHook(gomock.Any(), "erikh", "test", h.Config.HookURL).Return(errors.New("wat's up"))
@@ -301,7 +283,7 @@ func (us *uisvcSuite) TestSubscriptions(c *check.C) {
 	repos, err = tc.Subscribed(ctx, nil)
 	c.Assert(err, check.IsNil)
 	c.Assert(len(repos), check.Equals, 1)
-	c.Assert(repos[0].Name, check.Equals, "erikh/test")
+	c.Assert(*repos[0].Name, check.Equals, "erikh/test")
 
 	c.Assert(tc.Unsubscribe(ctx, "erikh/test"), check.IsNil)
 
