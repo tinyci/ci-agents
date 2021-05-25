@@ -63,20 +63,24 @@ func (h *H) Boot(t net.Listener, s *grpc.Server, finished chan struct{}) (chan s
 	}
 
 	doneChan := make(chan struct{})
+	started := make(chan struct{})
 
 	go func(t net.Listener, s *grpc.Server) {
+		close(started)
 		if err := s.Serve(t); err != nil {
 			h.Clients.Log.Error(context.Background(), err)
 		}
 	}(t, s)
 
 	go func(t net.Listener, s *grpc.Server) {
+		<-started
 		<-doneChan
 		s.GracefulStop()
 		t.Close()
-		h.Clients.CloseClients()
 		close(finished)
+		h.Clients.CloseClients()
 	}(t, s)
 
+	<-started
 	return doneChan, nil
 }

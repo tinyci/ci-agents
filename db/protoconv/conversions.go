@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
-	"time"
 
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
@@ -20,12 +21,38 @@ import (
 )
 
 // ErrConversionInvalidType is returned when you pass the wrong type.
-var ErrConversionInvalidType = errors.New("could convert: invalid type")
+var ErrConversionInvalidType = errors.New("could not convert: invalid type")
+
+func sessionFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
+	s, ok := i.(*types.Session)
+	if !ok {
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
+	}
+
+	return &models.Session{
+		Key:       s.Key,
+		Values:    s.Values,
+		ExpiresOn: s.ExpiresOn.AsTime(),
+	}, nil
+}
+
+func sessionToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
+	s, ok := i.(*models.Session)
+	if !ok {
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
+	}
+
+	return &types.Session{
+		Key:       s.Key,
+		Values:    s.Values,
+		ExpiresOn: timestamppb.New(s.ExpiresOn),
+	}, nil
+}
 
 func userErrorFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	e, ok := i.(*types.UserError)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	return &models.UserError{
@@ -38,7 +65,7 @@ func userErrorFromProto(ctx context.Context, db *sql.DB, i interface{}) (interfa
 func userErrorToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	e, ok := i.(*models.UserError)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	return &types.UserError{
@@ -51,7 +78,7 @@ func userErrorToProto(ctx context.Context, db *sql.DB, i interface{}) (interface
 func queueItemFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	qi, ok := i.(*types.QueueItem)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	return &models.QueueItem{
@@ -67,7 +94,7 @@ func queueItemFromProto(ctx context.Context, db *sql.DB, i interface{}) (interfa
 func queueItemToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	qi, ok := i.(*models.QueueItem)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	run, err := qi.Run().One(ctx, db)
@@ -93,7 +120,7 @@ func queueItemToProto(ctx context.Context, db *sql.DB, i interface{}) (interface
 func runFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	run, ok := i.(*types.Run)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	tmp, err := taskFromProto(ctx, db, run.Task)
@@ -129,7 +156,7 @@ func runFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, 
 func runToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	r, ok := i.(*models.Run)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	var status, set bool
@@ -181,7 +208,7 @@ func runToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, er
 func taskFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	task, ok := i.(*types.Task)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	var sub *models.Submission
@@ -219,7 +246,7 @@ func taskFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{},
 func taskToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	t, ok := i.(*models.Task)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	tmp, err := t.Submission().One(ctx, db)
@@ -260,7 +287,7 @@ func taskToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, e
 func oauthToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	o, ok := i.(*models.OAuth)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	return &data.OAuthState{
@@ -272,7 +299,7 @@ func oauthToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, 
 func refFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	r, ok := i.(*types.Ref)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	return &models.Ref{
@@ -286,7 +313,7 @@ func refFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, 
 func refToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	r, ok := i.(*models.Ref)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	repo, err := r.Repository().One(ctx, db)
@@ -310,7 +337,7 @@ func refToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, er
 func repoFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	r, ok := i.(*types.Repository)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	var owner *models.User
@@ -340,7 +367,7 @@ func repoFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{},
 func repoToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	r, ok := i.(*models.Repository)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	var owner *models.User
@@ -372,7 +399,7 @@ func repoToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, e
 func userFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	u, ok := i.(*types.User)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	return &models.User{
@@ -386,7 +413,7 @@ func userFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{},
 func userToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	u, ok := i.(*models.User)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	return &types.User{
@@ -400,7 +427,7 @@ func userToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, e
 func subToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	s, ok := i.(*models.Submission)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	var user *types.User
@@ -416,11 +443,6 @@ func subToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, er
 
 		user = u.(*types.User)
 	}
-
-	// var status bool
-	// if s.Status != nil {
-	// 	status = *s.Status
-	// }
 
 	br, err := s.BaseRef().One(ctx, db)
 	if err != nil {
@@ -447,27 +469,87 @@ func subToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, er
 		return nil, err
 	}
 
+	t, err := s.Tasks(qm.Where("started_at is not null"), qm.OrderBy("started_at"), qm.Limit(1)).One(ctx, db)
+	var startedAt *timestamppb.Timestamp
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	} else if !errors.Is(err, sql.ErrNoRows) {
+		startedAt = timestamppb.New(t.StartedAt.Time)
+	}
+
+	// Status
+
+	statusCount, err := s.Tasks(qm.Where("status is not null")).Count(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+
+	var canceled, statusSet, status bool
+
+	if tasksCount == statusCount {
+		statusSet = true
+		tasks, err := s.Tasks().All(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+
+		status = true
+
+		for _, task := range tasks {
+			if task.Canceled {
+				canceled = task.Canceled
+			}
+			if !task.Status.Bool {
+				status = false
+				break
+			}
+		}
+	}
+
+	var finishedAt *timestamppb.Timestamp
+
+	if statusSet {
+		t, err := s.Tasks(qm.Where("finished_at is not null"), qm.OrderBy("finished_at"), qm.Limit(1)).One(ctx, db)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return nil, err
+		} else if !errors.Is(err, sql.ErrNoRows) {
+			finishedAt = timestamppb.New(t.FinishedAt.Time)
+		}
+	}
+
+	var runsCount int64
+	err = db.QueryRowContext(ctx, `
+		select count(runs.id) 
+		from runs 
+		inner join tasks on runs.task_id = tasks.id 
+		inner join submissions on tasks.submission_id = submissions.id
+		where submissions.id = $1
+	`, s.ID).Scan(&runsCount)
+	if err != nil {
+		return nil, err
+	}
+
 	return &types.Submission{
 		Id:         s.ID,
 		BaseRef:    baseRef.(*types.Ref),
 		HeadRef:    headRef.(*types.Ref),
 		User:       user,
 		TasksCount: tasksCount,
-		// RunsCount:  s.RunsCount,
-		CreatedAt: timestamppb.New(s.CreatedAt),
-		// StartedAt:  timestamppb.New(s.StartedAt),
-		// FinishedAt: timestamppb.New(s.FinishedAt),
-		// StatusSet: s.Status != nil,
-		// Status:   status,
-		// Canceled: s.Canceled,
-		// TicketID: s.TicketID,
+		RunsCount:  runsCount,
+		CreatedAt:  timestamppb.New(s.CreatedAt),
+		StartedAt:  startedAt,
+		FinishedAt: finishedAt,
+		StatusSet:  statusSet,
+		Status:     status,
+		Canceled:   canceled,
+		TicketID:   s.TicketID.Int64,
 	}, nil
 }
 
 func subFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, error) {
 	gt, ok := i.(*types.Submission)
 	if !ok {
-		return nil, ErrConversionInvalidType
+		return nil, fmt.Errorf("%T: %w", i, ErrConversionInvalidType)
 	}
 
 	var (
@@ -505,22 +587,6 @@ func subFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, 
 		headref = baseref
 	}
 
-	// var status *bool
-	// if gt.StatusSet {
-	// 	status = &gt.Status
-	// }
-	//
-	created := gt.CreatedAt.AsTime()
-
-	if created.IsZero() {
-		// this is a new record and hasn't been updated. Bump the created_at time.
-		t := time.Now()
-		created = t
-	}
-	//
-	// finished := MakeTime(gt.FinishedAt, true)
-	// started := MakeTime(gt.StartedAt, true)
-
 	var uid *int64
 
 	if u != nil {
@@ -537,13 +603,6 @@ func subFromProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, 
 		UserID:    null.Int64FromPtr(uid),
 		BaseRefID: baseref.ID,
 		HeadRefID: null.Int64FromPtr(headrefID),
-		// TasksCount: gt.TasksCount,
-		// RunsCount:  gt.RunsCount,
-		CreatedAt: created,
-		// FinishedAt: finished,
-		// StartedAt:  started,
-		// Status:     status,
-		// Canceled:   gt.Canceled,
-		// TicketID:   gt.TicketID,
+		TicketID:  null.Int64From(gt.TicketID),
 	}, nil
 }

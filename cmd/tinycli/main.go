@@ -16,7 +16,7 @@ import (
 	"github.com/erikh/colorwriter"
 	transport "github.com/erikh/go-transport"
 	"github.com/fatih/color"
-	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
+	"github.com/tinyci/ci-agents/ci-gen/openapi/services/uisvc"
 	"github.com/tinyci/ci-agents/clients/tinyci"
 	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
@@ -406,12 +406,12 @@ func submit(ctx *cli.Context) error {
 	return nil
 }
 
-func mkTaskStatus(task *types.Task) string {
+func mkTaskStatus(task *uisvc.Task) string {
 	statusStr := "queued"
-	if task.Canceled {
+	if task.Canceled != nil && *task.Canceled {
 		statusStr = "canceled"
-	} else if task.StatusSet {
-		if task.Status {
+	} else if task.Status != nil {
+		if *task.Status {
 			statusStr = "success"
 		} else {
 			statusStr = "failure"
@@ -423,14 +423,14 @@ func mkTaskStatus(task *types.Task) string {
 	return statusStr
 }
 
-func mkSubRunCounts(ctx context.Context, client *tinyci.Client, sub *types.Submission) (int64, int64, int64, error) {
+func mkSubRunCounts(ctx context.Context, client *tinyci.Client, sub *uisvc.ModelSubmission) (int64, int64, int64, error) {
 	var (
 		page = int64(0)
-		runs = []*types.Run{}
+		runs = []*uisvc.Run{}
 	)
 
 	for {
-		tmp, err := client.RunsForSubmission(ctx, sub.Id, page, utils.MaxPerPage)
+		tmp, err := client.RunsForSubmission(ctx, *sub.Id, page, utils.MaxPerPage)
 		if err != nil || len(tmp) == 0 {
 			break
 		}
@@ -454,12 +454,12 @@ func mkSubRunCounts(ctx context.Context, client *tinyci.Client, sub *types.Submi
 	return runningCount, finishedCount, totalCount, nil
 }
 
-func mkTaskRunCounts(ctx context.Context, client *tinyci.Client, task *types.Task) (int64, int64, int64, error) {
-	runs := []*types.Run{}
+func mkTaskRunCounts(ctx context.Context, client *tinyci.Client, task *uisvc.Task) (int64, int64, int64, error) {
+	runs := []*uisvc.Run{}
 
 	var i int64
 	for {
-		tmp, err := client.RunsForTask(ctx, task.Id, &i, int64p(utils.MaxPerPage))
+		tmp, err := client.RunsForTask(ctx, *task.Id, &i, int64p(utils.MaxPerPage))
 		if err != nil || len(tmp) == 0 {
 			break
 		}
@@ -514,10 +514,10 @@ func submissions(ctx *cli.Context) error {
 		}
 
 		status := "created"
-		duration := time.Since(sub.CreatedAt.AsTime())
+		duration := time.Since(*sub.CreatedAt)
 
-		if sub.StatusSet {
-			if sub.Status {
+		if sub.Status != nil {
+			if *sub.Status {
 				status = "success"
 			} else {
 				status = "failed"
@@ -526,19 +526,19 @@ func submissions(ctx *cli.Context) error {
 			if sub.FinishedAt == nil || sub.StartedAt == nil {
 				duration = 0
 			} else {
-				duration = (sub.FinishedAt.AsTime()).Sub(sub.StartedAt.AsTime())
+				duration = (*sub.FinishedAt).Sub(*sub.StartedAt)
 			}
 		} else if sub.StartedAt != nil {
 			status = "started"
-			duration = time.Since(sub.StartedAt.AsTime())
+			duration = time.Since(*sub.StartedAt)
 		}
 
 		_, eErr := fmt.Fprintf(w,
 			getRowColorFunc(i)("%d\t%s\t%s\t%s\t%d/%d/%d\t%v\t%v\n"),
-			sub.Id,
-			sub.HeadRef.Repository.Name,
-			strings.TrimPrefix(sub.HeadRef.RefName, "heads/"),
-			sub.HeadRef.Sha[:12],
+			*sub.Id,
+			*sub.HeadRef.Repository.Name,
+			strings.TrimPrefix(*sub.HeadRef.RefName, "heads/"),
+			(*sub.HeadRef.Sha)[:12],
 			running, finished, total,
 			status,
 			duration,
@@ -575,26 +575,26 @@ func tasks(ctx *cli.Context) error {
 		duration := ""
 
 		if task.StartedAt != nil && task.FinishedAt != nil {
-			d := task.FinishedAt.AsTime().Sub(task.StartedAt.AsTime())
+			d := (*task.FinishedAt).Sub(*task.StartedAt)
 			duration = d.Round(time.Millisecond).String()
-		} else if task.StartedAt.IsValid() {
-			duration = time.Since(task.StartedAt.AsTime()).Round(time.Millisecond).String()
+		} else if task.StartedAt != nil {
+			duration = time.Since(*task.StartedAt).Round(time.Millisecond).String()
 		}
 
-		refName := task.Submission.HeadRef.RefName
-		sha := task.Submission.HeadRef.Sha[:12]
+		refName := *task.Submission.HeadRef.RefName
+		sha := (*task.Submission.HeadRef.Sha)[:12]
 
 		runningCount, finishedCount, totalCount, err := mkTaskRunCounts(ct, client, task)
 		if err != nil {
 			return err
 		}
 
-		path := task.Path
+		path := *task.Path
 		if path == "." {
 			path = "*root*"
 		}
 
-		if _, err := w.Write([]byte(getRowColorFunc(i)(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d/%d/%d\t%s\t%s\n", task.Id, task.Submission.HeadRef.Repository.Name, refName, sha, path, runningCount, finishedCount, totalCount, statusStr, duration)))); err != nil {
+		if _, err := w.Write([]byte(getRowColorFunc(i)(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d/%d/%d\t%s\t%s\n", *task.Id, *task.Submission.HeadRef.Repository.Name, refName, sha, path, runningCount, finishedCount, totalCount, statusStr, duration)))); err != nil {
 			return err
 		}
 	}
@@ -620,10 +620,10 @@ func runs(ctx *cli.Context) error {
 	}
 	for i, run := range runs {
 		statusStr := "queued"
-		if run.Task.Canceled {
+		if run.Task.Canceled != nil && *run.Task.Canceled {
 			statusStr = "canceled"
-		} else if run.StatusSet {
-			if run.Status {
+		} else if run.Status != nil {
+			if *run.Status {
 				statusStr = "success"
 			} else {
 				statusStr = "failure"
@@ -635,14 +635,14 @@ func runs(ctx *cli.Context) error {
 		duration := ""
 
 		if run.StartedAt != nil && run.FinishedAt != nil {
-			d := run.FinishedAt.AsTime().Sub(run.StartedAt.AsTime()).Round(time.Millisecond)
+			d := (*run.FinishedAt).Sub(*run.StartedAt).Round(time.Millisecond)
 			duration = d.String()
 		}
 
-		refName := run.Task.Submission.HeadRef.RefName
-		sha := run.Task.Submission.HeadRef.Sha[:12]
+		refName := *run.Task.Submission.HeadRef.RefName
+		sha := (*run.Task.Submission.HeadRef.Sha)[:12]
 
-		if _, err := w.Write([]byte(getRowColorFunc(i)(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d\t%s\t%s\n", run.Id, run.Task.Submission.HeadRef.Repository.Name, refName, sha, run.Name, run.Task.Id, statusStr, duration)))); err != nil {
+		if _, err := w.Write([]byte(getRowColorFunc(i)(fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%d\t%s\t%s\n", *run.Id, *run.Task.Submission.HeadRef.Repository.Name, refName, sha, *run.Name, *run.Task.Id, statusStr, duration)))); err != nil {
 			return err
 		}
 	}

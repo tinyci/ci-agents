@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -64,6 +65,7 @@ func (m *Model) NewSubmissionFromMessage(ctx context.Context, sub *types.Submiss
 
 // PutSubmission creates the submission.
 func (m *Model) PutSubmission(ctx context.Context, sub *models.Submission) error {
+	sub.CreatedAt = time.Now()
 	return sub.Insert(ctx, m.db, boil.Infer())
 }
 

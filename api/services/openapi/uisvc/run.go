@@ -30,7 +30,12 @@ func (h *H) GetRuns(ctx echo.Context, params uisvc.GetRunsParams) error {
 		return err
 	}
 
-	return ctx.JSON(200, sanitizeRuns(list.List))
+	r, err := h.convertRuns(ctx, list)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, r)
 }
 
 // GetRunRunId retrieves a run by id.
@@ -40,7 +45,12 @@ func (h *H) GetRunRunId(ctx echo.Context, runID int64) error {
 		return err
 	}
 
-	return ctx.JSON(200, run)
+	r, err := h.C.FromProto(ctx.Request().Context(), run)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, r)
 }
 
 // PostCancelRunId cancels a run by id.

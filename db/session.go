@@ -15,5 +15,5 @@ func (m *Model) LoadSession(ctx context.Context, key string) (*models.Session, e
 
 // SaveSession does the opposite of LoadSession
 func (m *Model) SaveSession(ctx context.Context, session *models.Session) error {
-	return session.Insert(ctx, m.db, boil.Infer())
+	return session.Upsert(ctx, m.db, true, []string{"key"}, boil.Whitelist("values"), boil.Infer())
 }

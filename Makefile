@@ -73,6 +73,7 @@ DEMO_DOCKER_RUN=\
 								-e START_SERVICES="${START_SERVICES}" \
 								$(if ${USE_JAEGER}, -e JAEGER_AGENT_HOST=jaegertracing,) \
 								-e DEBUG=1 \
+								-e CREATE_DB= \
 								$(DEBUG_PORTS) \
 								--link react:react \
 								$(if ${USE_JAEGER}, --link jaegertracing:jaegertracing,) \

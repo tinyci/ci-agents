@@ -15,7 +15,12 @@ func (h *H) GetSubmissionId(ctx echo.Context, id int64) error {
 		return err
 	}
 
-	return ctx.JSON(200, sub)
+	s, err := h.C.FromProto(ctx.Request().Context(), sub)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, s)
 }
 
 // GetSubmissionIdRuns retrieves a submission's runs from the submission id
@@ -35,7 +40,12 @@ func (h *H) GetSubmissionIdRuns(ctx echo.Context, id int64, params uisvc.GetSubm
 		return err
 	}
 
-	return ctx.JSON(200, sanitizeRuns(runs.List))
+	r, err := h.convertRuns(ctx, runs)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, r)
 }
 
 // GetSubmissionIdTasks retrieves a submission's task from the submission id
@@ -55,7 +65,12 @@ func (h *H) GetSubmissionIdTasks(ctx echo.Context, id int64, params uisvc.GetSub
 		return err
 	}
 
-	return ctx.JSON(200, sanitizeTasks(tasks.Tasks))
+	t, err := h.convertTasks(ctx, tasks)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, t)
 }
 
 // GetSubmissions lists the submissions with optional repository/sha filtering and pagination.
@@ -70,7 +85,12 @@ func (h *H) GetSubmissions(ctx echo.Context, params uisvc.GetSubmissionsParams) 
 		return err
 	}
 
-	return ctx.JSON(200, sanitizeSubmissions(list.Submissions))
+	subs, err := h.convertSubmissions(ctx, list)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(200, subs)
 }
 
 // GetSubmissionsCount counts the submissions with optional repository/sha filtering.
