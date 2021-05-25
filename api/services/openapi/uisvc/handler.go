@@ -85,12 +85,12 @@ func (h *H) Boot(finished chan struct{}) (chan struct{}, error) {
 }
 
 func (h *H) customHTTPErrorHandler(err error, ctx echo.Context) {
-	go h.clients.Log.WithFields(log.FieldMap{"route": ctx.Request().URL.String()}).Error(context.Background(), err)
+	go h.clients.Log.WithRequest(ctx.Request()).WithFields(log.FieldMap{"route": ctx.Request().URL.String()}).Error(context.Background(), err)
 
 	uerr := uisvc.Error{Errors: &[]string{err.Error()}}
 
 	if err := ctx.JSON(500, uerr); err != nil {
-		go h.clients.Log.Error(context.Background(), err)
+		go h.clients.Log.WithRequest(ctx.Request()).Error(context.Background(), err)
 	}
 }
 
@@ -168,7 +168,7 @@ func (h *H) echoSessions(sessdb *sessions.SessionManager) echo.MiddlewareFunc {
 			if err == nil && sess != nil {
 				ctx.Set("tinyci.Session", sess)
 			} else {
-				go h.clients.Log.Errorf(context.Background(), "Error retrieving session: %v", err)
+				go h.clients.Log.WithRequest(ctx.Request()).Errorf(context.Background(), "Error retrieving session: %v", err)
 			}
 
 			return next(ctx)
@@ -182,7 +182,7 @@ func (h *H) echoUser() echo.MiddlewareFunc {
 			u, err := h.findUser(ctx)
 			if err != nil {
 				if !errors.As(err, &utils.ErrInvalidAuth) {
-					go h.clients.Log.Errorf(context.Background(), "Error retrieving user: %v", err)
+					go h.clients.Log.WithRequest(ctx.Request()).Errorf(context.Background(), "Error retrieving user: %v", err)
 				}
 
 				return err
@@ -205,7 +205,7 @@ func (h *H) echoLog() echo.MiddlewareFunc {
 				fields["user"] = u
 			}
 
-			go h.clients.Log.WithFields(fields).Info(context.Background(), ctx.Request().URL)
+			go h.clients.Log.WithRequest(ctx.Request()).WithFields(fields).Info(context.Background(), "")
 			return next(ctx)
 		}
 	}
