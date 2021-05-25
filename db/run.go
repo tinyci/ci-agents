@@ -71,11 +71,11 @@ func (m *Model) SetRunStatus(ctx context.Context, runID int64, status, canceled 
 		return err
 	}
 
-	if !run.Status.Valid {
+	if run.Status.Valid && run.FinishedAt.Valid {
 		return fmt.Errorf("status already set for run %d", runID)
 	}
 
-	qi, err := models.QueueItems(models.RunWhere.ID.EQ(runID)).One(ctx, m.db)
+	qi, err := models.QueueItems(models.QueueItemWhere.RunID.EQ(runID)).One(ctx, m.db)
 	if err != nil {
 		return err
 	}

@@ -172,7 +172,7 @@ func (m *Model) UpdateTaskStatus(ctx context.Context, taskID int64, status null.
 	}
 
 	for _, run := range runs {
-		if run.Status.Valid || run.FinishedAt.Valid {
+		if !run.Status.Valid || !run.FinishedAt.Valid {
 			return nil
 		}
 	}
