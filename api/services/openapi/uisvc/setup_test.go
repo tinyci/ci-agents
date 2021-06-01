@@ -59,7 +59,7 @@ func (us *uisvcSuite) SetUpTest(c *check.C) {
 	us.assetHandler, us.assetDoneChan, err = assetsvc.MakeAssetServer()
 	c.Assert(err, check.IsNil)
 
-	us.logHandler, us.logDoneChan, us.logJournal, err = logsvc.MakeLogServer()
+	us.logHandler, _, us.logDoneChan, us.logJournal, err = logsvc.MakeLogServer()
 	c.Assert(err, check.IsNil)
 
 	go us.logJournal.Tail()

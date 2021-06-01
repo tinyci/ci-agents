@@ -2,6 +2,7 @@ package logsvc
 
 import (
 	transport "github.com/erikh/go-transport"
+	"github.com/sirupsen/logrus"
 	grpcHandler "github.com/tinyci/ci-agents/api/handlers/grpc"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/log"
 	client "github.com/tinyci/ci-agents/clients/log"
@@ -10,7 +11,7 @@ import (
 )
 
 // MakeLogServer makes a logsvc.
-func MakeLogServer() (*grpcHandler.H, chan struct{}, *LogJournal, error) {
+func MakeLogServer() (*grpcHandler.H, *LogServer, chan struct{}, *LogJournal, error) {
 	journal := &LogJournal{Journal: map[string][]*log.LogMessage{}}
 
 	logDispatch := DispatchTable{
@@ -40,12 +41,13 @@ func MakeLogServer() (*grpcHandler.H, chan struct{}, *LogJournal, error) {
 
 	t, err := transport.Listen(nil, "tcp", config.DefaultServices.Log.String())
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	srv := grpc.NewServer()
-	log.RegisterLogServer(srv, New(logDispatch))
+	service := New(logDispatch, logrus.DebugLevel)
+	log.RegisterLogServer(srv, service)
 
 	doneChan, err := h.Boot(t, srv, make(chan struct{}))
-	return h, doneChan, journal, err
+	return h, service, doneChan, journal, err
 }

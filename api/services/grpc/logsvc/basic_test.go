@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	check "github.com/erikh/check"
+	"github.com/sirupsen/logrus"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/clients/log"
 )
@@ -44,6 +45,79 @@ func (ls *logsvcSuite) TestLevels(c *check.C) {
 	c.Assert(len(j), check.Equals, 2)
 	c.Assert(j[0].Message, check.Equals, "test")
 	c.Assert(j[1].Message, check.Equals, "test 2")
+}
+
+func (ls *logsvcSuite) TestFiltering(c *check.C) {
+	l := log.New()
+	ctx := context.Background()
+
+	table := map[logrus.Level]struct {
+		info  bool
+		debug bool
+		error bool
+	}{
+		logrus.WarnLevel: {
+			info:  false,
+			debug: false,
+			error: true,
+		},
+		logrus.InfoLevel: {
+			info:  true,
+			error: true,
+			debug: false,
+		},
+		logrus.PanicLevel: {
+			info:  false,
+			error: false,
+			debug: false,
+		},
+		logrus.DebugLevel: {
+			info:  true,
+			error: true,
+			debug: true,
+		},
+		logrus.ErrorLevel: {
+			info:  false,
+			error: true,
+			debug: false,
+		},
+	}
+
+	for level, params := range table {
+		ls.service.changeLevel(level)
+
+		l.Info(ctx, "test")
+		l.Infof(ctx, "test %d", 2)
+		j := ls.journal.Journal[log.LevelInfo]
+
+		if params.info {
+			c.Assert(len(j), check.Equals, 2)
+		} else {
+			c.Assert(len(j), check.Equals, 0)
+		}
+
+		l.Debug(ctx, "test")
+		l.Debugf(ctx, "test %d", 2)
+
+		j = ls.journal.Journal[log.LevelDebug]
+		if params.debug {
+			c.Assert(len(j), check.Equals, 2)
+		} else {
+			c.Assert(len(j), check.Equals, 0)
+		}
+
+		l.Error(ctx, "test")
+		l.Errorf(ctx, "test %d", 2)
+
+		j = ls.journal.Journal[log.LevelError]
+		if params.error {
+			c.Assert(len(j), check.Equals, 2)
+		} else {
+			c.Assert(len(j), check.Equals, 0)
+		}
+
+		ls.journal.Reset()
+	}
 }
 
 func (ls *logsvcSuite) TestFields(c *check.C) {

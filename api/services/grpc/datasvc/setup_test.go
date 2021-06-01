@@ -36,7 +36,7 @@ func (ds *datasvcSuite) SetUpTest(c *check.C) {
 
 	ds.model = ds.dataServer.Model
 
-	ds.logServer, ds.logDoneChan, _, err = logsvc.MakeLogServer()
+	ds.logServer, _, ds.logDoneChan, _, err = logsvc.MakeLogServer()
 	c.Assert(err, check.IsNil)
 
 	ds.client, err = testclients.NewDataClient()

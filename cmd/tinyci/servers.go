@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	grpcHandler "github.com/tinyci/ci-agents/api/handlers/grpc"
 	"github.com/tinyci/ci-agents/api/services/grpc/assetsvc"
 	"github.com/tinyci/ci-agents/api/services/grpc/auth/github"
@@ -61,7 +62,15 @@ var servers = []*cmdlib.GRPCServer{
 		Description:    "Centralized logging for tinyCI",
 		DefaultService: config.DefaultServices.Log,
 		RegisterService: func(s *grpc.Server, h *grpcHandler.H) error {
-			log.RegisterLogServer(s, logsvc.New(nil))
+			loglevel := logrus.InfoLevel
+			if h.UserConfig.LogLevel != "" {
+				var err error
+				loglevel, err = logrus.ParseLevel(h.UserConfig.LogLevel)
+				if err != nil {
+					return err
+				}
+			}
+			log.RegisterLogServer(s, logsvc.New(nil, loglevel))
 			return nil
 		},
 		NoLogging: true,

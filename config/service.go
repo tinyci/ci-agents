@@ -40,6 +40,7 @@ type UserConfig struct {
 	ServiceConfig ServiceConfig `yaml:"services"`
 	ClientConfig  ClientConfig  `yaml:"clients"`
 
+	LogLevel       string      `yaml:"log_level"`
 	OAuth          OAuthConfig `yaml:"oauth"`
 	Auth           AuthConfig  `yaml:"auth"`
 	HookURL        string      `yaml:"hook_url"`

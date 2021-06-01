@@ -11,6 +11,7 @@ import (
 )
 
 type logsvcSuite struct {
+	service        *LogServer
 	logsvcHandler  *grpcHandler.H
 	logsvcDoneChan chan struct{}
 	journal        *LogJournal
@@ -24,7 +25,7 @@ func TestLogSvc(t *testing.T) {
 
 func (ls *logsvcSuite) SetUpTest(c *check.C) {
 	var err error
-	ls.logsvcHandler, ls.logsvcDoneChan, ls.journal, err = MakeLogServer()
+	ls.logsvcHandler, ls.service, ls.logsvcDoneChan, ls.journal, err = MakeLogServer()
 	c.Assert(err, check.IsNil)
 
 	c.Assert(client.ConfigureRemote(config.DefaultServices.Log.String(), nil, false), check.IsNil)
