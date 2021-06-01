@@ -74,7 +74,7 @@ func (h *H) logUnaryInterceptor(ctx context.Context, req interface{}, info *grpc
 				"uuid":       u.String(),
 				"finishedAt": fmt.Sprintf("%v", time.Now()),
 				"duration":   fmt.Sprintf("%v", time.Since(started)),
-			}).Info(ctx, "")
+			}).Debug(ctx, "")
 		}
 
 		return res, err
@@ -87,22 +87,22 @@ func (h *H) logStreamInterceptor(srv interface{}, ss grpc.ServerStream, info *gr
 	if h.Service.Clients.Log != nil {
 		u := uuid.New()
 		started := time.Now()
-		h.Service.Clients.Log.WithFields(log.FieldMap{
+		go h.Service.Clients.Log.WithFields(log.FieldMap{
 			"method":    path.Base(info.FullMethod),
 			"service":   h.Service.Name,
 			"uuid":      u.String(),
 			"startedAt": fmt.Sprintf("%v", started),
-		}).Info(ss.Context(), "")
+		}).Debug(ss.Context(), "")
 
 		err := handler(srv, ss)
 
-		h.Service.Clients.Log.WithFields(log.FieldMap{
+		go h.Service.Clients.Log.WithFields(log.FieldMap{
 			"method":     path.Base(info.FullMethod),
 			"service":    h.Service.Name,
 			"uuid":       u.String(),
 			"finishedAt": fmt.Sprintf("%v", time.Now()),
 			"duration":   fmt.Sprintf("%v", time.Since(started)),
-		}).Info(ss.Context(), "")
+		}).Debug(ss.Context(), "")
 
 		return err
 	}

@@ -244,9 +244,9 @@ func (sub *SubLogger) Logf(ctx context.Context, level string, msg string, values
 			localLog(made.String())
 			return
 		}
+	} else {
+		localLog(msg, values...)
 	}
-
-	localLog(msg, values...)
 }
 
 // Log logs a thing
@@ -258,9 +258,9 @@ func (sub *SubLogger) Log(ctx context.Context, level string, msg interface{}, lo
 			localLog(made.String())
 			return
 		}
+	} else {
+		localLog(msg)
 	}
-
-	localLog(msg)
 }
 
 // Info prints an info message

@@ -45,7 +45,7 @@ func (qs *queuesvcSuite) SetUpTest(c *check.C) {
 
 	var lj *logsvc.LogJournal
 
-	qs.logHandler, qs.logDoneChan, lj, err = logsvc.MakeLogServer()
+	qs.logHandler, _, qs.logDoneChan, lj, err = logsvc.MakeLogServer()
 	c.Assert(err, check.IsNil)
 
 	go lj.Tail()
