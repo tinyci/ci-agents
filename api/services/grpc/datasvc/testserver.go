@@ -13,7 +13,7 @@ import (
 
 // MakeDataServer makes an instance of the datasvc on port 6000. It returns a
 // chan which can be closed to terminate it, and any boot-time errors.
-func MakeDataServer() (*grpcHandler.H, chan struct{}, error) {
+func MakeDataServer() (*DataServer, chan struct{}, error) {
 	h := &grpcHandler.H{
 		Service: config.Service{
 			UseDB: true,
@@ -39,11 +39,12 @@ func MakeDataServer() (*grpcHandler.H, chan struct{}, error) {
 
 	db, err := db.NewConn(h.UserConfig.DSN)
 	if err != nil {
-		return h, nil, err
+		return nil, nil, err
 	}
 
-	data.RegisterDataServer(srv, &DataServer{H: h, C: protoconv.New(db)})
+	ds := &DataServer{H: h, C: protoconv.New(db)}
+	data.RegisterDataServer(srv, ds)
 
 	doneChan, err := h.Boot(t, srv, make(chan struct{}))
-	return h, doneChan, err
+	return ds, doneChan, err
 }

@@ -33,7 +33,7 @@ type uisvcSuite struct {
 	dataDoneChan  chan struct{}
 	assetDoneChan chan struct{}
 	logHandler    *grpcHandler.H
-	dataHandler   *grpcHandler.H
+	dataHandler   *datasvc.DataServer
 	queueHandler  *grpcHandler.H
 	assetHandler  *grpcHandler.H
 
@@ -79,6 +79,11 @@ func (us *uisvcSuite) TearDownTest(c *check.C) {
 	close(us.queueDoneChan)
 	close(us.logDoneChan)
 	close(us.assetDoneChan)
+	us.datasvcClient.Client().Close()
+	us.queuesvcClient.Client().Close()
+	us.dataHandler.H.Model.GetDB().Close()
+	us.dataHandler.C.Close()
+	us.logJournal.Reset()
 	time.Sleep(100 * time.Millisecond)
 }
 

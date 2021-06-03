@@ -8,7 +8,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
-	"github.com/tinyci/ci-agents/clients/github"
+	"github.com/tinyci/ci-agents/db"
 	"github.com/tinyci/ci-agents/db/models"
 	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
@@ -153,18 +153,18 @@ func (ds *DataServer) PutStatus(ctx context.Context, s *types.Status) (*empty.Em
 		return nil, err
 	}
 
-	client := github.NewClientFromAccessToken(token.Token)
+	go func(ds *DataServer, u *models.User, s *types.Status) {
+		client := ds.H.OAuth.GithubClient(u.Username, token.Token)
 
-	bits, err := ds.H.Model.GetRunDetail(ctx, s.Id)
-	if err != nil {
-		return nil, err
-	}
+		bits, err := ds.H.Model.GetRunDetail(ctx, s.Id)
+		if err != nil {
+			ds.H.Clients.Log.Error(context.Background(), err)
+		}
 
-	go func() {
 		if err := client.FinishedStatus(context.Background(), bits.Owner, bits.Repo, bits.Run.Name, bits.HeadSHA, fmt.Sprintf("%s/log/%d", ds.H.URL, s.Id), s.Status, "The run completed!"); err != nil {
 			ds.H.Clients.Log.Error(context.Background(), err)
 		}
-	}()
+	}(ds, u, s)
 
 	return &empty.Empty{}, nil
 }
@@ -183,8 +183,6 @@ func (ds *DataServer) SetCancel(ctx context.Context, id *types.IntID) (*empty.Em
 		return nil, err
 	}
 
-	client := github.NewClientFromAccessToken(token.Token)
-
 	if err := ds.H.Model.CancelRun(ctx, id.ID); err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
@@ -194,11 +192,13 @@ func (ds *DataServer) SetCancel(ctx context.Context, id *types.IntID) (*empty.Em
 		return nil, err
 	}
 
-	go func() {
+	go func(ds *DataServer, u *models.User, bits *db.RunDetail) {
+		client := ds.H.UserConfig.OAuth.GithubClient(u.Username, token.Token)
+
 		if err := client.ErrorStatus(context.Background(), bits.Owner, bits.Repo, bits.Run.Name, bits.HeadSHA, fmt.Sprintf("%s/log/%d", ds.H.URL, id.ID), utils.ErrRunCanceled); err != nil {
 			ds.H.Clients.Log.Error(context.Background(), err)
 		}
-	}()
+	}(ds, u, bits)
 
 	return &empty.Empty{}, nil
 }

@@ -53,6 +53,10 @@ func New(db *sql.DB) *Converter {
 	return c
 }
 
+func (c *Converter) Close() error {
+	return c.db.Close()
+}
+
 func (c *Converter) registerConversion(direction int, i interface{}, fun conversionFunc) {
 	if c.converters[direction] == nil {
 		c.converters[direction] = reflectMap{}
