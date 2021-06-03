@@ -19,11 +19,11 @@ import (
 func (m *Model) createToken(name string) ([]byte, string) {
 	key := securecookie.GenerateRandomKey(64)
 	encoded := fmt.Sprintf("%s %s", name, string(key))
-	return key, base64.URLEncoding.EncodeToString([]byte(encoded))
+	return key, base64.StdEncoding.EncodeToString([]byte(encoded))
 }
 
 func (m *Model) unpackToken(token string) (string, []byte, error) {
-	b, err := base64.URLEncoding.DecodeString(token)
+	b, err := base64.StdEncoding.DecodeString(token)
 	if err != nil {
 		return "", nil, utils.WrapError(utils.ErrInvalidAuth, "%v", err.Error())
 	}

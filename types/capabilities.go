@@ -13,7 +13,9 @@ const (
 	CapabilitySubmit Capability = "submit"
 	// CapabilityCancel allows cancels
 	CapabilityCancel Capability = "cancel"
+	// CapabilityReadLogs allows you to read CI logs
+	CapabilityReadLogs Capability = "logs"
 )
 
 // AllCapabilities comprises the superuser account's list of capabilities.
-var AllCapabilities = []Capability{CapabilityModifyCI, CapabilityModifyUser, CapabilitySubmit, CapabilityCancel}
+var AllCapabilities = []Capability{CapabilityModifyCI, CapabilityModifyUser, CapabilitySubmit, CapabilityCancel, CapabilityReadLogs}

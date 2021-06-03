@@ -33,6 +33,7 @@ func (rt *roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 type Client struct {
 	client  *uisvc.Client
 	baseURL *url.URL
+	token   string
 	tls     bool
 }
 
@@ -84,7 +85,7 @@ func New(u, token string, cert *transport.Cert) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{tls: cert != nil, baseURL: baseURL, client: c}, nil
+	return &Client{token: token, tls: cert != nil, baseURL: baseURL, client: c}, nil
 }
 
 // DeleteToken removes your token. You won't be able to request anything after making this call.
@@ -129,8 +130,17 @@ func (c *Client) LogAttach(ctx context.Context, id int64, w io.WriteCloser) erro
 		baseURL.Scheme = "wss"
 	}
 
+	headers := http.Header{}
+	headers.Add("Authorization", c.token)
+
 	baseURL.Path += fmt.Sprintf("/log/attach/%d", id)
-	conn, err := websocket.Dial(baseURL.String(), "", baseURL.String())
+	conf, err := websocket.NewConfig(baseURL.String(), baseURL.String())
+	if err != nil {
+		return err
+	}
+
+	conf.Header = headers
+	conn, err := websocket.DialConfig(conf)
 	if err != nil {
 		return err
 	}
