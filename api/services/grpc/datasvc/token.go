@@ -18,6 +18,7 @@ import (
 // refuse to yield the existing token.
 func (ds *DataServer) GetToken(ctx context.Context, name *data.Name) (*types.StringID, error) {
 	token, err := ds.H.Model.GetToken(ctx, name.Name)
+
 	if err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}

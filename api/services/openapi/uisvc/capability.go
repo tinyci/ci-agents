@@ -2,7 +2,6 @@ package uisvc
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/labstack/echo/v4"
 	"github.com/tinyci/ci-agents/types"
@@ -10,8 +9,6 @@ import (
 
 // PostCapabilitiesUsernameCapability adds a capability for a user.
 func (h *H) PostCapabilitiesUsernameCapability(ctx echo.Context, capability, username string) error {
-	fmt.Println(username, capability)
-
 	u, err := h.clients.Data.GetUser(ctx.Request().Context(), username)
 	if err != nil {
 		return err

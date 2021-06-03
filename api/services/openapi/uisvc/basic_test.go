@@ -69,7 +69,7 @@ func (cb *closeBuffer) Close() error {
 
 func (us *uisvcSuite) TestLogAttach(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
-	_, doneChan, tc, _, err := MakeUIServer(client)
+	_, doneChan, tc, utc, err := MakeUIServer(client)
 	c.Assert(err, check.IsNil)
 	defer close(doneChan)
 
@@ -77,8 +77,8 @@ func (us *uisvcSuite) TestLogAttach(c *check.C) {
 	time.Sleep(100 * time.Millisecond)
 	buf := &closeBuffer{bytes.NewBuffer(nil)}
 	c.Assert(tc.LogAttach(ctx, 1, buf), check.IsNil)
-
 	c.Assert(strings.HasPrefix(buf.String(), "this is a log"), check.Equals, true, check.Commentf("buf: %s", buf))
+	c.Assert(utc.LogAttach(ctx, 1, buf), check.NotNil)
 }
 
 func (us *uisvcSuite) TestTokenEndpoints(c *check.C) {

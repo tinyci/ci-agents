@@ -300,6 +300,7 @@ paths:
         - token: []
         - session: []
       summary: Attach to a running log
+      x-capability: logs
       description: >
         For a given ID, find the log and if it is running, attach to it and
         start receiving the latest content from it.
