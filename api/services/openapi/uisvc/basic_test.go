@@ -190,7 +190,7 @@ func (us *uisvcSuite) TestSubmit(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	for i := 0; i < len(runs); i++ {
-		client.EXPECT().ErrorStatus(
+		erikhClient.EXPECT().ErrorStatus(
 			gomock.Any(),
 			"erikh",
 			"parent",

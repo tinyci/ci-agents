@@ -15,7 +15,7 @@ import (
 type datasvcSuite struct {
 	model        *db.Model
 	dataDoneChan chan struct{}
-	dataServer   *grpcHandler.H
+	dataServer   *DataServer
 	logDoneChan  chan struct{}
 	logServer    *grpcHandler.H
 	client       *testclients.DataClient
@@ -34,7 +34,7 @@ func (ds *datasvcSuite) SetUpTest(c *check.C) {
 	ds.dataServer, ds.dataDoneChan, err = MakeDataServer()
 	c.Assert(err, check.IsNil)
 
-	ds.model = ds.dataServer.Model
+	ds.model = ds.dataServer.H.Model
 
 	ds.logServer, _, ds.logDoneChan, _, err = logsvc.MakeLogServer()
 	c.Assert(err, check.IsNil)
@@ -46,5 +46,7 @@ func (ds *datasvcSuite) SetUpTest(c *check.C) {
 func (ds *datasvcSuite) TearDownTest(c *check.C) {
 	close(ds.logDoneChan)
 	close(ds.dataDoneChan)
+	ds.model.GetDB().Close()
+	ds.dataServer.C.Close()
 	time.Sleep(100 * time.Millisecond)
 }

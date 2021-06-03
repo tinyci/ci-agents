@@ -22,7 +22,7 @@ type queuesvcSuite struct {
 	dataDoneChan   chan struct{}
 	logDoneChan    chan struct{}
 	model          *db.Model
-	dataHandler    *grpcHandler.H
+	dataHandler    *datasvc.DataServer
 	logHandler     *grpcHandler.H
 	queueHandler   *grpcHandler.H
 }
