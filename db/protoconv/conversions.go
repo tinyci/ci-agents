@@ -509,7 +509,7 @@ func subToProto(ctx context.Context, db *sql.DB, i interface{}) (interface{}, er
 	var finishedAt *timestamppb.Timestamp
 
 	if statusSet {
-		t, err := s.Tasks(qm.Where("finished_at is not null"), qm.OrderBy("finished_at"), qm.Limit(1)).One(ctx, db)
+		t, err := s.Tasks(qm.Where("finished_at is not null"), qm.OrderBy("finished_at DESC"), qm.Limit(1)).One(ctx, db)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return nil, err
 		} else if !errors.Is(err, sql.ErrNoRows) {

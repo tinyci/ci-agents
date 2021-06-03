@@ -153,18 +153,18 @@ func (ds *DataServer) PutStatus(ctx context.Context, s *types.Status) (*empty.Em
 		return nil, err
 	}
 
-	go func(ds *DataServer, u *models.User, s *types.Status) {
-		client := ds.H.OAuth.GithubClient(u.Username, token.Token)
+	bits, err := ds.H.Model.GetRunDetail(ctx, s.Id)
+	if err != nil {
+		return nil, err
+	}
 
-		bits, err := ds.H.Model.GetRunDetail(ctx, s.Id)
-		if err != nil {
-			ds.H.Clients.Log.Error(context.Background(), err)
-		}
+	go func(ds *DataServer, u *models.User, bits *db.RunDetail) {
+		client := ds.H.OAuth.GithubClient(u.Username, token.Token)
 
 		if err := client.FinishedStatus(context.Background(), bits.Owner, bits.Repo, bits.Run.Name, bits.HeadSHA, fmt.Sprintf("%s/log/%d", ds.H.URL, s.Id), s.Status, "The run completed!"); err != nil {
 			ds.H.Clients.Log.Error(context.Background(), err)
 		}
-	}(ds, u, s)
+	}(ds, u, bits)
 
 	return &empty.Empty{}, nil
 }
