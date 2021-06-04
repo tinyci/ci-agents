@@ -2,7 +2,6 @@ package testclients
 
 import (
 	"context"
-	"encoding/json"
 	"path"
 
 	"github.com/google/go-github/github"
@@ -32,7 +31,7 @@ func (dc *DataClient) Client() *data.Client {
 
 // MakeUser makes a new user with the name provided. It is given a dummy access token.
 func (dc *DataClient) MakeUser(username string) (*types.User, error) {
-	token, err := json.Marshal(topTypes.OAuthToken{Token: "abcdef"})
+	token, err := (&topTypes.OAuthToken{Token: "abcdef"}).Encrypt(config.TokenCryptKey)
 	if err != nil {
 		return nil, err
 	}

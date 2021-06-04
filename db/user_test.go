@@ -1,7 +1,6 @@
 package db
 
 import (
-	"encoding/json"
 	"errors"
 	"math/rand"
 	"sort"
@@ -9,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-github/github"
+	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/db/models"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/types"
@@ -30,7 +30,11 @@ func TestCapabilityModification(t *testing.T) {
 	fixedCaps := map[string][]string{
 		"erikh2": strCaps,
 	}
-	u, err := m.CreateUser(ctx, "erikh", &types.OAuthToken{Token: "dummy"})
+
+	token, err := (&types.OAuthToken{Token: "dummy"}).Encrypt(config.TokenCryptKey)
+	assert.NilError(t, err)
+
+	u, err := m.CreateUser(ctx, "erikh", token)
 	assert.NilError(t, err)
 
 	for _, cap := range caps {
@@ -60,7 +64,7 @@ func TestCapabilityModification(t *testing.T) {
 		assert.Assert(t, !res)
 	}
 
-	u2, err := m.CreateUser(ctx, "erikh2", &types.OAuthToken{Token: "dummy"})
+	u2, err := m.CreateUser(ctx, "erikh2", token)
 	assert.NilError(t, err)
 
 	for _, cap := range caps {
@@ -92,14 +96,17 @@ func TestUserValidate(t *testing.T) {
 		token    *types.OAuthToken
 	}{
 		{"", nil},
-		{"", testToken},
+		{"", testutil.DummyToken},
 		{"erikh", nil},
 		{"erikh", &types.OAuthToken{}},
 	}
 
 	for _, failure := range failcases {
-		_, err := m.CreateUser(ctx, failure.username, failure.token)
-		assert.Assert(t, err != nil)
+		token, err := failure.token.Encrypt(config.TokenCryptKey)
+		if err == nil {
+			_, err = m.CreateUser(ctx, failure.username, token)
+			assert.Assert(t, err != nil, "%q: %v %x", failure.username, failure.token, token)
+		}
 	}
 
 	u, err := m.CreateUser(ctx, "erikh", testToken)
@@ -111,27 +118,25 @@ func TestUserValidate(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Assert(t, cmp.Equal(u.ID, u2.ID))
 	assert.Assert(t, cmp.Equal(u2.Username, "erikh"))
-
-	token := &types.OAuthToken{}
-
-	assert.NilError(t, u2.Token.Unmarshal(token))
-	assert.Assert(t, cmp.DeepEqual(token, testToken))
+	assert.Assert(t, cmp.DeepEqual(u2.Token, testToken))
 
 	u2.Token = nil
 	_, err = u2.Update(ctx, m.db, boil.Infer())
 	assert.Assert(t, err != nil)
 
-	u2.Token, err = json.Marshal(&types.OAuthToken{Token: "567890"})
-	assert.NilError(t, err)
+	newToken := &types.OAuthToken{Token: "567890"}
+
+	assert.NilError(t, m.SetGithubToken(ctx, u2, newToken))
 	_, err = u2.Update(ctx, m.db, boil.Infer())
 	assert.NilError(t, err)
 
 	u3, err := m.FindUserByName(ctx, "erikh")
 	assert.NilError(t, err)
 
-	token, token2 := &types.OAuthToken{}, &types.OAuthToken{}
-	assert.NilError(t, u3.Token.Unmarshal(token))
-	assert.NilError(t, u2.Token.Unmarshal(token2))
+	token, err := m.GetGithubToken(ctx, u3)
+	assert.NilError(t, err)
+	token2, err := m.GetGithubToken(ctx, u2)
+	assert.NilError(t, err)
 
 	assert.Assert(t, cmp.DeepEqual(token, token2))
 }

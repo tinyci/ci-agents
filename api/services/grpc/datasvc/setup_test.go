@@ -5,8 +5,10 @@ import (
 	"time"
 
 	check "github.com/erikh/check"
+	"github.com/gorilla/securecookie"
 	grpcHandler "github.com/tinyci/ci-agents/api/handlers/grpc"
 	"github.com/tinyci/ci-agents/api/services/grpc/logsvc"
+	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/db"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/testutil/testclients"
@@ -29,6 +31,8 @@ func TestDataSvc(t *testing.T) {
 
 func (ds *datasvcSuite) SetUpTest(c *check.C) {
 	testutil.WipeDB()
+
+	config.TokenCryptKey = securecookie.GenerateRandomKey(32)
 
 	var err error
 	ds.dataServer, ds.dataDoneChan, err = MakeDataServer()

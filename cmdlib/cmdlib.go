@@ -64,6 +64,10 @@ func (s *GRPCServer) MakeHandlerFunc(configFile string) (HandlerFunc, error) {
 	h.UseDB = s.UseDB
 	h.UseSessions = s.UseSessions
 
+	if err := h.Auth.Validate(true); err != nil {
+		return nil, err
+	}
+
 	cert, certErr := h.TLS.Load()
 	if certErr != nil {
 		return nil, certErr

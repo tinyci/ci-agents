@@ -3,7 +3,6 @@ package github
 import (
 	"context"
 	"encoding/base32"
-	"encoding/json"
 	"strings"
 
 	"errors"
@@ -15,6 +14,7 @@ import (
 	authconsts "github.com/tinyci/ci-agents/api/services/grpc/auth"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/auth"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
+	"github.com/tinyci/ci-agents/config"
 	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 	"golang.org/x/oauth2"
@@ -74,7 +74,7 @@ func (as *AuthServer) OAuthChallenge(ctx context.Context, ocr *auth.OAuthChallen
 		}
 	}
 
-	user.TokenJSON, err = json.Marshal(&topTypes.OAuthToken{Token: tok.AccessToken, Scopes: scopes, Username: u.GetLogin()})
+	user.TokenJSON, err = topTypes.EncryptToken(config.TokenCryptKey, &topTypes.OAuthToken{Token: tok.AccessToken, Scopes: scopes, Username: u.GetLogin()})
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,6 @@ package uisvc
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -131,7 +130,7 @@ func MakeUIServer(client github.Client) (*H, chan struct{}, *tinyci.Client, *tin
 		return nil, nil, nil, nil, err
 	}
 
-	content, err := json.Marshal(&topTypes.OAuthToken{Username: "erikh", Token: "dummy", Scopes: []string{"repo"}})
+	content, err := (&topTypes.OAuthToken{Username: "erikh", Token: "dummy", Scopes: []string{"repo"}}).Encrypt(config.TokenCryptKey)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -161,7 +160,7 @@ func MakeUIServer(client github.Client) (*H, chan struct{}, *tinyci.Client, *tin
 		return nil, nil, nil, nil, err
 	}
 
-	content, err = json.Marshal(&topTypes.OAuthToken{Token: "dummy"})
+	content, err = (&topTypes.OAuthToken{Token: "dummy"}).Encrypt(config.TokenCryptKey)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

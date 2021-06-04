@@ -24,10 +24,6 @@ func (qs *queuesvcSuite) getMock() *github.MockClientMockRecorder {
 	return config.DefaultGithubClient("").(*github.MockClient).EXPECT()
 }
 
-func (qs *queuesvcSuite) getUserMock() *github.MockClientMockRecorder {
-	return config.DefaultGithubClient("erikh").(*github.MockClient).EXPECT()
-}
-
 func (qs *queuesvcSuite) TestBadYAML(c *check.C) {
 	// almost the same as testsubmission but with some dependencies logic in it
 	_, err := qs.datasvcClient.MakeUser("erikh")
@@ -120,7 +116,6 @@ func (qs *queuesvcSuite) TestManualSubmissionOfAddedFork(c *check.C) {
 func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	client := github.NewMockClient(gomock.NewController(c))
 	qs.mkGithubClient(client)
-	config.SetDefaultGithubClient(github.NewMockClient(gomock.NewController(c)), "erikh")
 
 	sub := &topTypes.Submission{
 		Parent:   "erikh/foobar",
@@ -138,8 +133,8 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 	}
 
 	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
-	qs.getUserMock().GetRepository(gomock.Any(), sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
-	qs.getUserMock().GetRepository(gomock.Any(), sub.Fork).Return(&gh.Repository{Fork: gh.Bool(true), FullName: gh.String(sub.Fork), Parent: &gh.Repository{FullName: gh.String(sub.Parent)}}, nil)
+	qs.getMock().GetRepository(gomock.Any(), sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
+	qs.getMock().GetRepository(gomock.Any(), sub.Fork).Return(&gh.Repository{Fork: gh.Bool(true), FullName: gh.String(sub.Fork), Parent: &gh.Repository{FullName: gh.String(sub.Parent)}}, nil)
 	qs.getMock().GetRepository(gomock.Any(), sub.Parent).Return(&gh.Repository{FullName: gh.String(sub.Parent)}, nil)
 	qs.getMock().GetRepository(gomock.Any(), sub.Fork).Return(&gh.Repository{Fork: gh.Bool(true), FullName: gh.String(sub.Fork), Parent: &gh.Repository{FullName: gh.String(sub.Parent)}}, nil)
 	qs.getMock().GetSHA(gomock.Any(), sub.Fork, "heads/master").Return(sub.HeadSHA, nil)
@@ -226,7 +221,8 @@ func (qs *queuesvcSuite) TestManualSubmission(c *check.C) {
 }
 
 func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
-	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
+	client := github.NewMockClient(gomock.NewController(c))
+	qs.mkGithubClient(client)
 
 	sub := &topTypes.Submission{
 		Parent:   "erikh/foobar",
@@ -245,13 +241,16 @@ func (qs *queuesvcSuite) TestSubmission2(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(len(runs.List), check.Equals, 10)
 
+	owner := testutil.RandString(8)
 	sub = &topTypes.Submission{
-		Parent:   path.Join(testutil.RandString(8), testutil.RandString(8)),
+		Parent:   path.Join(owner, testutil.RandString(8)),
 		Fork:     path.Join(testutil.RandString(8), testutil.RandString(8)),
 		HeadSHA:  "be3d26c478991039e951097f2c99f56b55396940",
 		BaseSHA:  "be3d26c478991039e951097f2c99f56b55396941",
 		TicketID: 10,
 	}
+
+	config.SetDefaultGithubClient(client, owner)
 
 	c.Assert(qs.queuesvcClient.SetUpSubmissionRepo(sub.Parent, ""), check.IsNil)
 	c.Assert(qs.queuesvcClient.SetMockSubmissionSuccess(qs.getMock(), sub, "heads/master", ""), check.IsNil)
@@ -344,10 +343,11 @@ func (qs *queuesvcSuite) TestDependencies(c *check.C) {
 		TicketID: 10,
 	}
 
+	client := github.NewMockClient(gomock.NewController(c))
+	qs.mkGithubClient(client)
+
 	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar", "erikh", false, ""), check.IsNil)
 	c.Assert(qs.datasvcClient.MakeRepo("erikh/foobar2", "erikh", false, "erikh/foobar"), check.IsNil)
-
-	qs.mkGithubClient(github.NewMockClient(gomock.NewController(c)))
 
 	repoConfigBytes, e := ioutil.ReadFile("../../../testdata/standard_repoconfig.yml")
 	c.Assert(e, check.IsNil)

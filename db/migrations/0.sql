@@ -20,7 +20,7 @@ CREATE TABLE sessions (
 CREATE TABLE users (
     id bigserial NOT NULL primary key,
     username character varying NOT NULL,
-    token jsonb NOT NULL,
+    token bytea NOT NULL,
     last_scanned_repos timestamp with time zone,
     login_token bytea,
 

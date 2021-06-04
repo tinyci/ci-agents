@@ -19,7 +19,6 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/volatiletech/sqlboiler/v4/queries/qmhelper"
-	"github.com/volatiletech/sqlboiler/v4/types"
 	"github.com/volatiletech/strmangle"
 )
 
@@ -27,7 +26,7 @@ import (
 type User struct {
 	ID               int64      `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Username         string     `boil:"username" json:"username" toml:"username" yaml:"username"`
-	Token            types.JSON `boil:"token" json:"token" toml:"token" yaml:"token"`
+	Token            []byte     `boil:"token" json:"token" toml:"token" yaml:"token"`
 	LastScannedRepos null.Time  `boil:"last_scanned_repos" json:"last_scanned_repos,omitempty" toml:"last_scanned_repos" yaml:"last_scanned_repos,omitempty"`
 	LoginToken       null.Bytes `boil:"login_token" json:"login_token,omitempty" toml:"login_token" yaml:"login_token,omitempty"`
 
@@ -50,6 +49,15 @@ var UserColumns = struct {
 }
 
 // Generated where
+
+type whereHelper__byte struct{ field string }
+
+func (w whereHelper__byte) EQ(x []byte) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelper__byte) NEQ(x []byte) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelper__byte) LT(x []byte) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelper__byte) LTE(x []byte) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelper__byte) GT(x []byte) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelper__byte) GTE(x []byte) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
 
 type whereHelpernull_Bytes struct{ field string }
 
@@ -77,13 +85,13 @@ func (w whereHelpernull_Bytes) GTE(x null.Bytes) qm.QueryMod {
 var UserWhere = struct {
 	ID               whereHelperint64
 	Username         whereHelperstring
-	Token            whereHelpertypes_JSON
+	Token            whereHelper__byte
 	LastScannedRepos whereHelpernull_Time
 	LoginToken       whereHelpernull_Bytes
 }{
 	ID:               whereHelperint64{field: "\"users\".\"id\""},
 	Username:         whereHelperstring{field: "\"users\".\"username\""},
-	Token:            whereHelpertypes_JSON{field: "\"users\".\"token\""},
+	Token:            whereHelper__byte{field: "\"users\".\"token\""},
 	LastScannedRepos: whereHelpernull_Time{field: "\"users\".\"last_scanned_repos\""},
 	LoginToken:       whereHelpernull_Bytes{field: "\"users\".\"login_token\""},
 }

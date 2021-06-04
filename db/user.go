@@ -2,13 +2,12 @@ package db
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"strings"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
+	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/db/models"
 	"github.com/tinyci/ci-agents/types"
 )
@@ -26,31 +25,29 @@ func userWriteValidateHook(ctx context.Context, db boil.ContextExecutor, u *mode
 		return err
 	}
 
-	if u.Token == nil {
+	if len(u.Token) == 0 {
 		return errors.New("token is empty (nil)")
-	}
-
-	token := &types.OAuthToken{}
-
-	if err := u.Token.Unmarshal(token); err != nil {
-		return err
-	}
-
-	if strings.TrimSpace(token.Token) == "" {
-		return errors.New("cannot be written because the oauth credentials are not valid")
 	}
 
 	return nil
 }
 
-// CreateUser initializes a user struct and writes it to the db.
-func (m *Model) CreateUser(ctx context.Context, username string, token *types.OAuthToken) (*models.User, error) {
-	content, err := json.Marshal(token)
-	if err != nil {
-		return nil, err
-	}
+// SetGithubToken allows setting of the github token. Key must already be parsed. (config.Auth.Validate)
+func (m *Model) SetGithubToken(ctx context.Context, u *models.User, tok *types.OAuthToken) error {
+	var err error
+	u.Token, err = types.EncryptToken(config.TokenCryptKey, tok)
+	return err
+}
 
-	u := &models.User{Username: username, Token: content}
+// GetGithubToken allows setting of the github token. Key must already be parsed. (config.Auth.Validate)
+func (m *Model) GetGithubToken(ctx context.Context, u *models.User) (*types.OAuthToken, error) {
+	return types.DecryptToken(config.TokenCryptKey, u.Token)
+}
+
+// CreateUser initializes a user struct and writes it to the db.
+func (m *Model) CreateUser(ctx context.Context, username string, token []byte) (*models.User, error) {
+	u := &models.User{Username: username, Token: token}
+
 	return u, u.Insert(ctx, m.db, boil.Infer())
 }
 

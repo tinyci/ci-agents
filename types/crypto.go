@@ -20,6 +20,10 @@ import (
 
 // EncryptToken encrypts an oauth token with gcm+aes.
 func EncryptToken(key []byte, tok *OAuthToken) ([]byte, error) {
+	if tok == nil || tok.Token == "" {
+		return nil, errors.New("invalid token")
+	}
+
 	// I know the storage management of this is terrible, but I don't have a better
 	// solution (or know someone who has one).
 	//
