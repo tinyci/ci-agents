@@ -2,7 +2,6 @@ package queuesvc
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -77,13 +76,13 @@ func (qs *QueueServer) NextQueueItem(ctx context.Context, qr *gtypes.QueueReques
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
-	var token types.OAuthToken
+	owner := qi.Run.Task.Submission.BaseRef.Repository.Owner
 
-	if err := json.Unmarshal(qi.Run.Task.Submission.BaseRef.Repository.Owner.TokenJSON, &token); err != nil {
-		return nil, err
+	github, err := qs.H.OAuth.GithubClient(owner.Username, owner.TokenJSON)
+	if err != nil {
+		return nil, status.Error(codes.FailedPrecondition, "error crafting token")
 	}
 
-	github := qs.H.OAuth.GithubClient(token.Username, token.Token)
 	parts := strings.SplitN(qi.Run.Task.Submission.BaseRef.Repository.Name, "/", 2)
 	if len(parts) != 2 {
 		return &gtypes.QueueItem{}, status.Errorf(codes.FailedPrecondition, "invalid repository")

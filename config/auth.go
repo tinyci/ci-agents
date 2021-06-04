@@ -76,6 +76,10 @@ func (ac *AuthConfig) Validate(parseCrypt bool) error {
 		ac.FixedCapabilities = map[string][]string{}
 	}
 
+	if parseCrypt {
+		return ac.ParseTokenKey()
+	}
+
 	return nil
 }
 

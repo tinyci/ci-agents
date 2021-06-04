@@ -244,8 +244,8 @@ func (h *H) echoOAuthScopes() echo.MiddlewareFunc {
 			scope, ok := ctx.Get("openapiExt.x-token-scope").(string)
 			if ok {
 				if u, ok := h.getUser(ctx); ok {
-					var token topTypes.OAuthToken
-					if err := json.Unmarshal(u.TokenJSON, &token); err != nil {
+					token, err := topTypes.DecryptToken(config.TokenCryptKey, u.TokenJSON)
+					if err != nil {
 						return err
 					}
 
@@ -373,12 +373,7 @@ func (h *H) getClient(ctx echo.Context) (github.Client, error) {
 		return nil, err
 	}
 
-	var token topTypes.OAuthToken
-	if err := json.Unmarshal(user.TokenJSON, &token); err != nil {
-		return nil, err
-	}
-
-	return h.Config.OAuth.GithubClient(token.Username, token.Token), nil
+	return h.Config.OAuth.GithubClient(user.Username, user.TokenJSON)
 }
 
 // GetGithub gets the github user from the session and loads it.

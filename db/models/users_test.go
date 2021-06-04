@@ -1509,7 +1509,7 @@ func testUsersSelect(t *testing.T) {
 }
 
 var (
-	userDBTypes = map[string]string{`ID`: `bigint`, `Username`: `character varying`, `Token`: `jsonb`, `LastScannedRepos`: `timestamp with time zone`, `LoginToken`: `bytea`}
+	userDBTypes = map[string]string{`ID`: `bigint`, `Username`: `character varying`, `Token`: `bytea`, `LastScannedRepos`: `timestamp with time zone`, `LoginToken`: `bytea`}
 	_           = bytes.MinRead
 )
 

@@ -2,7 +2,6 @@ package datasvc
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/tinyci/ci-agents/ci-gen/grpc/services/data"
@@ -65,12 +64,7 @@ func (ds *DataServer) PatchUser(ctx context.Context, u *types.User) (*empty.Empt
 
 // PutUser creates a new user.
 func (ds *DataServer) PutUser(ctx context.Context, u *types.User) (*types.User, error) {
-	ot := &topTypes.OAuthToken{}
-	if err := json.Unmarshal(u.TokenJSON, ot); err != nil {
-		return &types.User{}, status.Errorf(codes.FailedPrecondition, "%v", err)
-	}
-
-	um, err := ds.H.Model.CreateUser(ctx, u.Username, ot)
+	um, err := ds.H.Model.CreateUser(ctx, u.Username, u.TokenJSON)
 	if err != nil {
 		ds.H.Clients.Log.Errorf(ctx, "Could not create user %q: %v", u.Username, err)
 		return &types.User{}, status.Errorf(codes.FailedPrecondition, "%v", err)

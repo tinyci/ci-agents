@@ -124,10 +124,6 @@ func (h *H) Boot(t net.Listener, s *grpc.Server, finished chan struct{}) (chan s
 		}
 	}
 
-	if err := h.Auth.ParseTokenKey(); err != nil {
-		return nil, err
-	}
-
 	var err error
 	h.Service.Clients, err = h.UserConfig.ClientConfig.CreateClients(h.UserConfig, h.Name)
 	if err != nil {

@@ -2,7 +2,6 @@ package queuesvc
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -244,13 +243,7 @@ func (ri *repoInfo) client(h *grpcHandler.H) (github.Client, error) {
 		return nil, errors.New("No owner for target repository")
 	}
 
-	var token topTypes.OAuthToken
-
-	if err := json.Unmarshal(repoOwner.TokenJSON, &token); err != nil {
-		return nil, err
-	}
-
-	return h.OAuth.GithubClient(token.Username, token.Token), nil
+	return h.OAuth.GithubClient(repoOwner.Username, repoOwner.TokenJSON)
 }
 
 func (sp *submissionProcessor) getSubmittedUserClient(ctx context.Context, submittedBy string) (*types.User, github.Client, error) {
@@ -263,15 +256,8 @@ func (sp *submissionProcessor) getSubmittedUserClient(ctx context.Context, submi
 		return nil, nil, utils.WrapError(err, "obtaining user information for submitter")
 	}
 
-	var token topTypes.OAuthToken
-
-	if err := json.Unmarshal(user.TokenJSON, &token); err != nil {
-		return nil, nil, err
-	}
-
-	client := sp.handler.OAuth.GithubClient(token.Username, token.Token)
-
-	return user, client, nil
+	client, err := sp.handler.OAuth.GithubClient(user.Username, user.TokenJSON)
+	return user, client, err
 }
 
 func (sp *submissionProcessor) parentRepository(ctx context.Context, parent string) (*types.Repository, error) {

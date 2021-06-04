@@ -7,6 +7,10 @@ type OAuthToken struct {
 	Username string   `json:"username"`
 }
 
+func (oat *OAuthToken) Encrypt(key []byte) ([]byte, error) {
+	return EncryptToken(key, oat)
+}
+
 // Can returns true if the scope is present in the scopes list.
 func (oat *OAuthToken) Can(scope string) bool {
 	var found bool

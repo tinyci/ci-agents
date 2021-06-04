@@ -5,6 +5,7 @@ import (
 	"time"
 
 	check "github.com/erikh/check"
+	"github.com/gorilla/securecookie"
 	grpcHandler "github.com/tinyci/ci-agents/api/handlers/grpc"
 	"github.com/tinyci/ci-agents/api/services/grpc/datasvc"
 	"github.com/tinyci/ci-agents/api/services/grpc/logsvc"
@@ -25,6 +26,7 @@ type queuesvcSuite struct {
 	dataHandler    *datasvc.DataServer
 	logHandler     *grpcHandler.H
 	queueHandler   *grpcHandler.H
+	logJournal     *logsvc.LogJournal
 }
 
 var _ = check.Suite(&queuesvcSuite{})
@@ -36,6 +38,8 @@ func TestQueueSvc(t *testing.T) {
 func (qs *queuesvcSuite) SetUpTest(c *check.C) {
 	testutil.WipeDB()
 
+	config.TokenCryptKey = securecookie.GenerateRandomKey(32)
+
 	var err error
 	qs.model, err = db.Open(&config.UserConfig{DSN: testutil.TestDBConfig})
 	c.Assert(err, check.IsNil)
@@ -43,12 +47,10 @@ func (qs *queuesvcSuite) SetUpTest(c *check.C) {
 	qs.dataHandler, qs.dataDoneChan, err = datasvc.MakeDataServer()
 	c.Assert(err, check.IsNil)
 
-	var lj *logsvc.LogJournal
-
-	qs.logHandler, _, qs.logDoneChan, lj, err = logsvc.MakeLogServer()
+	qs.logHandler, _, qs.logDoneChan, qs.logJournal, err = logsvc.MakeLogServer()
 	c.Assert(err, check.IsNil)
 
-	go lj.Tail()
+	go qs.logJournal.Tail()
 
 	qs.queueHandler, qs.queueDoneChan, err = MakeQueueServer()
 	c.Assert(err, check.IsNil)
@@ -64,9 +66,11 @@ func (qs *queuesvcSuite) TearDownTest(c *check.C) {
 	close(qs.logDoneChan)
 	close(qs.dataDoneChan)
 	close(qs.queueDoneChan)
+	qs.logJournal.Reset()
 	time.Sleep(100 * time.Millisecond)
 }
 
 func (qs *queuesvcSuite) mkGithubClient(client *github.MockClient) {
 	config.SetDefaultGithubClient(client, "")
+	config.SetDefaultGithubClient(client, "erikh")
 }

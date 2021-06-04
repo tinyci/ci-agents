@@ -10,7 +10,6 @@ import (
 	"github.com/tinyci/ci-agents/ci-gen/grpc/types"
 	"github.com/tinyci/ci-agents/db"
 	"github.com/tinyci/ci-agents/db/models"
-	topTypes "github.com/tinyci/ci-agents/types"
 	"github.com/tinyci/ci-agents/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -147,19 +146,17 @@ func (ds *DataServer) PutStatus(ctx context.Context, s *types.Status) (*empty.Em
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
 
-	var token topTypes.OAuthToken
-
-	if err := u.Token.Unmarshal(&token); err != nil {
-		return nil, err
-	}
-
 	bits, err := ds.H.Model.GetRunDetail(ctx, s.Id)
 	if err != nil {
 		return nil, err
 	}
 
 	go func(ds *DataServer, u *models.User, bits *db.RunDetail) {
-		client := ds.H.OAuth.GithubClient(u.Username, token.Token)
+		client, err := ds.H.OAuth.GithubClient(u.Username, u.Token)
+		if err != nil {
+			ds.H.Clients.Log.Error(context.Background(), utils.WrapError(err, "while creating github client"))
+			return
+		}
 
 		if err := client.FinishedStatus(context.Background(), bits.Owner, bits.Repo, bits.Run.Name, bits.HeadSHA, fmt.Sprintf("%s/log/%d", ds.H.URL, s.Id), s.Status, "The run completed!"); err != nil {
 			ds.H.Clients.Log.Error(context.Background(), err)
@@ -177,12 +174,6 @@ func (ds *DataServer) SetCancel(ctx context.Context, id *types.IntID) (*empty.Em
 		return nil, err
 	}
 
-	var token topTypes.OAuthToken
-
-	if err := u.Token.Unmarshal(&token); err != nil {
-		return nil, err
-	}
-
 	if err := ds.H.Model.CancelRun(ctx, id.ID); err != nil {
 		return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 	}
@@ -193,7 +184,11 @@ func (ds *DataServer) SetCancel(ctx context.Context, id *types.IntID) (*empty.Em
 	}
 
 	go func(ds *DataServer, u *models.User, bits *db.RunDetail) {
-		client := ds.H.UserConfig.OAuth.GithubClient(u.Username, token.Token)
+		client, err := ds.H.UserConfig.OAuth.GithubClient(u.Username, u.Token)
+		if err != nil {
+			ds.H.Clients.Log.Error(context.Background(), utils.WrapError(err, "while creating github client"))
+			return
+		}
 
 		if err := client.ErrorStatus(context.Background(), bits.Owner, bits.Repo, bits.Run.Name, bits.HeadSHA, fmt.Sprintf("%s/log/%d", ds.H.URL, id.ID), utils.ErrRunCanceled); err != nil {
 			ds.H.Clients.Log.Error(context.Background(), err)

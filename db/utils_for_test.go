@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/google/go-github/github"
+	"github.com/gorilla/securecookie"
+	"github.com/tinyci/ci-agents/config"
 	"github.com/tinyci/ci-agents/db/models"
 	"github.com/tinyci/ci-agents/testutil"
 	"github.com/tinyci/ci-agents/types"
@@ -15,8 +17,16 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
-var testToken = &types.OAuthToken{
-	Token: "123456",
+var testToken []byte
+
+func init() {
+	config.TokenCryptKey = securecookie.GenerateRandomKey(32)
+
+	var err error
+	testToken, err = testutil.DummyToken.Encrypt(config.TokenCryptKey)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func stringp(s string) *string {
@@ -241,7 +251,7 @@ func (m *Model) FillTestQueue(ctx context.Context, count int64) ([]*models.Queue
 
 func (m *Model) CreateTestSubmission(ctx context.Context, sub *types.Submission) (*models.Submission, error) {
 	if sub.SubmittedBy != "" {
-		if _, err := m.CreateUser(ctx, sub.SubmittedBy, testutil.DummyToken); err != nil {
+		if _, err := m.CreateUser(ctx, sub.SubmittedBy, testToken); err != nil {
 			return nil, err
 		}
 	}
